@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Señor tu me llamas — Cancionero Carmen</title>
+<style>
+:root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg2);color:#1a1208;min-height:100vh}
+header{background:var(--wine);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--gold)}
+.h-top{display:flex;align-items:center;gap:.75rem}
+.back{color:rgba(255,255,255,.75);font-size:.85rem;text-decoration:none;flex-shrink:0}
+.back:hover{color:#fff}
+.h-title{font-size:1rem;font-weight:600;flex:1;line-height:1.2}
+main{max-width:680px;margin:0 auto;padding:1.25rem .9rem 3rem}
+.meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.tag{background:var(--wine-l);color:var(--wine);border:1px solid rgba(107,45,31,.18);border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;letter-spacing:.04em}
+.num{font-size:.75rem;color:var(--muted)}
+.chords-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border);border-radius:20px;padding:.28rem .8rem;font-size:.76rem;cursor:pointer;color:var(--muted);margin-bottom:.9rem;transition:all .14s}
+.chords-btn:hover,.chords-btn.on{border-color:var(--wine);color:var(--wine);background:var(--wine-l)}
+.lyrics{font-family:'Courier New',monospace;font-size:.875rem;line-height:1.9;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;color:#1a1208}
+.c{color:#8B3A28;font-weight:600;font-size:.8rem}
+.c.h{display:none}
+footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-top">
+    <a class="back" href="../index.html">← Índice</a>
+    <div class="h-title">Señor tu me llamas</div>
+  </div>
+</header>
+<main>
+  <div class="meta">
+    <span class="tag">Adoración</span>
+    <span class="num">Nº 120</span>
+  </div>
+  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">DO Mim Soy</span>
+<span>Señor, Tú me llamas por mi nombre,</span>
+<span class="c h">FA luz</span>
+<span>desde lejos, por mi nombre,</span>
+<span class="c h">RE7 SOL 122)</span>
+<span>cada día Tú me llamas.</span>
+<span class="c h">DO Mim Si co</span>
+<span>Señor, Tú me ofreces una vida, F</span>
+<span class="c h">FA deja</span>
+<span>santa y limpia, una vida,</span>
+<span class="c h">SOL DO Si co</span>
+<span>sin pecado y sin maldad.</span>
+<span>deja</span>
+<span class="c h">DO7 FA SOL Mim</span>
+<span>/Señor, nada tengo para darte Si co</span>
+<span class="c h">LA7 Rem S</span>
+<span>solamente te ofrezco seri</span>
+<span class="c h">SOL DO SOL DO</span>
+<span>hoy mi vida para que la uses Tú./ (bis)</span>
+<span class="c h">Si co</span>
+<span class="c h">DO Mim F</span>
+<span>Señor Tú me llamas por mi nombre, deja</span>
+<span class="c h">FA</span>
+<span>desde lejos, por mi nombre, Si co</span>
+<span class="c h">RE7 SOL</span>
+<span>cada día tu me llamas. deja</span>
+<span class="c h">DO Mim</span>
+<span>Señor quiero ser un siervo útil Si co</span>
+<span class="c h">FA</span>
+<span>que anuncie, que anuncie, escu</span>
+<span class="c h">SOL DO</span>
+<span>el mensaje de la cruz.</span>
+<span class="c h">Si co</span>
+<span>121) Sí</span>
+<span class="c h">La Mi Fa#- me</span>
+<span>Llamas y me ofreces con amor,</span>
+<span class="c h">Do#- Re Mi La Mi Si co</span>
+<span>construir un mundo mejor necesitas de mi sí.</span>
+<span class="c h">La Mi Fa#- bu</span>
+<span>Quieres que te siga hasta el fin</span>
+<span class="c h">Do#- Re Si co</span>
+<span>que comprendas que sin mí</span>
+<span class="c h">Mi La Mi Pen</span>
+<span>muchos quedarán sin Ti.</span>
+<span>123)</span>
+<span class="c h">RE MI LA Do</span>
+<span>Si no solamente porque sí, Si ra</span>
+<span class="c h">FA#m SIm Do</span>
+<span>sino porque yo junto a Ti si co</span>
+<span class="c h">MI7 LA La</span>
+<span>encuentro paz, soy muy feliz. la lu</span>
+<span class="c h">RE MI LA</span>
+<span>Sí, aunque no entienda digo sí, y en</span>
+<span class="c h">FA#m SIm</span>
+<span>aunque no vea digo sí,</span>
+<span class="c h">MI7 LA</span>
+<span>tu me elegiste, siempre sí.</span>
+<span class="c h">La Mi Fa#-</span>
+<span>Sé que Tú no puedes esperar,</span>
+<span class="c h">Do#- Re Mi La Mi</span>
+<span>tengo que dejar mi plan, tu camino vale más.</span>
+<span>48</span>
+<span class="c h">Mi Fa#-</span>
+<span>a sal que Tú quisiste echar</span>
+<span class="c h">Do#- Re Mi La Mi</span>
+<span>ue debe iluminar, me elegiste para amar.</span>
+<span class="c h">Si conocieras</span>
+<span class="c h">DO MIm</span>
+<span>ocieras como te amo, si conocieras como te amo;</span>
+<span class="c h">REm SOL7</span>
+<span>ías de vivir sin amor.</span>
+<span class="c h">DO MIm</span>
+<span>ocieras como te amo, si conocieras como te amo;</span>
+<span class="c h">A REm SOL7</span>
+<span>ías de mendigar cualquier amor,</span>
+<span class="c h">Lam MIm FA</span>
+<span>ocieras, como te amo, como te amo</span>
+<span class="c h">L7 DO</span>
+<span>s, más, feliz.</span>
+<span class="c h">DO MIm</span>
+<span>ocieras como te busco, si conocieras como te busco;</span>
+<span class="c h">REm SOL7</span>
+<span>ías que te alcanzara, mi voz.</span>
+<span class="c h">DO MIm</span>
+<span>ocieras como te busco, si conocieras como te busco;</span>
+<span class="c h">A REm SOL7</span>
+<span>ías que te hablara al corazón,</span>
+<span class="c h">LAm MIm FA</span>
+<span>ocieras, como te busco, como te busco;</span>
+<span class="c h">SOL7 DO</span>
+<span>harías, más, mi voz.</span>
+<span class="c h">DO MIm</span>
+<span>ocieras como te sueño, si conocieras como te sueño;</span>
+<span class="c h">FA REm SOL7</span>
+<span>preguntarías, lo que espero de ti.</span>
+<span class="c h">DO MIm</span>
+<span>ocieras como te sueño, si conocieras como te sueño;</span>
+<span class="c h">FA Rem SOL7</span>
+<span>carías, lo que he pensado para ti.</span>
+<span class="c h">LAm MIm FA</span>
+<span>ocieras, como te sueño, como te sueño,</span>
+<span class="c h">SOL7 DO</span>
+<span>arías, más, en mi.</span>
+<span class="c h">Si rasgaras</span>
+<span class="c h">Fa Do Fa</span>
+<span>garas los cielos y descendieras,</span>
+<span class="c h">Fa Sol</span>
+<span>rieras el velo y yo te viera,</span>
+<span class="c h">Mim Fa Sol</span>
+<span>de tu mirada me iluminaría</span>
+<span class="c h">Do Fa Da</span>
+<span>un eterno abrazo de amor me consumiría.</span></div>
+</main>
+<footer>Coro Santa María del Carmen · Córdoba</footer>
+<script>
+let on=false;
+function tc(){
+  on=!on;
+  document.getElementById('cb').classList.toggle('on',on);
+  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alma de Cristo — Cancionero Carmen</title>
+<style>
+:root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg2);color:#1a1208;min-height:100vh}
+header{background:var(--wine);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--gold)}
+.h-top{display:flex;align-items:center;gap:.75rem}
+.back{color:rgba(255,255,255,.75);font-size:.85rem;text-decoration:none;flex-shrink:0}
+.back:hover{color:#fff}
+.h-title{font-size:1rem;font-weight:600;flex:1;line-height:1.2}
+main{max-width:680px;margin:0 auto;padding:1.25rem .9rem 3rem}
+.meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.tag{background:var(--wine-l);color:var(--wine);border:1px solid rgba(107,45,31,.18);border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;letter-spacing:.04em}
+.num{font-size:.75rem;color:var(--muted)}
+.chords-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border);border-radius:20px;padding:.28rem .8rem;font-size:.76rem;cursor:pointer;color:var(--muted);margin-bottom:.9rem;transition:all .14s}
+.chords-btn:hover,.chords-btn.on{border-color:var(--wine);color:var(--wine);background:var(--wine-l)}
+.lyrics{font-family:'Courier New',monospace;font-size:.875rem;line-height:1.9;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;color:#1a1208}
+.c{color:#8B3A28;font-weight:600;font-size:.8rem}
+.c.h{display:none}
+footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-top">
+    <a class="back" href="../index.html">← Índice</a>
+    <div class="h-title">Alma de Cristo</div>
+  </div>
+</header>
+<main>
+  <div class="meta">
+    <span class="tag">Adoración</span>
+    <span class="num">Nº 92</span>
+  </div>
+  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Re Sim Sol La Re RE</span>
+<span>Alma de Cristo, santifícame Es el</span>
+<span class="c h">La Sim Sol Re</span>
+<span>Cuerpo de Cristo, sálvame. /de l</span>
+<span class="c h">La Sim Re</span>
+<span>Sangre de Cristo, embriágame. RE</span>
+<span class="c h">Sol Re La Re El m</span>
+<span>Agua del costado de Cristo, lávame.</span>
+<span>/es J</span>
+<span class="c h">Mim Re Mim Re</span>
+<span>Pasión de Cristo, confórtame. 95)</span>
+<span class="c h">MIm Re Mim Re7 A la</span>
+<span>¡Oh, buen Jesús!, óyeme. Do L</span>
+<span class="c h">Sol Re La Sim A la</span>
+<span>Y dentro de tus llagas, escóndeme. Do L</span>
+<span class="c h">La Sol Re La Te e</span>
+<span>No permitas que me aparte de Ti.</span>
+<span>Alab</span>
+<span class="c h">MIm Re Mim Re</span>
+<span class="c h">Re</span>
+<span>Del enemigo, defiéndeme.</span>
+<span>Alab</span>
+<span class="c h">MIm Re MIm Re Re7</span>
+<span class="c h">Re S</span>
+<span>En la hora de mi muerte, llámame.</span>
+<span>Alab</span>
+<span class="c h">Sol Re</span>
+<span>Y mándame ir a Ti.</span>
+<span>Don</span>
+<span class="c h">La Sim Sol</span>
+<span class="c h">Re</span>
+<span>Don</span>
+<span class="c h">Re La Sol Re</span>
+<span class="c h">Re</span>
+<span>Por los siglos de los siglos, Amén.</span>
+<span>Don</span>
+<span>lma de Cristo (pascua joven)</span>
+<span class="c h">DO9 SOL RE RE DO9 SOL RE</span>
+<span>de Cristo, santifícame. Cuerpo de Cristo, sálvame.</span>
+<span class="c h">DO9 SOL RE</span>
+<span>re de Cristo, embriágame.</span>
+<span class="c h">DO9 SOL RE</span>
+<span>de su costado, lávame.</span>
+<span class="c h">DO9 SOL RE RE DO9 SOL RE</span>
+<span>n de Cristo, confórtame, Oh buen Jesús, óyeme.</span>
+<span class="c h">SOL RE LA</span>
+<span>ro de tus llagas, escóndeme.</span>
+<span class="c h">m SOL RE LA</span>
+<span>ermitas que me aparte de Ti.</span>
+<span class="c h">m SOL RE LA</span>
+<span>aligno enemigo, defiéndeme.</span>
+<span class="c h">m SOL RE LA</span>
+<span>hora de mi muerte, llámame,</span>
+<span class="c h">SOL RE LA</span>
+<span class="c h">Im SOL DO9 RE</span>
+<span>s siglos de los siglos. A mén.</span>
+<span>labado sea el Santísmo</span>
+<span class="c h">LA7 Sim SOL RE</span>
+<span>do sea el Santísimo Sacramento del altar.</span>
+<span class="c h">OL LA7 Fa#m Sim Mim LA7 RE</span>
+<span>Virgen concebida sin pecado original./ (bis)</span>
+<span class="c h">LA7 Sim SOL RE</span>
+<span>remos con fe viva este Pan angelical.</span>
+<span class="c h">OL LA7 Fa#m Sim Mim LA7 RE</span>
+<span>Virgen concebida sin pecado original./ (bis)</span>
+<span class="c h">LA7 Sim SOL RE</span>
+<span>Dios que da la vida, y nació en un portal,</span>
+<span class="c h">SOL LA7 Fa#m Sim Mim LA7 RE</span>
+<span>Virgen concebida sin pecado original./ (bis)</span>
+<span class="c h">LA7 Sim SOL RE</span>
+<span>njar más regalado de este suelo terrenal</span>
+<span class="c h">OL LA7 Fa#m Sim Mim LA7 RE</span>
+<span>sús Sacramentado, Dios eterno e inmortal./ (bis)</span>
+<span>ntífonas:</span>
+<span>arde</span>
+<span class="c h">m Fa Sol Do Mi7 Lam</span>
+<span>arde te examinarán en el amor</span>
+<span class="c h">m Fa Sol Do Mi7 Lam</span>
+<span>aminarán en el amor</span>
+<span>todo el mundo</span>
+<span class="c h">Sol la7 Sim Re La</span>
+<span>todo el mundo, alabe al Señor</span>
+<span class="c h">l la7 Sim Mim La Re</span>
+<span>todo el mundo, alabe a nuestro Dios</span>
+<span>e hay amor</span>
+<span class="c h">La7 Sim Sol La</span>
+<span>e hay amor y caridad</span>
+<span class="c h">La7 Sim Sol La Re</span>
+<span>e hay amor, Dios ahí está.</span>
+<span>39</span>
+<span>Amor Orar</span>
+<span class="c h">Mim Re Do Si7 Do</span>
+<span>Amor, Amor, Amor, Amor Orar</span>
+<span class="c h">Mim Re Do Si7 Fa S</span>
+<span>Hermanos míos, Dios es Amor, Trat</span>
+<span class="c h">Mim Re Do Si7 Fa S</span>
+<span>Ama a todos como hermanos, Ami</span>
+<span class="c h">Mim Re Do Si7 Fa s</span>
+<span>Dios es Amor. A so</span>
+<span>El Señor es mi fortaleza Dios</span>
+<span class="c h">Re Sol Re La Do</span>
+<span>El Señor es mi fortaleza el Señor, mi canción. Dios</span>
+<span class="c h">Sol Fa# Sim</span>
+<span>Él nos da la salvación. tan</span>
+<span class="c h">Re La</span>
+<span>En él confío y no temo más tan</span>
+<span class="c h">Sol La7 Re</span>
+<span>En él confío y no temo más tan</span>
+<span>En ti Señor Enci</span>
+<span class="c h">Mim re do Si7 Do</span>
+<span>En ti Señor reposa todo mi ser Enci</span>
+<span class="c h">Mim Do Re Sol</span>
+<span>He sido amado por Ti, la lu</span>
+<span class="c h">Mim Re Do Si7</span>
+<span>Si, solo en ti se alumbra la esperanza No l</span>
+<span class="c h">Mim Do Si7 Mim</span>
+<span>En ti sólo Señor. no t</span>
+<span>Espera enci</span>
+<span class="c h">Do Fa Do Fa Sol Do FA Sol Lam FA Sol</span>
+<span>Espera adora silencia tu corazón y ama</span>
+<span>La bondad del Señor 96)</span>
+<span class="c h">Do rem sol DO</span>
+<span>La bondad y el amor del Señor Am</span>
+<span class="c h">Mi lam rem sol (DO) D</span>
+<span>Duran por siempre, duran por siempre y a t</span>
+<span>D</span>
+<span>Las tinieblas En t</span>
+<span class="c h">Lam Sol Do Si7</span>
+<span>Las tinieblas, no son tinieblas ante Ti, DO</span>
+<span class="c h">Rem Lam Mi7 Tu a</span>
+<span>La noche es luminosa como el día.</span>
+<span>de T</span>
+<span>No pongáis los ojos</span>
+<span class="c h">Do Fa Sol Do</span>
+<span>No pongáis los ojos en nadie más que en Él, Gus</span>
+<span class="c h">Fa Sol</span>
+<span>no pongáis los ojos en nadie más que en Él. tu a</span>
+<span class="c h">Do Fa</span>
+<span>No pongáis los ojos en nadie más, D</span>
+<span class="c h">Do Fa Pres</span>
+<span>no pongáis los ojos en nadie más.</span>
+<span class="c h">Do Fa Sol Do en</span>
+<span>No pongáis los ojos en nadie más que en Él.</span>
+<span>(Porque sólo Él te puede salvar…) De T</span>
+<span>(Porque sólo Él te puede libe-rar…)</span>
+<span class="c h">mi o</span>
+<span>40</span>
+<span class="c h">I7 lam Fa Sol Do Do7</span>
+<span>es tratar, muchas veces con él,</span>
+<span class="c h">l Do Mi7 Lam Fa Sol Do Do7</span>
+<span>r como amigos, muchas veces con él.</span>
+<span class="c h">l Do Mi7 lam Fa Sol Do</span>
+<span>os y a solas, muchas veces con él</span>
+<span class="c h">l do mi7 Lam Fa Sol Do</span>
+<span>as estar muchas veces con él</span>
+<span>está aquí</span>
+<span class="c h">Sol Lam</span>
+<span>está aquí,</span>
+<span class="c h">Fa Sol Do Do7</span>
+<span>ierto como el aire que respiro,</span>
+<span class="c h">Fa Sol Do Mim Lam</span>
+<span>ierto como la mañana se leva - an -ta;</span>
+<span class="c h">Fa Sol Do Sol</span>
+<span>ierto como yo te hablo y puedes oír.</span>
+<span>nde una luz</span>
+<span class="c h">Fa</span>
+<span>nde una luz, déjala brillar,</span>
+<span class="c h">Re- Sol7</span>
+<span>de Jesús que brille en todo lugar.</span>
+<span class="c h">Do</span>
+<span>puedes esconder,</span>
+<span class="c h">Do7 Fa Re-</span>
+<span>puedes callar ante tal necesidad,</span>
+<span class="c h">Sol Sol7 Do</span>
+<span>nde una luz en la oscuridad.</span>
+<span class="c h">Sol7 Fa Fa- Do</span>
+<span>(final) oscuridad.</span>
+<span>marte a tí, Señor</span>
+<span class="c h">LAm FA DO RE SOL</span>
+<span>rte a ti, Señor en todas las cosas</span>
+<span class="c h">RE SOL</span>
+<span>das en Ti.</span>
+<span class="c h">FA LAm REm SOL DO</span>
+<span>do amar y servir, en todo amar y servir.</span>
+<span class="c h">LAm FA SOL</span>
+<span>or me ha dado vida, tu amor me ha dado ser,</span>
+<span class="c h">Im LAm REm SOL</span>
+<span>me viene todo y a Ti debe volver.</span>
+<span class="c h">DO LAm FA SOL</span>
+<span>oso, pues, te ofrezco mi haber, mi poseer,</span>
+<span class="c h">MIm LAm REm SOL</span>
+<span>or y gracia dame, demás no es menester.</span>
+<span class="c h">LAm FA SOL</span>
+<span>nte en las creaturas y activo en todo estás</span>
+<span class="c h">Im LAm REm SOL</span>
+<span>í, como en un templo, te dignas habitar.</span>
+<span class="c h">DO LAm FA SOL</span>
+<span>bondad y gracia me llueven sin cesar,</span>
+<span class="c h">MIm LAm REm SOL</span>
+<span>icio ya no es otro sino servir y amar.</span></div>
+</main>
+<footer>Coro Santa María del Carmen · Córdoba</footer>
+<script>
+let on=false;
+function tc(){
+  on=!on;
+  document.getElementById('cb').classList.toggle('on',on);
+  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
+}
+</script>
+</body>
+</html>

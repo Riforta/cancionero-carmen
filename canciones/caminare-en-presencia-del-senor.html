@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caminaré en presencia del Señor — Cancionero Carmen</title>
+<style>
+:root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg2);color:#1a1208;min-height:100vh}
+header{background:var(--wine);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--gold)}
+.h-top{display:flex;align-items:center;gap:.75rem}
+.back{color:rgba(255,255,255,.75);font-size:.85rem;text-decoration:none;flex-shrink:0}
+.back:hover{color:#fff}
+.h-title{font-size:1rem;font-weight:600;flex:1;line-height:1.2}
+main{max-width:680px;margin:0 auto;padding:1.25rem .9rem 3rem}
+.meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.tag{background:var(--wine-l);color:var(--wine);border:1px solid rgba(107,45,31,.18);border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;letter-spacing:.04em}
+.num{font-size:.75rem;color:var(--muted)}
+.chords-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border);border-radius:20px;padding:.28rem .8rem;font-size:.76rem;cursor:pointer;color:var(--muted);margin-bottom:.9rem;transition:all .14s}
+.chords-btn:hover,.chords-btn.on{border-color:var(--wine);color:var(--wine);background:var(--wine-l)}
+.lyrics{font-family:'Courier New',monospace;font-size:.875rem;line-height:1.9;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;color:#1a1208}
+.c{color:#8B3A28;font-weight:600;font-size:.8rem}
+.c.h{display:none}
+footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-top">
+    <a class="back" href="../index.html">← Índice</a>
+    <div class="h-title">Caminaré en presencia del Señor</div>
+  </div>
+</header>
+<main>
+  <div class="meta">
+    <span class="tag">Entrada</span>
+    <span class="num">Nº 3</span>
+  </div>
+  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Im RE DO SI7 MIm</span>
+<span>aminaré en presencia del Señor. (2)</span>
+<span class="c h">Im RE MIm</span>
+<span>mo al Señor porque escucha mi voz suplicante.</span>
+<span class="c h">Im RE DO Lam SI7 MIm</span>
+<span>orque inclina su oído hacia mi el día que lo invoco.</span>
+<span class="c h">Im RE MIm</span>
+<span>e envolvían redes de muerte, caí en tristeza y angustia</span>
+<span class="c h">Im RE DO Lam SI7 MIm</span>
+<span>voqué el nombre del Señor; Señor, salva mi vida.</span></div>
+</main>
+<footer>Coro Santa María del Carmen · Córdoba</footer>
+<script>
+let on=false;
+function tc(){
+  on=!on;
+  document.getElementById('cb').classList.toggle('on',on);
+  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ave María (Ora pro nobis) — Cancionero Carmen</title>
+<style>
+:root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg2);color:#1a1208;min-height:100vh}
+header{background:var(--wine);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--gold)}
+.h-top{display:flex;align-items:center;gap:.75rem}
+.back{color:rgba(255,255,255,.75);font-size:.85rem;text-decoration:none;flex-shrink:0}
+.back:hover{color:#fff}
+.h-title{font-size:1rem;font-weight:600;flex:1;line-height:1.2}
+main{max-width:680px;margin:0 auto;padding:1.25rem .9rem 3rem}
+.meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.tag{background:var(--wine-l);color:var(--wine);border:1px solid rgba(107,45,31,.18);border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;letter-spacing:.04em}
+.num{font-size:.75rem;color:var(--muted)}
+.chords-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border);border-radius:20px;padding:.28rem .8rem;font-size:.76rem;cursor:pointer;color:var(--muted);margin-bottom:.9rem;transition:all .14s}
+.chords-btn:hover,.chords-btn.on{border-color:var(--wine);color:var(--wine);background:var(--wine-l)}
+.lyrics{font-family:'Courier New',monospace;font-size:.875rem;line-height:1.9;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;color:#1a1208}
+.c{color:#8B3A28;font-weight:600;font-size:.8rem}
+.c.h{display:none}
+footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-top">
+    <a class="back" href="../index.html">← Índice</a>
+    <div class="h-title">Ave María (Ora pro nobis)</div>
+  </div>
+</header>
+<main>
+  <div class="meta">
+    <span class="tag">A María</span>
+    <span class="num">Nº 145</span>
+  </div>
+  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">RE LA si- SOL RE LA mi- SOL Re</span>
+<span>A--ve María, a-----ve. Azu</span>
+<span class="c h">RE LA si- SOL RE LA RE4 RE La</span>
+<span>A--ve María, a-----ve. y te</span>
+<span class="c h">RE si-</span>
+<span>Madre de la espera y mujer de la esperanza, dev</span>
+<span class="c h">LA SOL La</span>
+<span>ora pro nobis. a su</span>
+<span class="c h">RE si-</span>
+<span>Madre de sonrisa y mujer de los silencios, Re</span>
+<span class="c h">LA SOL Pon</span>
+<span>ora pro nobis. La</span>
+<span class="c h">RE LA tu s</span>
+<span>Madre de frontera y mujer apasionada,</span>
+<span>si- SOL con</span>
+<span>ora pro nobis. La</span>
+<span class="c h">RE LA del</span>
+<span>Madre del descanso y mujer de los caminos,</span>
+<span class="c h">SOL LA Re</span>
+<span>ora pro nobis. Bajo</span>
+<span class="c h">RE si- La</span>
+<span>Madre del respiro y mujer de los desiertos, enci</span>
+<span class="c h">LA SOL</span>
+<span>ora pro nobis. y sé</span>
+<span class="c h">RE si-</span>
+<span>Madre del ocaso y mujer de los recuerdos, Re</span>
+<span class="c h">LA SOL Señ</span>
+<span>ora pro nobis. La</span>
+<span class="c h">RE LA nos</span>
+<span>Madre del presente y mujer de los retornos,</span>
+<span>si- SOL y co</span>
+<span>ora pro nobis.</span>
+<span class="c h">RE LA Re</span>
+<span>Madre del amor y mujer de la ternura, Mar</span>
+<span class="c h">SOL LA La</span>
+<span>ora pro nobis. que</span>
+<span class="c h">si tú</span>
+<span>CANCIONES A LA VIRGEN MARÍA</span>
+<span>Blanca flor del Carmelo</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>a flor del Carmelo, vid en racimo,</span>
+<span class="c h">Sol Re</span>
+<span>te claridad, puro prodigio</span>
+<span class="c h">SIm Sol Re La Sim (La)</span>
+<span>, a una, Madre de Dios y Virgen: ¡Virgen fecunda!</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>e, que florecida del Enmanuel,</span>
+<span class="c h">Sol Re</span>
+<span>ras intacta la doncellez;</span>
+<span class="c h">SIm Sol Re La Sim (La)</span>
+<span>lla, guía de los rumbos del mar, sednos propicia.</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>go de Jesé, vara profética</span>
+<span class="c h">Sol Re</span>
+<span>l Hijo del Altísimo das en cosecha;</span>
+<span class="c h">SIm Sol Re</span>
+<span>e, consiente que vivamos contigo</span>
+<span class="c h">Sim (La)</span>
+<span>a y siempre.</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>ena que brotas inmaculada</span>
+<span class="c h">Sol Re</span>
+<span>ergues señera entre las zarzas;</span>
+<span class="c h">SIm Sol Re</span>
+<span>elve, Virgen, nuestra frágil arcilla</span>
+<span class="c h">Sim (La)</span>
+<span>lto origen.</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>os, nueva Judit, para la lucha</span>
+<span class="c h">Sol Re</span>
+<span>nto Escapulario como armadura;</span>
+<span class="c h">SIm Sol Re</span>
+<span>u vestido cantaremos victoria</span>
+<span class="c h">Sim (La)</span>
+<span>nemigo.</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>noches oscuras navega el alma,</span>
+<span class="c h">Sol Re</span>
+<span>nde tú los rayos de la esperanza,</span>
+<span class="c h">SIm Sol Re La Sim (La)</span>
+<span>l lucero que lleve nuestra nave, segura al puerto.</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>ra, desde siempre los carmelitas</span>
+<span class="c h">Sol Re</span>
+<span>enemos por hijos de tu familia,</span>
+<span class="c h">SIm Sol Re La Sim (La)</span>
+<span>fiamos que un día nos acojas en tu regazo.</span>
+<span class="c h">Sol Sim La Sim</span>
+<span>a, puerta y llave del paraíso,</span>
+<span class="c h">Sol Re</span>
+<span>emos desatarnos y estar con Cristo;</span>
+<span class="c h">SIm Sol Re La Sim (La)</span>
+<span>nos abres, reinaremos allí con tu Hijo, ¡Madre!</span>
+<span>55</span>
+<span>CANCIONES A LA VIRGEN MARÍA</span></div>
+</main>
+<footer>Coro Santa María del Carmen · Córdoba</footer>
+<script>
+let on=false;
+function tc(){
+  on=!on;
+  document.getElementById('cb').classList.toggle('on',on);
+  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cara a cara — Cancionero Carmen</title>
+<style>
+:root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--bg2);color:#1a1208;min-height:100vh}
+header{background:var(--wine);color:#fff;padding:.9rem 1.1rem;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--gold)}
+.h-top{display:flex;align-items:center;gap:.75rem}
+.back{color:rgba(255,255,255,.75);font-size:.85rem;text-decoration:none;flex-shrink:0}
+.back:hover{color:#fff}
+.h-title{font-size:1rem;font-weight:600;flex:1;line-height:1.2}
+main{max-width:680px;margin:0 auto;padding:1.25rem .9rem 3rem}
+.meta{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.tag{background:var(--wine-l);color:var(--wine);border:1px solid rgba(107,45,31,.18);border-radius:4px;padding:2px 7px;font-size:.7rem;font-weight:600;letter-spacing:.04em}
+.num{font-size:.75rem;color:var(--muted)}
+.chords-btn{display:inline-flex;align-items:center;gap:.35rem;background:none;border:1px solid var(--border);border-radius:20px;padding:.28rem .8rem;font-size:.76rem;cursor:pointer;color:var(--muted);margin-bottom:.9rem;transition:all .14s}
+.chords-btn:hover,.chords-btn.on{border-color:var(--wine);color:var(--wine);background:var(--wine-l)}
+.lyrics{font-family:'Courier New',monospace;font-size:.875rem;line-height:1.9;white-space:pre-wrap;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.3rem;color:#1a1208}
+.c{color:#8B3A28;font-weight:600;font-size:.8rem}
+.c.h{display:none}
+footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-top">
+    <a class="back" href="../index.html">← Índice</a>
+    <div class="h-title">Cara a cara</div>
+  </div>
+</header>
+<main>
+  <div class="meta">
+    <span class="tag">Adoración</span>
+    <span class="num">Nº 99</span>
+  </div>
+  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">LA FA#m Sólo</span>
+<span>Solamente una palabra,</span>
+<span class="c h">LA FA#m y pe</span>
+<span>solamente una oración</span>
+<span class="c h">LA FA#m SIm MI derr</span>
+<span>cuando llegue a tu presencia, oh Señor.</span>
+<span>DO#m tem</span>
+<span>No me importa en qué lugar</span>
+<span class="c h">FA#m MI RE aún</span>
+<span>de la mesa me hagas sentar,</span>
+<span class="c h">RE RE/DO# SIm MI MI7</span>
+<span>o el color de mi corona, si la llego a ganar. Cua</span>
+<span class="c h">LA FA#m déja</span>
+<span>Solamente una palabra,</span>
+<span class="c h">LA FA#m y qu</span>
+<span>si es que aún me queda voz</span>
+<span class="c h">LA FA#m SIm MI y qu</span>
+<span>y si logro articularla en tu presencia.</span>
+<span>DO#m que</span>
+<span>No te quiero hacer preguntas,</span>
+<span class="c h">FA#m MI RE 100)</span>
+<span>sólo una petición, Do</span>
+<span class="c h">RE RE/DO# SIm MI MI7 Grac</span>
+<span>y si puede ser a solas, mucho mejor.</span>
+<span>Grac</span>
+<span class="c h">RE MI DO#m FA#m Do</span>
+<span>Sólo déjame mirarte cara a ca-----ra Hoy</span>
+<span class="c h">RE MI DO#m FA#m Do</span>
+<span>y perderme como un niño en tu mira-----da, Grac</span>
+<span class="c h">RE MI</span>
+<span>y que pase mucho tiempo, Do</span>
+<span>DO#m FA#m Yo q</span>
+<span>y que nadie diga nada,</span>
+<span class="c h">RE RE/DO# SIm MI MI7 com</span>
+<span>porque estoy viendo al Maestro cara a cara.</span>
+<span>tom</span>
+<span class="c h">RE MI DO#m FA#m</span>
+<span>Que se ahogue mi recuerdo en tu mirada, yo q</span>
+<span class="c h">RE MI DO#m FA#m</span>
+<span>quiero hablarte en silencio y sin palabras, Do</span>
+<span class="c h">RE MI Te c</span>
+<span>y que pase mucho tiempo,</span>
+<span>DO#m FA#m Te p</span>
+<span>y que nadie diga nada, D</span>
+<span class="c h">RE RE/DO# SIm MI MI7 Si te</span>
+<span>sólo déjame mirarte cara a cara. Do</span>
+<span>Pue</span>
+<span class="c h">LA FA#m</span>
+<span>Solamente una palabra,</span>
+<span class="c h">LA FA#m</span>
+<span>solamente una oración</span>
+<span class="c h">LA FA#m SIm MI</span>
+<span>cuando llegue a tu presencia, Oh Señor.</span>
+<span>DO#m</span>
+<span>No me importa en qué lugar</span>
+<span class="c h">FA#m MI RE</span>
+<span>de la mesa me hagas sentar,</span>
+<span class="c h">RE RE/DO# SIm MI MI7</span>
+<span>o el color de mi corona, si la llego a ganar.</span>
+<span>42</span>
+<span class="c h">E MI DO#m FA#m</span>
+<span>déjame mirarte cara a ca-----ra</span>
+<span class="c h">RE MI DO#m FA#m</span>
+<span>derme como un niño en tu mira-----da,</span>
+<span class="c h">RE MI</span>
+<span>tado y desde el suelo,</span>
+<span class="c h">DO#m FA#m</span>
+<span>loroso y sin aliento,</span>
+<span class="c h">RE RE/DO# SIm MI MI7</span>
+<span>e seguiré mirando, mi Maestro.</span>
+<span class="c h">E MI DO#m FA#m</span>
+<span>do caiga ante tus plantas de rodillas,</span>
+<span class="c h">RE MI DO#m FA#m</span>
+<span>e llorar pegado a tus heridas,</span>
+<span class="c h">RE MI</span>
+<span>pase mucho tiempo,</span>
+<span class="c h">DO#m FA#m</span>
+<span>nadie me lo impida,</span>
+<span class="c h">RE RE/DO# SIm MI LA</span>
+<span>e esperado este momento toda mi vida.</span>
+<span>El alfarero</span>
+<span class="c h">Fa Sol</span>
+<span>as quiero darte por amarme</span>
+<span class="c h">Fa Do</span>
+<span>as quiero darte hoy a ti Señor</span>
+<span class="c h">Do7 Fa Fam</span>
+<span>oy feliz porque te conocí</span>
+<span class="c h">Sol Do Sol</span>
+<span>as por amarme a mí también.</span>
+<span class="c h">Sol</span>
+<span>iero ser, Señor amado</span>
+<span class="c h">Fa Do</span>
+<span>el barro en las manos del alfarero,</span>
+<span class="c h">Do7 Fa Fam</span>
+<span>mi vida, hazla de nuevo,</span>
+<span class="c h">Do Sol Do</span>
+<span>iero ser un vaso nuevo.</span>
+<span class="c h">Fa Sol</span>
+<span>nocí y te amé</span>
+<span class="c h">Fa Do</span>
+<span>dí perdón y me escuchaste</span>
+<span class="c h">Do7 Fa Fam</span>
+<span>ofendí, perdóname Señor</span>
+<span class="c h">Sol Do Sol</span>
+<span>te amo y nunca te olvidaré</span>
+<span>101) El verdadero amor 103)</span>
+<span class="c h">Mim Lam Sol</span>
+<span>Amor es aquel que todo puede dar Señ</span>
+<span class="c h">Re7 Sol Do</span>
+<span>Amor es aquel que nada pide tus</span>
+<span class="c h">Lam Si7 MIm Sol</span>
+<span>Amor es la entrega total, sin condición Y e</span>
+<span class="c h">Do</span>
+<span class="c h">Mi7 Lam Re7 qu</span>
+<span>El verdadero amor todo lo sufre</span>
+<span class="c h">Sol Si7 Mim SO</span>
+<span>Todo lo cree, no tiene envidia //Es</span>
+<span class="c h">Lam Si7 MIm DO</span>
+<span>Sabe esperar, el verdadero amor a</span>
+<span class="c h">SOL</span>
+<span class="c h">Mim Lam Yo /</span>
+<span>Amor es aquel que no se envanece DO</span>
+<span class="c h">Re7 Sol</span>
+<span>Amor desinteresado amor</span>
+<span class="c h">Lam Si7 MIm Sol</span>
+<span>Amor es el amor de Dios eterno amor Tu</span>
+<span class="c h">Do</span>
+<span class="c h">Mi7 Lam Re7 inv</span>
+<span>El verdadero amor, Señor yo quiero Sol</span>
+<span class="c h">Sol Si7 Mim Y c</span>
+<span>Aquí en mi vida lo necesito Do</span>
+<span class="c h">Lam Si7 MIm y a</span>
+<span>Pues solo tú Señor, puedes hacerlo en mi</span>
+<span class="c h">Mi7 Lam Re7 104)</span>
+<span>El verdadero amor se ha derramado Re</span>
+<span class="c h">Sol Si7 Mim Esta</span>
+<span>Hoy en tu pueblo y así amándolo Re</span>
+<span class="c h">Lam Si7 MIm y cu</span>
+<span>Sabe esperar tu venida Señor Sol</span>
+<span>por</span></div>
+</main>
+<footer>Coro Santa María del Carmen · Córdoba</footer>
+<script>
+let on=false;
+function tc(){
+  on=!on;
+  document.getElementById('cb').classList.toggle('on',on);
+  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
+}
+</script>
+</body>
+</html>
