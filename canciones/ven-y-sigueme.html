@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ven y sígueme — Cancionero Carmen</title>
+<title>Ven y sígueme &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,61 +28,47 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Ven y sígueme</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 138</span>
+    <span class="num">N&ordm;&nbsp;138</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">DO FA RE</span>
-<span>Ven y sígueme, Tú</span>
-<span class="c h">DO RE</span>
-<span>y mar adentro echa ya tus redes. Abri</span>
-<span class="c h">DO FA DO RE</span>
-<span>Ven y yo te haré pescador de hombres. Mi c</span>
-<span class="c h">FA DO Esp</span>
-<span>En tus palabras echaré mis redes.</span>
-<span class="c h">FA DO S</span>
-<span>Dejo mi barca y donde quieras iré. // V</span>
-<span class="c h">FA LAm</span>
-<span>Tú me llamaste, Señor, por mi nombre Vine</span>
-<span class="c h">FA SOL DO FA</span>
-<span>y sólo a Ti, Señor, Señor, te seguiré. Solo</span>
-<span class="c h">DO FA DO eres</span>
-<span>Te vi trabajar aquella noche en que fracasaste.</span>
-<span class="c h">DO FA RE</span>
-<span>Sé de tu dolor, Tu e</span>
-<span class="c h">DO RE</span>
-<span>de tu vergüenza y de tus fragilidades. Glor</span>
-<span class="c h">RE</span>
-<span class="c h">FA DO El m</span>
-<span>Hoy yo te pido que confíes de nuevo.</span>
-<span class="c h">FA DO y po</span>
-<span>Vuelve a tirar con la esperanza de ayer.</span>
-<span class="c h">FA LAm RE</span>
-<span>Estoy contigo y te prometo abundancia, Nun</span>
-<span class="c h">FA SOL DO FA L</span>
-<span>deja todo por mi amor, ven y sígueme. Ver</span>
-<span class="c h">FA DO</span>
-<span>En tus palabras echaré mis redes,</span>
-<span class="c h">FA DO</span>
-<span>vuelve a tirar con la esperanza de ayer.</span>
-<span class="c h">FA LAm</span>
-<span>Tú me llamaste, Señor, por mi nombre</span>
-<span class="c h">FA SOL DO FA</span>
-<span>y sólo a Ti, Señor, Señor, te seguiré.</span></div>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">      LA                                    RE</span>
+<span>Me pides Señor que yo te siga</span>
+<span class="c h">          MI</span>
+<span>me pides que me ponga</span>
+<span class="c h">          LA           FA#m</span>
+<span>a caminar, difícil para mí</span>
+<span class="c h">              RE                   MI</span>
+<span>es complacerte es mucho lo que</span>
+<span class="c h">                     LA</span>
+<span>tengo que dejar.</span>
+<span></span>
+<span class="c h">               LA</span>
+<span>Ven y sígueme</span>
+<span class="c h">           RE</span>
+<span>no esperes más</span>
+<span class="c h">MI                                    LA</span>
+<span>yo junto a ti siempre estaré</span>
+<span>     FA#m</span>
+<span>no temas que palabras</span>
+<span class="c h">              RE</span>
+<span>tengas que decir</span>
+<span class="c h">MI                               LA   MI</span>
+<span>yo por tu boca hablaré.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

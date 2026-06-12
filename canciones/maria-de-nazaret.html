@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>María de Nazaret — Cancionero Carmen</title>
+<title>María de Nazaret &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,73 +28,41 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">María de Nazaret</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">A María</span>
-    <span class="num">Nº 168</span>
+    <span class="num">N&ordm;&nbsp;168</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">RE MIm Mar</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">  RE                     MIm</span>
 <span>MARÍA DE NAZARET,</span>
-<span class="c h">LA7 RE Que</span>
+<span class="c h">  LA7                     RE</span>
 <span>MARÍA ME CAUTIVÓ,</span>
-<span class="c h">MIm Que</span>
+<span class="c h">                                     MIm</span>
 <span>HIZO MÁS FUERTE MI FE</span>
-<span class="c h">LA7 RE Ten</span>
+<span class="c h">LA7                                 RE</span>
 <span>Y POR HIJO ME ADOPTÓ.</span>
-<span class="c h">RE MIm Mad</span>
+<span></span>
+<span class="c h">    RE                           MIm</span>
 <span>A veces cuando me pongo a rezar</span>
-<span class="c h">LA7 RE Es q</span>
+<span class="c h">   LA7                              RE</span>
 <span>en mis pensamientos vuelvo a soñar</span>
-<span class="c h">SIm MIm Que</span>
+<span class="c h">  SIm                           MIm</span>
 <span>y con sentimiento empiezo a cantar:</span>
-<span class="c h">LA7 RE Qui</span>
-<span>María de Nazaret. 170)</span>
-<span class="c h">RE MIm Sol</span>
-<span>La Virgen a quien Dios Padre eligió Me</span>
-<span class="c h">LA7 RE</span>
-<span class="c h">SIm MIm Sol</span>
-<span>María que nos conduce al amor Y pe</span>
-<span class="c h">LA7 RE</span>
-<span>María de mi Señor. man</span>
-<span class="c h">RE MIm</span>
-<span>Ave María LA</span>
-<span class="c h">LA7 RE Y tu</span>
-<span>Ave María</span>
-<span>MIm y tú</span>
-<span>Ave María SIm</span>
-<span class="c h">LA7 RE ¡Ale</span>
-<span>Madre de Dios</span>
-<span class="c h">Sol</span>
-<span class="c h">RE MIm M</span>
-<span>Mujer que trajiste el don de la paz,</span>
-<span class="c h">LA7 RE y</span>
-<span>de todos los hombres Madre serás, Sol</span>
-<span class="c h">SIm MIm Y pe</span>
-<span>en nuestro camino siempre estarás</span>
-<span class="c h">LA7 RE m</span>
-<span>llevándonos hacia Dios.</span>
-<span class="c h">RE MIm 171)</span>
-<span>María que vio a Jesús caminar, Do</span>
-<span class="c h">LA7 RE Mar</span>
-<span>María que lo ha enseñado a hablar, Fa</span>
-<span class="c h">SIm MIm Aco</span>
-<span>María la que sabía escuchar, Fa</span>
-<span class="c h">LA7 RE Con</span>
-<span>María de Nazaret.</span>
-<span class="c h">Do</span></div>
+<span class="c h">   LA7               RE</span>
+<span>María de Nazaret.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

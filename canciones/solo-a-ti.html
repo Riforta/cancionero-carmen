@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sólo a ti — Cancionero Carmen</title>
+<title>Sólo a ti &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,82 +28,41 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Sólo a ti</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 124</span>
+    <span class="num">N&ordm;&nbsp;124</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">RE LA Tien</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">RE                     LA</span>
 <span>Solo a Ti, solo a Ti mi Amor,</span>
-<span class="c h">SIm SOL Llen</span>
+<span class="c h">           SIm                  SOL</span>
 <span>solo a Ti, yo te pertenezco.</span>
-<span class="c h">RE LA Y ve</span>
-<span>Solo a Ti, solo a Ti mi Amor, LA7</span>
-<span class="c h">SIm SOL RE cua</span>
+<span class="c h">RE                         LA</span>
+<span>Solo a Ti, solo a Ti mi Amor,</span>
+<span class="c h">           SIm                     SOL RE</span>
 <span>solo a Ti, yo te pertenezco.</span>
-<span>y m</span>
-<span class="c h">RE LA Sim</span>
-<span class="c h">RE</span>
+<span></span>
+<span class="c h">RE                     LA            Sim</span>
 <span>Solo a Ti pertenezco, mi Rey</span>
-<span>Y c</span>
-<span class="c h">SOL RE</span>
+<span class="c h">SOL                  RE</span>
 <span>y a Ti yo me ofrezco.</span>
-<span>deja</span>
-<span class="c h">SIm Re SOL RE</span>
-<span>SO</span>
+<span class="c h">SIm                  Re       SOL                       RE</span>
 <span>Tu Corazón amante me llama a sí constante</span>
-<span>Sólo</span>
-<span class="c h">RE LA SOL LA RE</span>
-<span>y en tu dulce morada ya no deseo nada.</span>
-<span class="c h">si te</span>
-<span class="c h">SOL</span>
-<span class="c h">RE LA Sim SOL RE</span>
-<span>man</span>
-<span>Oh mi Divino Amante, visítame constante.</span>
-<span class="c h">RE LA/DO# SIm SOL</span>
-<span class="c h">RE</span>
-<span>Mi corazón ansía llevarte cada día.</span>
-<span class="c h">Si q</span>
-<span class="c h">RE LA/MI</span>
-<span>Eres su único amigo</span>
-<span>hast</span>
-<span class="c h">SIm/FA# SOL LA RE</span>
-<span>SO</span>
-<span>y quiere estar contigo.</span>
-<span>Hast</span>
-<span class="c h">SOL RE MIm SIm</span>
-<span>sea</span>
-<span>Y al amigo que te ama pides todo el corazón</span>
-<span class="c h">SOL</span>
-<span class="c h">SOL RE</span>
-<span>y se</span>
-<span>para unirlo en la llama</span>
-<span>126)</span>
-<span>RE/FA#</span>
-<span class="c h">La L</span>
-<span>de tu Amor</span>
-<span>D</span>
-<span class="c h">LA</span>
-<span class="c h">La7</span>
-<span>que es el Fuego</span>
-<span>Des</span>
-<span class="c h">SOL/SI LA/DO# RE SOL RE</span>
-<span class="c h">Mi7</span>
-<span>que da Vida Eterna, que da Vida Eterna.</span>
-<span>Des</span></div>
+<span class="c h">RE                     LA        SOL           LA    RE</span>
+<span>y en tu dulce morada ya no deseo nada.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

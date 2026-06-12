@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vamos a preparar — Cancionero Carmen</title>
+<title>Vamos a preparar &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,16 +28,16 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Vamos a preparar</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adviento</span>
-    <span class="num">Nº 286</span>
+    <span class="num">N&ordm;&nbsp;286</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
   <div class="lyrics" id="lyr"><span class="c h">Sol</span>
 <span class="c h">La Fa#m Re La Mi La</span>
 <span>Que nu</span>
@@ -59,27 +59,27 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span>Vendrá el Señor con su fuerza,</span>
 <span class="c h">La Fa#m Sim MI La</span>
 <span>él romperá las cadenas, él nos dará la libertad.</span>
-<span class="c h">Fa#m La Fa#m</span>
+<span>Fa#m La Fa#m</span>
 <span>a nuestro lado, Él guiará nuestros pasos,</span>
 <span class="c h">Sim Mi</span>
 <span>rá la salvación.</span>
-<span class="c h">Fa#m La Fa#m</span>
+<span>Fa#m La Fa#m</span>
 <span>iará del pecado, ya no seremos esclavos,</span>
 <span class="c h">Sim Mi</span>
 <span>rá la Libertad.</span>
-<span class="c h">Fa#m La Fa#m</span>
+<span>Fa#m La Fa#m</span>
 <span>nuestra casa, nos llenará de esperanza,</span>
 <span class="c h">Sim Mi</span>
 <span>rá la salvación.</span>
-<span class="c h">Fa#m La Fa#m</span>
+<span>Fa#m La Fa#m</span>
 <span>irá nuestros cantos, todos seremos hermanos,</span>
 <span class="c h">Sim Mi</span>
 <span>rá la libertad.</span>
-<span class="c h">Fa#m La Fa#m</span>
+<span>Fa#m La Fa#m</span>
 <span>á con nosotros , nunca estaremos ya solos, La</span>
 <span class="c h">Mi</span>
 <span>rá la salvación.</span>
-<span class="c h">Fa#m La Fa#m</span>
+<span>Fa#m La Fa#m</span>
 <span>irá la promesa , y llevará nuestras penas,</span>
 <span class="c h">Sim Mi</span>
 <span>rá la libertad.</span>
@@ -110,19 +110,19 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span>eranza en tu espera</span>
 <span class="c h">La</span>
 <span>stras manos, estén unidas,</span>
-<span class="c h">Fa#m</span>
+<span>Fa#m</span>
 <span>ntar al caído</span>
 <span class="c h">Re Mim La</span>
 <span>e sufre en soledad, en abandono y pobreza.</span>
 <span>97</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

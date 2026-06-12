@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bendito seas Señor, F. Palazón — Cancionero Carmen</title>
+<title>Bendito seas Señor, F. Palazón &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,41 +28,42 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Bendito seas Señor, F. Palazón</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Ofrenda</span>
-    <span class="num">Nº 21</span>
+    <span class="num">N&ordm;&nbsp;21</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">Rem Sol Rem Sib Do Lam7 Rem</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Rem       Sol       Rem          Sib   Do     Lam7 Rem</span>
 <span>Bendito seas, Señor, por este pan y este vino</span>
-<span class="c h">Solm Do7 Fa Rem Sol La</span>
+<span class="c h">               Solm Do7  Fa              Rem  Sol       La</span>
 <span>que generoso nos diste para caminar contigo</span>
-<span class="c h">Rem Lam Solm Rem Sib Do7 Rem</span>
+<span class="c h">       Rem Lam     Solm     Rem        Sib Do7 Rem</span>
 <span>y serán para nosotros alimento en el camino.</span>
-<span class="c h">Re Sol Re La Re</span>
+<span></span>
+<span class="c h">Re                             Sol Re                            La Re</span>
 <span>Te ofrecemos el trabajo, las penas y la alegría,</span>
-<span class="c h">Mim Fa# Sim Mim La</span>
+<span class="c h">    Mim               Fa# Sim          Mim               La</span>
 <span>el pan que nos alimenta y el afán de cada día.</span>
-<span class="c h">Re Sol Re</span>
+<span></span>
+<span class="c h">Re                                    Sol Re</span>
 <span>Te ofrecemos nuestro barro que oscurece</span>
-<span class="c h">La Re Mim Fa# Sim</span>
+<span class="c h">                La Re          Mim                   Fa# Sim</span>
 <span>nuestras vidas y el vino que no empleamos</span>
-<span class="c h">Mim La</span>
-<span>para curar las heridas.</span>
-<span>12</span></div>
+<span class="c h">          Mim               La</span>
+<span>para curar las heridas.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

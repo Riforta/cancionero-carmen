@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ella es María — Cancionero Carmen</title>
+<title>Ella es María &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,25 +28,36 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Ella es María</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">A María</span>
-    <span class="num">Nº 155</span>
+    <span class="num">N&ordm;&nbsp;155</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span style="color:var(--muted);font-style:italic">Letra pendiente de revisión</span></div>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">La    Fa#-               Re                Mi</span>
+<span>Era como la mañana y con ella amanecía</span>
+<span class="c h">       La         Fa#-               Re                    Mi</span>
+<span>ese sol que al mirarla en sus brazos se dormía.</span>
+<span></span>
+<span class="c h">           La             Fa#-          Re        Mi (La)</span>
+<span>Ella Es, Ella Es, Ella Es María. (Bis)</span>
+<span></span>
+<span class="c h">La                Fa#-          Re                   Mi</span>
+<span>Ella acunaba en su seno al niño que salvaría</span>
+<span class="c h">         La                       Fa#-                Re                    Mi</span>
+<span>a los hombres y mujeres que le entregarían su vida.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

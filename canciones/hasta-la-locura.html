@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hasta la locura — Cancionero Carmen</title>
+<title>Hasta la locura &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,48 +28,48 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Hasta la locura</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 105</span>
+    <span class="num">N&ordm;&nbsp;105</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">RE SOL RE</span>
-<span>Me puede faltar todo en la vida, Hoy</span>
-<span class="c h">LA RE FA#</span>
-<span>Me puede faltar hasta la vida; Te e</span>
-<span class="c h">FA#m7 SIm MI</span>
-<span>Pero nunca quiero que me falte, pue</span>
-<span class="c h">SOL LA RE (SOL-RE )</span>
-<span>El deseo de amarte hasta el final... RE</span>
-<span>Hoy</span>
-<span class="c h">RE7 SOL LA SOL</span>
-<span>Hasta la locura te amo Señor, que</span>
-<span class="c h">RE RE#/SOL SIm MI</span>
-<span>Ya no quedan dudas en mi corazón… Que</span>
-<span class="c h">SOL LA RE - SOL</span>
-<span>De que te amo, de que te amo, Señor... MI</span>
-<span>Hoy,</span>
-<span class="c h">RE SOL SOL</span>
-<span>Quiero amarte hasta el extremo, con</span>
-<span class="c h">LA RE MI</span>
-<span>Sin reservas darme por entero, En t</span>
-<span class="c h">FA#m7 SIm</span>
-<span>Como los que se han enamorado, 108)</span>
-<span class="c h">SOL LA RE (SOL-RE) Do</span>
-<span>Yo te canto mi amado hasta el final... Jesú</span></div>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">RE                                            SOL</span>
+<span>Me puede faltar todo en la vida,</span>
+<span class="c h">LA                                             RE</span>
+<span>Me puede faltar hasta la vida;</span>
+<span class="c h">FA#m7                                        SIm</span>
+<span>Pero nunca quiero que me falte,</span>
+<span class="c h">                        SOL     LA            RE</span>
+<span>El deseo de amarte hasta el final...</span>
+<span></span>
+<span class="c h">RE7           SOL                   LA</span>
+<span>Hasta la locura te amo Señor,</span>
+<span class="c h">                          RE            RE#/SOL     SIm</span>
+<span>Ya no quedan dudas en mi corazón...</span>
+<span class="c h">                  SOL                      LA           RE</span>
+<span>De que te amo, de que te amo, Señor...</span>
+<span></span>
+<span class="c h">RE                                            SOL</span>
+<span>Quiero amarte hasta el extremo,</span>
+<span class="c h">LA                                           RE</span>
+<span>Sin reservas darme por entero,</span>
+<span class="c h">FA#m7                                       SIm</span>
+<span>Como los que se han enamorado,</span>
+<span class="c h">                             SOL     LA            RE</span>
+<span>Yo te canto mi amado hasta el final...</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

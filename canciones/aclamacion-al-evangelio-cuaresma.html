@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aclamación al Evangelio (Cuaresma) — Cancionero Carmen</title>
+<title>Aclamación al Evangelio (Cuaresma) &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,7 +28,7 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Aclamación al Evangelio (Cuaresma)</div>
   </div>
 </header>
@@ -37,7 +37,7 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
     <span class="tag">Aleluya</span>
     
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
   <div class="lyrics" id="lyr"><span class="c h">SOL DO SOL SIm MIm LAm RE</span>
 <span>1. Dios es amor, Atrévanse a vivir por amor</span>
 <span class="c h">SOL LAm SOL DO RE MIm LAm RE SOL</span>
@@ -80,23 +80,23 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span>Y la luz de mis ojos.</span>
 <span class="c h">Mim</span>
 <span>La ley del Señor es perfecta,</span>
-<span class="c h">Fa#m</span>
+<span>Fa#m</span>
 <span>El alma reconforta,</span>
 <span class="c h">Mim</span>
 <span>El testimonio del Señor es verdadero,</span>
-<span class="c h">Fa#m</span>
+<span>Fa#m</span>
 <span>Sabiduría del humilde.</span>
 <span class="c h">Mim Re MIm Sol Re Mim</span>
 <span>8. Jesús atráeme, a las llamas de tu amor</span>
 <span>11</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

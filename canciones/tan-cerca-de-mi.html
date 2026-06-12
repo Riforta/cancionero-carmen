@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tan cerca de mí — Cancionero Carmen</title>
+<title>Tan cerca de mí &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,57 +28,39 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Tan cerca de mí</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 127</span>
+    <span class="num">N&ordm;&nbsp;127</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">Do Sol7 Do Do7 Fa Re7 Sol Sol7 La</span>
-<span>Tan cerca de mí, tan cerca de mí, Cua</span>
-<span class="c h">Do Do7 Fa Fa-</span>
-<span>que hasta lo puedo tocar, y te</span>
-<span class="c h">Do Sol Do</span>
-<span>Je sús está aquí. cua</span>
-<span class="c h">Do Do7 Al la</span>
-<span>No busques a Cristo en lo alto, La</span>
-<span class="c h">Fa Sol Do Do7 Cua</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Do   Sol7         Do  Do7 Fa   Re7       Sol  Sol7</span>
+<span>Tan cerca de mí,          tan cerca de mí,</span>
+<span class="c h">Do    Do7           Fa         Fa-</span>
+<span>que hasta lo puedo tocar,</span>
+<span class="c h">Do Sol             Do</span>
+<span>Jesús está aquí.</span>
+<span></span>
+<span class="c h">Do                                           Do7</span>
+<span>No busques a Cristo en lo alto,</span>
+<span class="c h">Fa                      Sol                 Do  Do7</span>
 <span>ni lo busques en la oscuridad,</span>
-<span class="c h">Fa Sol Do La- y mi</span>
-<span>muy dentro de ti, en tu corazón</span>
-<span class="c h">Re7 Sol Sol7 cua</span>
-<span>puedes adorar a tu Señor.</span>
-<span class="c h">Al la</span>
-<span class="c h">Do Do7</span>
-<span>Le hablaré sin miedo al oído,</span>
-<span class="c h">Fa Sol Do Do7 Te a</span>
-<span>le contaré las cosas que hay en mí</span>
-<span class="c h">Fa Sol Do La- la ra</span>
-<span>y que sólo a Él le interesará,</span>
-<span class="c h">Re7 Sol Sol7 Es p</span>
-<span>Él es más que amigo para mí.</span>
-<span>130)</span>
-<span class="c h">Do Do7 Re</span>
-<span>Míralo a tu lado caminando, Aún</span>
-<span class="c h">Fa Sol Do Do7 Re7</span>
-<span>paseando entre la multitud, aún</span>
-<span class="c h">Fa Sol Do La-</span>
-<span>muchos ciegos son, porque no lo ven, te al</span>
-<span class="c h">Re7 Sol Sol7</span>
-<span>ciegos de ceguera espiritual. Re</span>
-<span>Aún</span></div>
+<span class="c h">Fa                       Sol  Do               La-</span>
+<span>muy dentro de ti,  en tu corazón</span>
+<span class="c h">Re7                                 Sol   Sol7</span>
+<span>puedes adorar a tu Señor.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

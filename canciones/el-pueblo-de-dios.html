@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>El pueblo de Dios — Cancionero Carmen</title>
+<title>El pueblo de Dios &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,25 +28,57 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">El pueblo de Dios</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Entrada</span>
-    <span class="num">Nº 6</span>
+    <span class="num">N&ordm;&nbsp;6</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span style="color:var(--muted);font-style:italic">Letra pendiente de revisión</span></div>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">DO                                                        SOL</span>
+<span>El pueblo de Dios por el desierto andaba.</span>
+<span class="c h">           Sol7                              DO</span>
+<span>Guiándolo al frente su Dios caminaba.</span>
+<span class="c h">          DO           SOL</span>
+<span>El pueblo de Dios no tenía nada,</span>
+<span class="c h">                        Sol7                            DO/DO7</span>
+<span>tan sólo esperanza, su Dios lo alentaba.</span>
+<span></span>
+<span class="c h">                          FA</span>
+<span>Hoy somos tu pueblo Señor,</span>
+<span class="c h">                         DO</span>
+<span>vamos caminando.</span>
+<span class="c h">                          SOL7                                  DO</span>
+<span>Solamente tu gracia nos basta y alcanza.</span>
+<span></span>
+<span class="c h">DO                                                        SOL</span>
+<span>El pueblo de Dios también tuvo hambre</span>
+<span class="c h">     Sol7                                  DO</span>
+<span>y tú le mandaste el pan de los cielos.</span>
+<span class="c h">DO                                                  SOL</span>
+<span>El pueblo de Dios cantando dio gracias,</span>
+<span class="c h">       Sol7                                  DO/DO7</span>
+<span>gustó de tu Amor, tu Amor que no pasa.</span>
+<span></span>
+<span class="c h">   DO                           SOL</span>
+<span>El pueblo de Dios temía y dudaba</span>
+<span class="c h">         Sol7                          DO</span>
+<span>a veces costaba creer en su amor.</span>
+<span class="c h">         DO              SOL</span>
+<span>El pueblo de Dios lloraba y rezaba,</span>
+<span class="c h">   Sol7                        DO/DO7</span>
+<span>pedía perdón y recomenzaba.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

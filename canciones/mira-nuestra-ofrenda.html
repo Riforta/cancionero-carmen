@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mira nuestra ofrenda — Cancionero Carmen</title>
+<title>Mira nuestra ofrenda &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,61 +28,37 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Mira nuestra ofrenda</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Ofrenda</span>
-    <span class="num">Nº 32</span>
+    <span class="num">N&ordm;&nbsp;32</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">La- Mi La- Mi La- La7</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">La-    Mi             La-        Mi              La- La7</span>
 <span>Mira nuestra ofrenda, mírala, Señor.</span>
-<span class="c h">Re- Sol Mi La-</span>
+<span class="c h">Re-                  Sol       Mi                    La-</span>
 <span>Todo te ofrecemos para unirnos más.</span>
-<span class="c h">La7 Re- Sol7 Do</span>
+<span class="c h">La7               Re-      Sol7         Do</span>
 <span>Porque tu Misa, es nuestra Misa.</span>
-<span>La- Re- Mi La-</span>
+<span>La-              Re-    Mi                 La-</span>
 <span>Porque tu vida, es nuestra vida.</span>
-<span class="c h">La- Mi La- Mi La- La7</span>
+<span></span>
+<span class="c h">   La-       Mi         La-      Mi                 La- La7</span>
 <span>¿Qué podemos darte? nuestro Creador.</span>
-<span class="c h">Re- Sol Mi La-</span>
-<span>Sólo nuestra nada, tómala, Señor.</span>
-<span>3) Mi Reino</span>
-<span>o Sol7 La-</span>
-<span>i Reino es un grano de mostaza</span>
-<span class="c h">a Re- Sol Sol7</span>
-<span>ue alguien en la tierra sembrarán</span>
-<span>o Mi La-</span>
-<span>que cuando crezca será grande y fuerte</span>
-<span class="c h">a Sol Do Sol7</span>
-<span>s aves en él anidarán.</span>
-<span>o Sol7 La-</span>
-<span>s también como la levadura</span>
-<span class="c h">a Re- Sol Sol7</span>
-<span>ue toma en sus manos la mujer</span>
-<span>o Mi La-</span>
-<span>que si la mezcla con harina y agua</span>
-<span class="c h">a Sol Do Sol7</span>
-<span>rmenta y la masa hace crecer.</span>
-<span>o Sol7 La-</span>
-<span>ú tienes mi Reino entre tus manos</span>
-<span class="c h">a Re- Sol Sol7</span>
-<span>rabaja para que pueda ser</span>
-<span>o Mi La-</span>
-<span>ú eres la semilla y el fermento vivo</span>
-<span class="c h">a Sol Do</span>
-<span>az que el mundo en Mí pueda creer.</span></div>
+<span class="c h">Re-                   Sol     Mi               La-</span>
+<span>Sólo nuestra nada, tómala, Señor.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

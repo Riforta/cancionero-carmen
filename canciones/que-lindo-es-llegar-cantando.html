@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Qué lindo es llegar cantando — Cancionero Carmen</title>
+<title>Qué lindo es llegar cantando &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,25 +28,50 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Qué lindo es llegar cantando</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Entrada</span>
-    <span class="num">Nº 15</span>
+    <span class="num">N&ordm;&nbsp;15</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span style="color:var(--muted);font-style:italic">Letra pendiente de revisión</span></div>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Re                               La                  Sol               Re</span>
+<span>Qué lindo llegar cantando a tu casa Padre Dios</span>
+<span class="c h">                                     La          Sol      Re        La            Re</span>
+<span>y hermanados en el canto, comenzar nuestra oración.</span>
+<span class="c h">                                        La                 Sol                        Re</span>
+<span>Darte gracias y alabanzas, pedirte ayuda y perdón</span>
+<span class="c h">      Re7                         Sol              La7              Re</span>
+<span>Qué lindo llegar cantando a tu casa Padre Dios.</span>
+<span></span>
+<span class="c h">                                       La7                                Re</span>
+<span>Qué lindo traer la vida a nuestra celebración</span>
+<span class="c h">                                           La7                                         Re7</span>
+<span>Contarla a nuestros hermanos y que se vuelva oración.</span>
+<span class="c h">                              La7                                        Re7</span>
+<span>Sudor, lágrimas, esperanzas, trabajo, rezo y amor.</span>
+<span class="c h">          Re7                        Sol             La7                  Re</span>
+<span>Qué lindo es rezar cantando la vida que se nos dio.</span>
+<span></span>
+<span class="c h">                                               La7                                          Re</span>
+<span>Qué lindo encontrar hermanos que viven la misma Fe,</span>
+<span class="c h">                                       La7                                       Re7</span>
+<span>Y amando son serviciales y esperando saben ver,</span>
+<span class="c h">                                       La7                                         Re7</span>
+<span>Que el reino de Dios avanza sencillamente y de a pie.</span>
+<span class="c h">          Re7                 Sol                La7               Re</span>
+<span>Qué lindo rezar cantando el misterio de la fe.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

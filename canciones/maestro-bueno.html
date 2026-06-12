@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Maestro Bueno — Cancionero Carmen</title>
+<title>Maestro Bueno &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,93 +28,45 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Maestro Bueno</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Comunión</span>
-    <span class="num">Nº 70</span>
+    <span class="num">N&ordm;&nbsp;70</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">Rem La Rem La cos</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Rem                        La                Rem</span>
 <span>Maestro bueno, yo quiero alcanzar,</span>
-<span>La-</span>
-<span class="c h">La# Do Fa</span>
-<span>Pídanl</span>
+<span class="c h">             La#       Do       Fa</span>
 <span>la vida eterna y la felicidad,</span>
-<span class="c h">Solm Rem</span>
-<span>que e</span>
+<span class="c h">                 Solm                             Rem</span>
 <span>ya he cumplido todo cuanto pediste,</span>
-<span class="c h">La# La Rem</span>
-<span>La-</span>
+<span class="c h">             La#            La                   Rem</span>
 <span>pero mi alma se inquieta mucho más.</span>
-<span>Al ent</span>
-<span class="c h">Rem La Rem</span>
-<span>Mi vida entera no deja de entender La-</span>
-<span class="c h">La# Do Fa El rein</span>
-<span>que yo he nacido para la eternidad,</span>
-<span>La-</span>
-<span class="c h">Solm Rem</span>
-<span>Los qu</span>
-<span>en Dios descansa mi débil corazón,</span>
-<span class="c h">La# La Rem</span>
-<span>La-</span>
-<span>Maestro Bueno, dime qué debo hacer.</span>
-<span>Quien</span>
-<span class="c h">Re La Mim Sim 72) M</span>
-<span>Ven y sígueme, Ven, Yo soy el camino, La</span>
-<span class="c h">Sol Re ME P</span>
+<span></span>
+<span class="c h">Re                 La  Mim                           Sim</span>
+<span>Ven y sígueme, Ven, Yo soy el camino,</span>
+<span class="c h">            Sol                               Re</span>
 <span>Yo soy la Verdad, Yo soy la Vida,</span>
-<span class="c h">La Re La TE EN</span>
-<span>he vencido a la muerte, ya no puedes temer. Re</span>
-<span class="c h">Re La Mim Sim NO M</span>
-<span>Ven, levántate. Ven, a ti te lo digo, Re</span>
-<span class="c h">Sol Re MI FU</span>
+<span class="c h">                             La                                  Re      La</span>
+<span>he vencido a la muerte, ya no puedes temer.</span>
+<span class="c h">Re                 La  Mim                    Sim</span>
+<span>Ven, levántate. Ven, a ti te lo digo,</span>
+<span class="c h">                Sol                                             Re</span>
 <span>busca en tu interior una gracia infinita,</span>
-<span class="c h">La</span>
-<span class="c h">La Re (Sol Solm Re)</span>
-<span>Tú qu</span>
-<span>un tesoro divino que podrás repartir.</span>
-<span class="c h">La7</span>
-<span>Tú qu</span>
-<span class="c h">Rem La Rem</span>
-<span>Si-</span>
-<span>Ya todo eso lo puedo comprender,</span>
-<span>enséñ</span>
-<span class="c h">La# Do Fa</span>
-<span class="c h">Re</span>
-<span>pero la duda y la debilidad</span>
-<span>enséñ</span>
-<span class="c h">Solm Rem</span>
-<span class="c h">La</span>
-<span class="c h">La# La Rem</span>
-<span>Tú qu</span>
-<span>Amigo bueno, ayúdame a vencer.</span>
-<span class="c h">La7</span>
-<span class="c h">Rem La Rem</span>
-<span>Tú te</span>
-<span>La santidad es un don que se halla en todos,</span>
-<span>Si-</span>
-<span class="c h">La# Do Fa</span>
-<span>dame</span>
-<span>brota y florece creyendo de verdad.</span>
-<span class="c h">Re</span>
-<span class="c h">Solm Rem</span>
-<span>dame</span>
-<span>Quisiera fuerzas para poder vivirla,</span>
-<span class="c h">La# La Rem La</span>
-<span>Maestro Bueno, yo la quiero alcanzar. Guard</span>
-<span class="c h">La7</span></div>
+<span class="c h">                  La                      Re (Sol Solm Re)</span>
+<span>un tesoro divino que podrás repartir.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

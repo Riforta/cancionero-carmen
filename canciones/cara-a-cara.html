@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cara a cara — Cancionero Carmen</title>
+<title>Cara a cara &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,19 +28,19 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Cara a cara</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 99</span>
+    <span class="num">N&ordm;&nbsp;99</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">LA FA#m Sólo</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span>LA FA#m Sólo</span>
 <span>Solamente una palabra,</span>
-<span class="c h">LA FA#m y pe</span>
+<span>LA FA#m y pe</span>
 <span>solamente una oración</span>
 <span class="c h">LA FA#m SIm MI derr</span>
 <span>cuando llegue a tu presencia, oh Señor.</span>
@@ -50,9 +50,9 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span>de la mesa me hagas sentar,</span>
 <span class="c h">RE RE/DO# SIm MI MI7</span>
 <span>o el color de mi corona, si la llego a ganar. Cua</span>
-<span class="c h">LA FA#m déja</span>
+<span>LA FA#m déja</span>
 <span>Solamente una palabra,</span>
-<span class="c h">LA FA#m y qu</span>
+<span>LA FA#m y qu</span>
 <span>si es que aún me queda voz</span>
 <span class="c h">LA FA#m SIm MI y qu</span>
 <span>y si logro articularla en tu presencia.</span>
@@ -98,23 +98,23 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span class="c h">RE RE/DO# SIm MI MI7</span>
 <span>o el color de mi corona, si la llego a ganar.</span>
 <span>42</span>
-<span class="c h">E MI DO#m FA#m</span>
+<span>E MI DO#m FA#m</span>
 <span>déjame mirarte cara a ca-----ra</span>
 <span class="c h">RE MI DO#m FA#m</span>
 <span>derme como un niño en tu mira-----da,</span>
 <span class="c h">RE MI</span>
 <span>tado y desde el suelo,</span>
-<span class="c h">DO#m FA#m</span>
+<span>DO#m FA#m</span>
 <span>loroso y sin aliento,</span>
 <span class="c h">RE RE/DO# SIm MI MI7</span>
 <span>e seguiré mirando, mi Maestro.</span>
-<span class="c h">E MI DO#m FA#m</span>
+<span>E MI DO#m FA#m</span>
 <span>do caiga ante tus plantas de rodillas,</span>
 <span class="c h">RE MI DO#m FA#m</span>
 <span>e llorar pegado a tus heridas,</span>
 <span class="c h">RE MI</span>
 <span>pase mucho tiempo,</span>
-<span class="c h">DO#m FA#m</span>
+<span>DO#m FA#m</span>
 <span>nadie me lo impida,</span>
 <span class="c h">RE RE/DO# SIm MI LA</span>
 <span>e esperado este momento toda mi vida.</span>
@@ -179,13 +179,13 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span>Sabe esperar tu venida Señor Sol</span>
 <span>por</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

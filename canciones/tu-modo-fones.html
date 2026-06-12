@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tu Modo (Fones) — Cancionero Carmen</title>
+<title>Tu Modo (Fones) &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,16 +28,16 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Tu Modo (Fones)</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Comunión</span>
-    <span class="num">Nº 83</span>
+    <span class="num">N&ordm;&nbsp;83</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
   <div class="lyrics" id="lyr"><span class="c h">SOL RE DO RE RE</span>
 <span>Jesús, al contemplar en tu vida Tu Se</span>
 <span class="c h">SOL RE DO RE</span>
@@ -48,7 +48,7 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span>tu forma de amar nos mueve a amar; que d</span>
 <span class="c h">RE DO</span>
 <span>tu trato es como el agua cristalina</span>
-<span class="c h">RE SOL Ni el p</span>
+<span>RE SOL Ni el p</span>
 <span>que limpia y acompaña el caminar.</span>
 <span>Tu cu</span>
 <span class="c h">SOL RE LAm</span>
@@ -140,13 +140,13 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span class="c h">SOL RE LA7 RE RE7</span>
 <span>meré a nada pues te tengo dentro mío.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

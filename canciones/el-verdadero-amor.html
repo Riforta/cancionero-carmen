@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>El verdadero amor — Cancionero Carmen</title>
+<title>El verdadero amor &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,25 +28,44 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">El verdadero amor</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 101</span>
+    <span class="num">N&ordm;&nbsp;101</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span style="color:var(--muted);font-style:italic">Letra pendiente de revisión</span></div>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">Mim                           Lam</span>
+<span>Amor es aquel que todo puede dar</span>
+<span class="c h">Re7                             Sol</span>
+<span>Amor es aquel que nada pide</span>
+<span class="c h">Lam                             Si7                     MIm</span>
+<span>Amor es la entrega total, sin condición</span>
+<span></span>
+<span class="c h">Mi7                  Lam                  Re7</span>
+<span>El verdadero amor todo lo sufre</span>
+<span class="c h">                Sol   Si7                   Mim</span>
+<span>Todo lo cree, no tiene envidia</span>
+<span class="c h">                 Lam Si7                     MIm</span>
+<span>Sabe esperar, el verdadero amor</span>
+<span></span>
+<span class="c h">Mim                           Lam</span>
+<span>Amor es aquel que no se envanece</span>
+<span class="c h">Re7                             Sol</span>
+<span>Amor desinteresado amor</span>
+<span class="c h">Lam                             Si7                     MIm</span>
+<span>Amor es el amor de Dios eterno amor</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

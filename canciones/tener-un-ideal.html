@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tener un ideal — Cancionero Carmen</title>
+<title>Tener un ideal &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,17 +28,17 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Tener un ideal</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 131</span>
+    <span class="num">N&ordm;&nbsp;131</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">La- Sol La- Sol La- mi a</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span>La- Sol La- Sol La- mi a</span>
 <span>Hoy ya no puedo ser como fui hasta ayer,</span>
 <span class="c h">Sol La- Do Fa Do dam</span>
 <span>hoy debo cambiar; ya debo comenzar</span>
@@ -53,20 +53,20 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <span class="c h">Do MIm Fa Mi7 rect</span>
 <span>Y así vivir y no volver atrás. Sol</span>
 <span>Dev</span>
-<span class="c h">La- Sol La- Sol La-</span>
+<span>La- Sol La- Sol La-</span>
 <span>Hoy ya comprendo al fin que debo morir la es</span>
 <span class="c h">Sol La- Do Fa Do</span>
 <span>si quiero nacer, pues es muriendo que dam</span>
 <span class="c h">Fa Do Fa Mi7</span>
 <span>al fin entraré en la eternidad. agu</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

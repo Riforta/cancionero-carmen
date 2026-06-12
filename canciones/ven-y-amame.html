@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ven y ámame — Cancionero Carmen</title>
+<title>Ven y ámame &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,94 +28,41 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Ven y ámame</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 136</span>
+    <span class="num">N&ordm;&nbsp;136</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">LA MI FA#m DO#m MI</span>
-<span>Ámame Señor, quiero recibir yo p</span>
-<span class="c h">RE SIm MI</span>
-<span>ese gran amor que es para mi LA</span>
-<span class="c h">LA MI FA#m DO#m Por</span>
-<span>Ven Tú sobre mi y hazme al fin sentir MI</span>
-<span class="c h">RE SIm MI habi</span>
-<span>Mucha vida dulce, vida en ti Señor FA</span>
-<span>de</span>
-<span class="c h">LA MI FA#m DOm</span>
-<span>Ven y ámame, ven y ámame soy</span>
-<span class="c h">RE SIm MI</span>
-<span>Quiero recibir todo tu amor LA</span>
-<span class="c h">FA#m DO#m RE LA Señ</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">LA             MI      FA#m       DO#m</span>
+<span>Ámame Señor, quiero recibir</span>
+<span class="c h">RE             SIm                       MI</span>
+<span>ese gran amor que es para mi</span>
+<span class="c h">LA           MI                  FA#m          DO#m</span>
+<span>Ven Tú sobre mi y hazme al fin sentir</span>
+<span class="c h">RE                    SIm                 MI</span>
+<span>Mucha vida dulce, vida en ti Señor</span>
+<span></span>
+<span class="c h">LA         MI        FA#m    DOm</span>
 <span>Ven y ámame, ven y ámame</span>
-<span class="c h">SIm MI mis</span>
-<span>Te abro al fin las puertas de mi corazón FA#</span>
-<span>dam</span>
-<span>Quiero sentirte cada día MI</span>
-<span>Quiero proclamar tu amor dam</span>
-<span>Quiero saber que Tú me amas</span>
-<span>Con la fuerza de tu corazón</span>
-<span>52</span>
-<span>Ven y sígueme</span>
-<span class="c h">RE</span>
-<span>ides Señor que yo te siga</span>
-<span class="c h">MI</span>
-<span>ides que me ponga</span>
-<span class="c h">LA FA#m</span>
-<span>inar, difícil para mí</span>
-<span class="c h">RE MI</span>
-<span>mplacerte es mucho lo que</span>
-<span class="c h">LA</span>
-<span>que dejar.</span>
-<span class="c h">LA RE</span>
-<span>amas Señor a ser apóstol</span>
-<span class="c h">LA</span>
-<span>s que es mucho para mí</span>
-<span class="c h">RE</span>
-<span>era algún día yo seguirte</span>
-<span class="c h">I LA MI</span>
-<span>ucho lo que tengo que dejar.</span>
-<span class="c h">LA</span>
-<span>sígueme</span>
-<span class="c h">RE</span>
-<span>peres más</span>
-<span class="c h">LA</span>
-<span>nto a ti siempre estaré</span>
-<span>#m</span>
-<span>mas que palabras</span>
-<span class="c h">RE</span>
-<span>s que decir</span>
-<span class="c h">LA MI</span>
-<span>r tu boca hablaré.(Bis)</span>
-<span class="c h">RE</span>
-<span>ue tu te fijas en mi persona</span>
-<span class="c h">LA</span>
-<span>ndo otras mejores que yo</span>
-<span class="c h">m RE</span>
-<span>i nunca esperes algo grande</span>
-<span class="c h">I LA</span>
-<span>ébil y cobarde sabes bien.</span>
-<span class="c h">RE</span>
-<span>r quiero decirte otra cosa</span>
-<span class="c h">I LA</span>
-<span>migos de mi se reirán</span>
-<span class="c h">RE</span>
-<span>tu la fuerza y valentía</span>
-<span class="c h">LA MI</span>
-<span>tu la vida y la fe.</span></div>
+<span class="c h">RE                SIm              MI</span>
+<span>Quiero recibir todo tu amor</span>
+<span class="c h">FA#m     DO#m   RE        LA</span>
+<span>Ven y ámame, ven y ámame</span>
+<span class="c h">SIm                                           MI</span>
+<span>Te abro al fin las puertas de mi corazón</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>

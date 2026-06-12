@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tuyo soy — Cancionero Carmen</title>
+<title>Tuyo soy &mdash; Cancionero Carmen</title>
 <style>
 :root{--wine:#6B2D1F;--wine-d:#4d1e13;--wine-l:#f7eeeb;--gold:#b8952a;--border:#e5d5ce;--bg:#fff;--bg2:#faf6f4;--muted:#7a6a60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,51 +28,40 @@ footer{text-align:center;padding:1.5rem 1rem;font-size:.72rem;color:var(--muted)
 <body>
 <header>
   <div class="h-top">
-    <a class="back" href="../index.html">← Índice</a>
+    <a class="back" href="../index.html">&larr; &Iacute;ndice</a>
     <div class="h-title">Tuyo soy</div>
   </div>
 </header>
 <main>
   <div class="meta">
     <span class="tag">Adoración</span>
-    <span class="num">Nº 135</span>
+    <span class="num">N&ordm;&nbsp;135</span>
   </div>
-  <button class="chords-btn" id="cb" onclick="tc()">♩ Mostrar acordes</button>
-  <div class="lyrics" id="lyr"><span class="c h">DO LAm DO LAm L</span>
-<span>Yo no soy nada, y del polvo nací, Me</span>
-<span class="c h">MIm LA7 Rem SOL7</span>
-<span>pero tu me amas y moriste por mí. me</span>
-<span class="c h">DO LAm DO LAm a ca</span>
+  <button class="chords-btn" id="cb" onclick="tc()">&#9833; Mostrar acordes</button>
+  <div class="lyrics" id="lyr"><span class="c h">DO            LAm            DO         LAm</span>
+<span>Yo no soy nada, y del polvo nací,</span>
+<span class="c h">MIm            LA7        Rem           SOL7</span>
+<span>pero tu me amas y moriste por mí.</span>
+<span></span>
+<span class="c h">DO         LAm      DO                 LAm</span>
 <span>Ante la cruz, solo puedo exclamar,</span>
-<span class="c h">MIm LA7 REm SOL7 es c</span>
+<span class="c h">  MIm  LA7  REm  SOL7</span>
 <span>tuyo soy, tuyo soy,</span>
-<span>teng</span>
-<span class="c h">DO LAm REm</span>
+<span></span>
+<span class="c h">DO                          LAm                      REm</span>
 <span>toma mis manos, te pido toma mis labios</span>
-<span class="c h">SOL7 DO Me l</span>
-<span>te amo, toma mi vida, MI</span>
-<span class="c h">LAm REm SOL7 DO sab</span>
-<span>!Oh! Padre tuyo soy, tuyo soy. FA#</span>
-<span>quis</span>
-<span>DO-LAm-DO-LAm</span>
-<span>es</span>
-<span class="c h">DO LAm DO LAm</span>
-<span>Cuando de rodillas te miro Jesús,</span>
-<span class="c h">MIm LA7 REm SOL7 Ven</span>
-<span>veo tu grandeza y mi pequeñes.</span>
-<span>no e</span>
-<span class="c h">DO LAm DO LAm MI</span>
-<span>Que puedo darte yo, solo mi ser, yo j</span>
-<span class="c h">MIm LA7 REm SOL7 F</span>
-<span>tuyo soy, tuyo soy, no t</span></div>
+<span class="c h">SOL7         DO</span>
+<span>te amo, toma mi vida,</span>
+<span class="c h">  LAm          REm   SOL7       DO</span>
+<span>¡Oh! Padre tuyo soy, tuyo soy.</span></div>
 </main>
-<footer>Coro Santa María del Carmen · Córdoba</footer>
+<footer>Coro Santa Mar&iacute;a del Carmen &middot; C&oacute;rdoba</footer>
 <script>
 let on=false;
 function tc(){
   on=!on;
   document.getElementById('cb').classList.toggle('on',on);
-  document.getElementById('cb').textContent=on?'♩ Ocultar acordes':'♩ Mostrar acordes';
+  document.getElementById('cb').textContent=on?'&#9833; Ocultar acordes':'&#9833; Mostrar acordes';
   document.querySelectorAll('.c').forEach(e=>e.classList.toggle('h',!on));
 }
 </script>
