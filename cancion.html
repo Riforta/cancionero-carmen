@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4A1A10">
+<title>Cargando Canto...</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --wine:       #6B2D1F;
+  --wine-dark:  #4A1A10;
+  --wine-mid:   #8B3A28;
+  --wine-light: #F7EEEB;
+  --gold:       #B8952A;
+  --gold-light: #E8C97A;
+  --cream:      #FAF5EF;
+  --ink:        #1A0E0A;
+  --ink-soft:   #6B5046;
+  --border:     #DEC8BE;
+  --bg:         #FFFFFF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ─── HEADER BAR ─── */
+header {
+  background: linear-gradient(170deg, var(--wine-dark) 0%, var(--wine) 100%);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 18px rgba(74,26,16,0.4);
+}
+.header-gold-bar {
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-light) 50%, var(--gold) 80%, transparent);
+}
+.header-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+}
+.back-link {
+  color: var(--gold-light);
+  text-decoration: none;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* ─── CONTROLES DE LA PLANTILLA ─── */
+.toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+.btn-toggle {
+  background: var(--bg);
+  color: var(--wine);
+  border: 1px solid var(--border-mid);
+  padding: 0.65rem 1.4rem;
+  border-radius: 24px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(107,45,31,0.08);
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-toggle:hover {
+  background: var(--wine-light);
+  border-color: var(--wine);
+  transform: translateY(-1px);
+}
+.btn-toggle.active {
+  background: var(--wine);
+  color: #fff;
+  border-color: var(--wine-dark);
+  box-shadow: 0 4px 12px rgba(74,26,16,0.25);
+}
+
+/* ─── CONTENEDOR DE LA CANCIÓN ─── */
+main {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+}
+.song-header {
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  color: var(--wine-dark);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.4rem;
+}
+
+pre {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.25rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  background: var(--bg);
+  padding: 1.5rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(107,45,31,0.04);
+}
+
+/* ─── COMPONENTE ACORDE <c> ─── */
+c {
+  color: var(--wine-mid);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1.05rem;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  border-bottom: 2px dotted var(--gold);
+  cursor: pointer;
+  padding: 0 3px;
+  display: inline-block;
+  height: 1.2rem;
+  line-height: 1;
+  margin-bottom: 0.2rem;
+  transition: all 0.1s ease;
+}
+c:hover {
+  color: #fff;
+  background-color: var(--gold);
+  border-bottom-color: transparent;
+  border-radius: 4px;
+}
+
+/* ─── CUANDO SE OCULTAN LOS ACORDES ─── */
+.no-chords c {
+  display: none;
+}
+.no-chords pre {
+  line-height: 1.6;
+}
+
+pre b { color: var(--wine-mid); font-weight: bold; }
+.error-msg { text-align: center; font-style: italic; color: var(--wine-mid); padding: 2rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-gold-bar"></div>
+  <div class="header-body">
+    <a href="index.html" class="back-link">‹ Volver</a>
+  </div>
+</header>
+
+<main>
+  <div class="song-header">
+    <h1 id="song-title">Cargando...</h1>
+  </div>
+
+  <div class="toolbar">
+    <button class="btn-toggle" onclick="applyTransposition(-1)">- ½ Tono</button>
+    <button id="toggleChords" class="btn-toggle active">Acordes: Visibles</button>
+    <button class="btn-toggle" onclick="applyTransposition(1)">+ ½ Tono</button>
+  </div>
+
+  <pre id="letra-box">Buscando letra y acordes...</pre>
+</main>
+
+<div id="chord-popover" style="display: none; position: absolute; background: #fff; border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 12px; box-shadow: 0 4px 15px rgba(107,45,31,0.15); z-index: 1000; pointer-events: none;">
+  <div id="popover-title" style="font-family: system-ui, -apple-system, sans-serif; font-size: 0.95rem; font-weight: bold; color: var(--wine-dark); text-align: center; margin-bottom: 8px;"></div>
+  <svg id="popover-svg" width="130" height="155" viewBox="0 0 100 120" style="display: block; margin: 0 auto;"></svg>
+</div>
+
+<script>
+const SCALE = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
+
+const NOTE_MAP = {
+  'C': 'DO', 'C#': 'DO#', 'D': 'RE', 'D#': 'RE#', 'E': 'MI', 'F': 'FA', 
+  'F#': 'FA#', 'G': 'SOL', 'G#': 'SOL#', 'A': 'LA', 'A#': 'LA#', 'B': 'SI',
+  'REb': 'DO#', 'MIb': 'RE#', 'SOLb': 'FA#', 'LAb': 'SOL#', 'SIb': 'LA#'
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const idCancion = urlParams.get('id');
+
+if (!idCancion) {
+  window.location.href = 'index.html';
+}
+
+fetch(`letras/${idCancion}.html`)
+  .then(response => {
+    if (!response.ok) throw new Error();
+    return response.text();
+  })
+  .then(textoLetra => {
+    document.getElementById('letra-box').innerHTML = textoLetra;
+    
+    const tituloLimpio = idCancion.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    document.getElementById('song-title').textContent = tituloLimpio;
+    document.title = `${tituloLimpio} — Coro del Carmen`;
+    
+    document.querySelectorAll('pre c').forEach(el => {
+      el.setAttribute('data-original', el.textContent.trim());
+    });
+  })
+  .catch(() => {
+    document.getElementById('letra-box').innerHTML = `<div class="error-msg">No se pudo cargar la letra.<br>Verificá el archivo: <b>letras/${idCancion}.html</b></div>`;
+    document.getElementById('song-title').textContent = "Error";
+  });
+
+// ─── LÓGICA 1: MOSTRAR/OCULTAR ACORDES ───
+const btnToggle = document.getElementById('toggleChords');
+const letraBox = document.getElementById('letra-box');
+
+btnToggle.addEventListener('click', () => {
+  const chordsHidden = letraBox.classList.toggle('no-chords');
+  if (chordsHidden) {
+    btnToggle.textContent = 'Acordes: Ocultos';
+    btnToggle.classList.remove('active');
+  } else {
+    btnToggle.textContent = 'Acordes: Visibles';
+    btnToggle.classList.add('active');
+  }
+});
+
+// ─── LÓGICA 2: ALGORITMO DE TRANSPOSICIÓN ───
+let currentTranspose = 0;
+
+function transposeNote(noteText, semitones) {
+  if (semitones === 0) return noteText;
+  
+  const regex = /^(DO#|RE#|FA#|SOL#|LA#|DO|RE|MI|FA|SOL|LA|SI|[CDEFGAB]#?)(b?)(.*)$/i;
+  const parts = noteText.toUpperCase().match(regex);
+  
+  if (!parts) return noteText;
+  
+  let baseNote = parts[1] + parts[2];
+  let suffix = parts[3];
+  
+  if (NOTE_MAP[baseNote]) {
+    baseNote = NOTE_MAP[baseNote];
+  }
+  
+  let index = SCALE.indexOf(baseNote);
+  if (index === -1) return noteText;
+  
+  let newIndex = (index + semitones) % 12;
+  if (newIndex < 0) newIndex += 12;
+  
+  return SCALE[newIndex] + suffix.toLowerCase();
+}
+
+function applyTransposition(semitones) {
+  currentTranspose += semitones;
+  document.querySelectorAll('pre c').forEach(el => {
+    const original = el.getAttribute('data-original');
+    el.textContent = transposeNote(original, currentTranspose);
+  });
+}
+
+// ─── LÓGICA 3: DICCIONARIO Y DIBUJO DE ACORDES ───
+// ─── DICCIONARIO AMPLIADO DE ACORDES (GUITARRA) ───
+const CHORD_DICTIONARY = {
+  // --- ACORDES MAYORES ---
+  'DO':   ['x', 3, 2, 0, 1, 0], 'DO#':  ['x', 4, 3, 1, 2, 1],
+  'RE':   ['x', 'x', 0, 2, 3, 2], 'RE#':  ['x', 'x', 1, 3, 4, 3],
+  'MI':   [0, 2, 2, 1, 0, 0],     'FA':   [1, 3, 3, 2, 1, 1],
+  'FA#':  [2, 4, 4, 3, 2, 2],     'SOL':  [3, 2, 0, 0, 0, 3],
+  'SOL#': [4, 6, 6, 5, 4, 4],     'LA':   ['x', 0, 2, 2, 2, 0],
+  'LA#':  ['x', 1, 3, 3, 3, 1],   'SI':   ['x', 2, 4, 4, 4, 2],
+  
+  // --- ACORDES MENORES ---
+  'DOm':  ['x', 3, 5, 5, 4, 3], 'DOm#': ['x', 4, 6, 6, 5, 4],
+  'REm':  ['x', 'x', 0, 2, 3, 1], 'REm#': ['x', 'x', 1, 3, 4, 2],
+  'MIm':  [0, 2, 2, 0, 0, 0],     'FAm':  [1, 3, 3, 1, 1, 1],
+  'FAm#': [2, 4, 4, 2, 2, 2],     'SOLm': [3, 5, 5, 3, 3, 3],
+  'SOLm#': [4, 6, 6, 4, 4, 4],    'LAm':  ['x', 0, 2, 2, 1, 0],
+  'LAm#': ['x', 1, 3, 3, 2, 1],   'SIm':  ['x', 2, 4, 4, 3, 2],
+
+  // --- SÉPTIMAS DE DOMINANTE (7) ---
+  'DO7':   ['x', 3, 2, 3, 1, 0], 'RE7':   ['x', 'x', 0, 2, 1, 2],
+  'MI7':   [0, 2, 0, 1, 0, 0],   'FA7':   [1, 3, 1, 2, 1, 1],
+  'FA#7':  [2, 4, 2, 3, 2, 2],   'SOL7':  [3, 2, 0, 0, 0, 1],
+  'LA7':   ['x', 0, 2, 0, 2, 0], 'SI7':   ['x', 2, 1, 2, 0, 2],
+
+  // --- SÉPTIMAS MAYORES (maj7 / M7) ---
+  'DOmaj7': ['x', 3, 2, 0, 0, 0], 'REmaj7': ['x', 'x', 0, 2, 2, 2],
+  'MImaj7': [0, 2, 1, 1, 0, 0],   'FAmaj7': ['x', 'x', 3, 2, 1, 0],
+  'SOLmaj7':[3, 2, 0, 0, 0, 2],   'LAmaj7': ['x', 0, 2, 1, 2, 0],
+
+  // --- MENORES CON SÉPTIMA (m7) ---
+  'REm7':  ['x', 'x', 0, 2, 1, 1], 'MIm7':  [0, 2, 0, 0, 0, 0],
+  'FAm#7': [2, 4, 2, 2, 2, 2],     'LAm7':  ['x', 0, 2, 0, 1, 0],
+  'SIm7':  ['x', 2, 4, 2, 3, 2],
+
+  // --- SUSPENDIDOS (sus4) ---
+  'REsus4': ['x', 'x', 0, 2, 3, 3], 'MIsus4': [0, 2, 2, 2, 0, 0],
+  'LAsus4': ['x', 0, 2, 2, 3, 0],   'SIsus4': ['x', 2, 4, 4, 5, 2],
+
+  // --- AGREGADOS (add9) ---
+  'DOadd9': ['x', 3, 2, 0, 3, 0], 'FAadd9': ['x', 'x', 3, 2, 1, 3],
+  'SOLadd9':[3, 2, 0, 0, 0, 5]
+};
+
+const popover = document.getElementById('chord-popover');
+const popoverSvg = document.getElementById('popover-svg');
+const popoverTitle = document.getElementById('popover-title');
+
+function drawChordSVG(positions) {
+  if (!positions) return '';
+  
+  let frets = positions.filter(p => typeof p === 'number' && p > 0);
+  let minFret = frets.length ? Math.min(...frets) : 1;
+  let startFret = minFret > 3 ? minFret : 1;
+
+  let svgHtml = `
+    <line x1="20" y1="15" x2="80" y2="15" stroke="#4A1A10" stroke-width="${startFret === 1 ? 4 : 1}" />
+    <line x1="20" y1="40" x2="80" y2="40" stroke="#ccc" stroke-width="1" />
+    <line x1="20" y1="65" x2="80" y2="65" stroke="#ccc" stroke-width="1" />
+    <line x1="20" y1="90" x2="80" y2="90" stroke="#ccc" stroke-width="1" />
+    <line x1="20" y1="115" x2="80" y2="115" stroke="#ccc" stroke-width="1" />
+  `;
+
+  for (let i = 0; i < 6; i++) {
+    let x = 20 + i * 12;
+    svgHtml += `<line x1="${x}" y1="15" x2="${x}" y2="115" stroke="#666" stroke-width="1" />`;
+  }
+
+  if (startFret > 1) {
+    svgHtml += `<text x="5" y="32" font-family="system-ui" font-size="10" fill="#6B5046">${startFret}fr</text>`;
+  }
+
+  positions.forEach((fret, stringIndex) => {
+    let x = 20 + stringIndex * 12;
+    
+    if (fret === 'x' || fret === 'X') {
+      svgHtml += `<text x="${x-3}" y="10" font-family="system-ui" font-size="9" fill="#999" font-weight="bold">×</text>`;
+    } else if (fret === 0) {
+      svgHtml += `<circle cx="${x}" cy="8" r="3" fill="none" stroke="#B8952A" stroke-width="1" />`;
+    } else if (typeof fret === 'number') {
+      let relativeFret = fret - startFret + 1;
+      let y = 15 + (relativeFret * 25) - 12.5;
+      svgHtml += `<circle cx="${x}" cy="${y}" r="4.5" fill="#B8952A" />`;
+    }
+  });
+
+  return svgHtml;
+}
+
+// Escuchador global: Detecta clics en las etiquetas <c>
+document.addEventListener('click', (e) => {
+  if (e.target.tagName === 'C') {
+    e.stopPropagation();
+    
+    let chordName = e.target.textContent.trim();
+    let positions = CHORD_DICTIONARY[chordName];
+    
+    // Posicionar el cartel flotante justo arriba del elemento <c> cliqueado
+    const rect = e.target.getBoundingClientRect();
+    popover.style.display = 'block';
+    popover.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 75}px`;
+    popover.style.top = `${rect.top + window.scrollY - 185}px`;
+
+    // Ponemos el nombre del acorde como título del popover
+    popoverTitle.textContent = chordName;
+
+    if (positions) {
+      // SI EXISTE: Dibujamos el diapasón a escala
+      popoverSvg.style.display = 'block';
+      popoverSvg.innerHTML = drawChordSVG(positions);
+      
+      // Limpiamos cualquier cartel de error previo si quedó flotando
+      const errorText = popover.querySelector('.popover-error');
+      if (errorText) errorText.remove();
+    } else {
+      // NO EXISTE: Ocultamos el espacio del dibujo y mostramos el cartel de "No encontrado"
+      popoverSvg.style.display = 'none';
+      
+      // Evitamos duplicar el cartel si ya existía
+      if (!popover.querySelector('.popover-error')) {
+        let msg = document.createElement('div');
+        msg.className = 'popover-error';
+        msg.style.cssText = "font-family: system-ui; font-size: 0.75rem; color: #999; text-align: center; padding: 20px 10px; font-style: italic;";
+        msg.textContent = "Diagrama no disponible";
+        popover.appendChild(msg);
+      }
+    }
+  } else {
+    // Si hacen clic en cualquier otra parte de la pantalla, se oculta el popover
+    popover.style.display = 'none';
+    const errorText = popover.querySelector('.popover-error');
+    if (errorText) errorText.remove();
+  }
+});
+
+window.addEventListener('scroll', () => { popover.style.display = 'none'; });
+</script>
+</body>
+</html>
