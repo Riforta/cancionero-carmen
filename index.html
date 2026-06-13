@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#4A1A10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Cancionero — Coro Virgen Del Carmen</title>
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><circle cx=%2750%27 cy=%2750%27 r=%2748%27 fill=%27%233D0F12%27/><circle cx=%2750%27 cy=%2750%27 r=%2745%27 fill=%27none%27 stroke=%27%23C4922A%27 stroke-width=%271.5%27 opacity=%270.8%27/><path d=%27M 20 75 Q 35 55 50 45 Q 65 55 80 75 Z%27 fill=%27%23260608%27 stroke=%27%23E8C97A%27 stroke-width=%271.5%27/><rect x=%2747%27 y=%2718%27 width=%276%27 height=%2732%27 rx=%271%27 fill=%27%23E8C97A%27/><rect x=%2736%27 y=%2728%27 width=%2728%27 height=%276%27 rx=%271%27 fill=%27%23E8C97A%27/><polygon points=%2732,60 33.5,63 37,63 34,65 35,68 32,66 29,68 30,65 27,63 30.5,63%27 fill=%27%23FAF5EF%27/><polygon points=%2768,60 69.5,63 73,63 70,65 71,68 68,66 65,68 66,65 63,63 66.5,63%27 fill=%27%23FAF5EF%27/><polygon points=%2750,8 51.5,11 55,11 52,13 53,16 50,14 47,16 48,13 45,11 48.5,11%27 fill=%27%23E8C97A%27/></svg>">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -66,7 +69,7 @@ header {
   background: rgba(0,0,0,0.2);
   box-shadow: 0 0 0 3px rgba(184,149,42,0.1);
 }
-.header-logo svg { width: 30px; height: 30px; }
+.header-logo svg { width: 100%; height: 100%; }
 
 .header-title-group { flex: 1; }
 .h-title {
@@ -172,8 +175,8 @@ main { max-width: 700px; margin: 0 auto; padding: 1.4rem 1rem 5rem; }
   margin-bottom: 1.5rem;
 }
 .song-row {
-  display: flex; align-items: center; gap: 0.65rem;
-  padding: 0.65rem 0.9rem;
+  display: flex; align-items: center; gap: 0.85rem;
+  padding: 0.65rem 1.1rem;
   border-bottom: 1px solid rgba(222,200,190,0.55);
   text-decoration: none; color: var(--ink);
   transition: background 0.1s, border-left-color 0.14s;
@@ -182,11 +185,6 @@ main { max-width: 700px; margin: 0 auto; padding: 1.4rem 1rem 5rem; }
 }
 .song-row:last-child { border-bottom: none; }
 .song-row:hover { background: var(--wine-light); border-left-color: var(--wine); }
-.song-num {
-  font-family: 'Cinzel', serif; font-size: 0.59rem;
-  color: var(--ink-soft); min-width: 22px; text-align: right;
-  flex-shrink: 0; opacity: 0.42;
-}
 .song-tag {
   font-family: 'Cinzel', serif; font-size: 0.52rem; font-weight: 600;
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--wine-mid);
@@ -230,24 +228,24 @@ footer { text-align: center; padding: 1.75rem 1rem 1.25rem; border-top: 1px soli
 <header>
   <div class="header-gold-bar"></div>
   <div class="header-body">
-    <!-- Logo Carmelita -->
     <div class="header-logo" aria-hidden="true">
-      <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="40" cy="40" r="39" fill="#3D0F12"/>
-        <circle cx="40" cy="40" r="36.5" fill="none" stroke="#C4922A" stroke-width="1.5" opacity="0.65"/>
-        <!-- Monte Carmelo -->
-        <path d="M 18 65 L 40 36 L 62 65 Z" fill="none" stroke="#E8C97A" stroke-width="1.8" stroke-linejoin="round" opacity="0.5"/>
-        <!-- Cruz vertical -->
-        <rect x="37" y="10" width="6" height="36" rx="2" fill="#E8C97A"/>
-        <!-- Cruz horizontal -->
-        <rect x="26" y="21" width="28" height="6" rx="2" fill="#E8C97A"/>
-        <!-- Estrella -->
-        <polygon points="40,4 41.8,9.5 47.5,9.5 43,13 44.7,18.5 40,15 35.3,18.5 37,13 32.5,9.5 38.2,9.5" fill="#E8C97A"/>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="#3D0F12"/>
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#C4922A" stroke-width="1.5" opacity="0.8"/>
+        
+        <path d="M 20 75 Q 35 55 50 45 Q 65 55 80 75 Z" fill="#260608" stroke="#E8C97A" stroke-width="1.5" stroke-linejoin="round"/>
+        
+        <rect x="47" y="18" width="6" height="32" rx="1" fill="#E8C97A"/>
+        <rect x="36" y="28" width="28" height="6" rx="1" fill="#E8C97A"/>
+        
+        <polygon points="32,60 33.5,63 37,63 34,65 35,68 32,66 29,68 30,65 27,63 30.5,63" fill="#FAF5EF"/>
+        <polygon points="68,60 69.5,63 73,63 70,65 71,68 68,66 65,68 66,65 63,63 66.5,63" fill="#FAF5EF"/>
+        <polygon points="50,8 51.5,11 55,11 52,13 53,16 50,14 47,16 48,13 45,11 48.5,11" fill="#E8C97A"/>
       </svg>
     </div>
     <div class="header-title-group">
       <div class="h-title">Cancionero <span class="accent">✦</span></div>
-      <div class="h-sub">Coro Virgen del Carmen · Córdoba</div>
+      <div class="h-sub">Coro Santa María del Carmen · Parroquia Virgen del Carmen</div>
     </div>
   </div>
 </header>
@@ -431,7 +429,6 @@ function renderList(songs) {
   list.style.display = 'block';
   document.getElementById('nr').style.display = 'none';
   list.innerHTML = songs.map(s => `<a class="song-row" href="cancion.html?id=${s.id}">
-    ${s.num ? `<span class="song-num">${s.num}</span>` : ''}
     <span class="song-tag">${CMAP[s.category] || s.category}</span>
     <span class="song-name">${s.title}</span>
     <span class="song-arrow">›</span>
