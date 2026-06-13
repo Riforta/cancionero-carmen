@@ -3,198 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#3E2415">
-<link rel="icon" type="image/png" href="assets/logo-medallon.png">
+<meta name="theme-color" content="#4A1A10">
 <title>Cargando Canto...</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Paleta Virgen del Carmen — ícono a color */
-  --peach:       #F9CD8E;
-  --peach-soft:  #FCE2B4;
-  --peach-deep:  #F1B96A;
-  --brown:       #6B4226;
-  --brown-dark:  #3E2415;
-  --brown-mid:   #8A5733;
-  --brown-light: #FBE7CB;
-  --gold:        #B8862E;
-  --gold-light:  #DDB45E;
-  --gold-bright: #EBCB72;
-  --cream:       #FFFDF7;
-  --ink:         #2C1A0D;
-  --ink-soft:    #7A5638;
-  --border:      #E8CFA8;
-  --border-mid:  #D2AE7E;
-  --bg:          #FFFDF7;
+  --wine:       #6B2D1F;
+  --wine-dark:  #4A1A10;
+  --wine-mid:   #8B3A28;
+  --wine-light: #F7EEEB;
+  --gold:       #B8952A;
+  --gold-light: #E8C97A;
+  --cream:      #FAF5EF;
+  --ink:        #1A0E0A;
+  --ink-soft:   #6B5046;
+  --border:     #DEC8BE;
+  --bg:         #FFFFFF;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
   font-family: 'EB Garamond', Georgia, serif;
-  background: linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
-  background-repeat: no-repeat;
+  background: var(--cream);
   color: var(--ink);
   min-height: 100vh;
-  -webkit-text-size-adjust: 100%;
 }
 
-/* ─── HEADER ─── */
+/* ─── HEADER BAR ─── */
 header {
-  background: linear-gradient(160deg, var(--brown-dark) 0%, #5A3520 58%, var(--brown) 100%);
+  background: linear-gradient(170deg, var(--wine-dark) 0%, var(--wine) 100%);
   color: #fff;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 3px 28px rgba(62,36,21,0.5);
+  box-shadow: 0 2px 18px rgba(74,26,16,0.4);
 }
-
 .header-gold-bar {
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--gold) 15%, var(--gold-bright) 50%, var(--gold) 85%, transparent);
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold-light) 50%, var(--gold) 80%, transparent);
 }
-
 .header-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(0.55rem, 2vw, 0.85rem) clamp(1rem, 4vw, 1.6rem);
-  gap: 0.75rem;
+  padding: 0.6rem 1rem;
 }
-
 .back-link {
   color: var(--gold-light);
   text-decoration: none;
   font-family: 'Cinzel', serif;
-  font-size: clamp(0.7rem, 2.2vw, 0.82rem);
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  opacity: 0.9;
-  transition: opacity 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.back-link:hover { opacity: 1; }
-.back-link .arrow { font-size: 1.1em; }
-
-.header-center {
-  flex: 1;
-  text-align: center;
-  min-width: 0;
-}
-.header-brand {
-  font-family: 'Cinzel', serif;
-  font-size: clamp(0.68rem, 2vw, 0.82rem);
-  letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.6);
-  text-transform: uppercase;
 }
 
-.header-logo {
-  flex-shrink: 0;
-  width: clamp(40px, 10vw, 52px);
-  height: clamp(40px, 10vw, 52px);
-  border-radius: 50%;
-  display: block;
-  border: 2px solid rgba(232,201,122,0.7);
-  background: #FBF3E6;
-  box-shadow: 0 0 0 3px rgba(196,154,42,0.14), 0 2px 10px rgba(0,0,0,0.3);
-  overflow: hidden;
-}
-.header-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* ─── MAIN ─── */
-main {
-  max-width: 660px;
-  margin: 0 auto;
-  padding: clamp(1.2rem, 3vw, 2rem) clamp(0.9rem, 4vw, 1.5rem) 5rem;
-}
-
-/* ─── SONG HEADER ─── */
-.song-header {
-  text-align: center;
-  margin-bottom: 1.3rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(210,174,126,0.4);
-}
-
-h1 {
-  font-family: 'Cinzel', serif;
-  font-size: clamp(1.4rem, 5vw, 1.9rem);
-  color: var(--brown-dark);
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 0.3rem;
-}
-
-.song-ornament {
-  font-size: 0.72rem;
-  color: var(--gold);
-  letter-spacing: 0.5em;
-  opacity: 0.65;
-}
-
-/* ─── TOOLBAR ─── */
+/* ─── CONTROLES DE LA PLANTILLA ─── */
 .toolbar {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.4rem;
-  gap: 0.45rem;
-  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
 }
-
 .btn-toggle {
   background: var(--bg);
-  color: var(--brown);
-  border: 1.5px solid var(--border);
-  padding: 0.6rem 1.25rem;
-  border-radius: 50px;
+  color: var(--wine);
+  border: 1px solid var(--border-mid);
+  padding: 0.65rem 1.4rem;
+  border-radius: 24px;
   font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(107,66,38,0.1), inset 0 1px 0 rgba(255,255,255,0.7);
-  transition: all 0.15s ease;
+  box-shadow: 0 3px 8px rgba(107,45,31,0.08);
+  transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
-  min-height: 44px;
-  white-space: nowrap;
 }
 .btn-toggle:hover {
-  background: var(--brown-light);
-  border-color: var(--brown-mid);
+  background: var(--wine-light);
+  border-color: var(--wine);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(107,66,38,0.18);
 }
-.btn-toggle:active { transform: none; transition-duration: 0.06s; }
 .btn-toggle.active {
-  background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 100%);
+  background: var(--wine);
   color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 16px rgba(62,36,21,0.38);
+  border-color: var(--wine-dark);
+  box-shadow: 0 4px 12px rgba(74,26,16,0.25);
 }
 
-/* ─── LETRA / PRE ─── */
+/* ─── CONTENEDOR DE LA CANCIÓN ─── */
+main {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 5rem;
+}
+.song-header {
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.6rem;
+  color: var(--wine-dark);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.4rem;
+}
+
 pre {
   font-family: 'EB Garamond', Georgia, serif;
-  font-size: clamp(1.1rem, 2.8vw, 1.28rem);
-  line-height: 1.45;
+  font-size: 1.25rem;
+  line-height: 1.4;
   white-space: pre-wrap;
   background: var(--bg);
-  padding: clamp(1.1rem, 3vw, 1.6rem) clamp(1rem, 3vw, 1.4rem);
-  border-radius: 14px;
-  border: 1.5px solid var(--border);
-  box-shadow: 0 2px 6px rgba(107,66,38,0.06), 0 8px 28px rgba(107,66,38,0.06);
+  padding: 1.5rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(107,45,31,0.04);
 }
 
 /* ─── COMPONENTE ACORDE <c> ─── */
 c {
-  color: var(--brown-mid);
+  color: var(--wine-mid);
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: bold;
   letter-spacing: 0.02em;
   border-bottom: 2px dotted var(--gold);
@@ -207,34 +142,22 @@ c {
   transition: all 0.1s ease;
 }
 c:hover {
-  color: var(--brown-dark);
-  background-color: var(--gold-light);
+  color: #fff;
+  background-color: var(--gold);
   border-bottom-color: transparent;
   border-radius: 4px;
 }
 
-/* ─── ACORDES OCULTOS ─── */
-.no-chords c { display: none; }
-.no-chords pre { line-height: 1.65; }
-
-pre b { color: var(--brown-mid); font-weight: bold; }
-
-.error-msg {
-  text-align: center;
-  font-style: italic;
-  color: var(--brown-mid);
-  padding: 2.5rem 1rem;
-  font-size: 1.05rem;
+/* ─── CUANDO SE OCULTAN LOS ACORDES ─── */
+.no-chords c {
+  display: none;
+}
+.no-chords pre {
+  line-height: 1.6;
 }
 
-/* ─── ANIMACIÓN ENTRADA ─── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.song-header { animation: fadeUp 0.25s ease both; }
-.toolbar     { animation: fadeUp 0.27s ease 0.05s both; }
-pre          { animation: fadeUp 0.3s ease 0.1s both; }
+pre b { color: var(--wine-mid); font-weight: bold; }
+.error-msg { text-align: center; font-style: italic; color: var(--wine-mid); padding: 2rem; }
 </style>
 </head>
 <body>
@@ -242,26 +165,17 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
 <header>
   <div class="header-gold-bar"></div>
   <div class="header-body">
-    <a href="index.html" class="back-link">
-      <span class="arrow">‹</span> Volver
-    </a>
-    <div class="header-center">
-      <div class="header-brand">Cancionero</div>
-    </div>
-    <div class="header-logo">
-      <img src="assets/logo-medallon-color.png" alt="Virgen del Carmen" />
-    </div>
+    <a href="index.html" class="back-link">‹ Volver</a>
   </div>
 </header>
 
 <main>
   <div class="song-header">
     <h1 id="song-title">Cargando...</h1>
-    <div class="song-ornament">✦ ✝ ✦</div>
   </div>
 
   <div class="toolbar">
-    <button class="btn-toggle" onclick="applyTransposition(-1)">− ½ Tono</button>
+    <button class="btn-toggle" onclick="applyTransposition(-1)">- ½ Tono</button>
     <button id="toggleChords" class="btn-toggle active">Acordes: Visibles</button>
     <button class="btn-toggle" onclick="applyTransposition(1)">+ ½ Tono</button>
   </div>
@@ -269,9 +183,9 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
   <pre id="letra-box">Buscando letra y acordes...</pre>
 </main>
 
-<div id="chord-popover" style="display:none; position:absolute; background:var(--bg); border:1.5px solid var(--border-mid); border-radius:10px; padding:12px; box-shadow:0 6px 24px rgba(62,36,21,0.18); z-index:1000; pointer-events:none;">
-  <div id="popover-title" style="font-family:system-ui,-apple-system,sans-serif; font-size:0.95rem; font-weight:bold; color:var(--brown-dark); text-align:center; margin-bottom:8px;"></div>
-  <svg id="popover-svg" width="130" height="155" viewBox="0 0 100 120" style="display:block; margin:0 auto;"></svg>
+<div id="chord-popover" style="display: none; position: absolute; background: #fff; border: 1.5px solid var(--border-mid); border-radius: 8px; padding: 12px; box-shadow: 0 4px 15px rgba(107,45,31,0.15); z-index: 1000; pointer-events: none;">
+  <div id="popover-title" style="font-family: system-ui, -apple-system, sans-serif; font-size: 0.95rem; font-weight: bold; color: var(--wine-dark); text-align: center; margin-bottom: 8px;"></div>
+  <svg id="popover-svg" width="130" height="155" viewBox="0 0 100 120" style="display: block; margin: 0 auto;"></svg>
 </div>
 
 <script>
@@ -331,16 +245,25 @@ let currentTranspose = 0;
 
 function transposeNote(noteText, semitones) {
   if (semitones === 0) return noteText;
+  
   const regex = /^(DO#|RE#|FA#|SOL#|LA#|DO|RE|MI|FA|SOL|LA|SI|[CDEFGAB]#?)(b?)(.*)$/i;
   const parts = noteText.toUpperCase().match(regex);
+  
   if (!parts) return noteText;
+  
   let baseNote = parts[1] + parts[2];
   let suffix = parts[3];
-  if (NOTE_MAP[baseNote]) baseNote = NOTE_MAP[baseNote];
+  
+  if (NOTE_MAP[baseNote]) {
+    baseNote = NOTE_MAP[baseNote];
+  }
+  
   let index = SCALE.indexOf(baseNote);
   if (index === -1) return noteText;
+  
   let newIndex = (index + semitones) % 12;
   if (newIndex < 0) newIndex += 12;
+  
   return SCALE[newIndex] + suffix.toLowerCase();
 }
 
@@ -353,31 +276,45 @@ function applyTransposition(semitones) {
 }
 
 // ─── LÓGICA 3: DICCIONARIO Y DIBUJO DE ACORDES ───
+// ─── DICCIONARIO AMPLIADO DE ACORDES (GUITARRA) ───
 const CHORD_DICTIONARY = {
+  // --- ACORDES MAYORES ---
   'DO':   ['x', 3, 2, 0, 1, 0], 'DO#':  ['x', 4, 3, 1, 2, 1],
   'RE':   ['x', 'x', 0, 2, 3, 2], 'RE#':  ['x', 'x', 1, 3, 4, 3],
   'MI':   [0, 2, 2, 1, 0, 0],     'FA':   [1, 3, 3, 2, 1, 1],
   'FA#':  [2, 4, 4, 3, 2, 2],     'SOL':  [3, 2, 0, 0, 0, 3],
   'SOL#': [4, 6, 6, 5, 4, 4],     'LA':   ['x', 0, 2, 2, 2, 0],
   'LA#':  ['x', 1, 3, 3, 3, 1],   'SI':   ['x', 2, 4, 4, 4, 2],
+  
+  // --- ACORDES MENORES ---
   'DOm':  ['x', 3, 5, 5, 4, 3], 'DOm#': ['x', 4, 6, 6, 5, 4],
   'REm':  ['x', 'x', 0, 2, 3, 1], 'REm#': ['x', 'x', 1, 3, 4, 2],
   'MIm':  [0, 2, 2, 0, 0, 0],     'FAm':  [1, 3, 3, 1, 1, 1],
   'FAm#': [2, 4, 4, 2, 2, 2],     'SOLm': [3, 5, 5, 3, 3, 3],
   'SOLm#': [4, 6, 6, 4, 4, 4],    'LAm':  ['x', 0, 2, 2, 1, 0],
   'LAm#': ['x', 1, 3, 3, 2, 1],   'SIm':  ['x', 2, 4, 4, 3, 2],
+
+  // --- SÉPTIMAS DE DOMINANTE (7) ---
   'DO7':   ['x', 3, 2, 3, 1, 0], 'RE7':   ['x', 'x', 0, 2, 1, 2],
   'MI7':   [0, 2, 0, 1, 0, 0],   'FA7':   [1, 3, 1, 2, 1, 1],
   'FA#7':  [2, 4, 2, 3, 2, 2],   'SOL7':  [3, 2, 0, 0, 0, 1],
   'LA7':   ['x', 0, 2, 0, 2, 0], 'SI7':   ['x', 2, 1, 2, 0, 2],
+
+  // --- SÉPTIMAS MAYORES (maj7 / M7) ---
   'DOmaj7': ['x', 3, 2, 0, 0, 0], 'REmaj7': ['x', 'x', 0, 2, 2, 2],
   'MImaj7': [0, 2, 1, 1, 0, 0],   'FAmaj7': ['x', 'x', 3, 2, 1, 0],
   'SOLmaj7':[3, 2, 0, 0, 0, 2],   'LAmaj7': ['x', 0, 2, 1, 2, 0],
+
+  // --- MENORES CON SÉPTIMA (m7) ---
   'REm7':  ['x', 'x', 0, 2, 1, 1], 'MIm7':  [0, 2, 0, 0, 0, 0],
   'FAm#7': [2, 4, 2, 2, 2, 2],     'LAm7':  ['x', 0, 2, 0, 1, 0],
   'SIm7':  ['x', 2, 4, 2, 3, 2],
+
+  // --- SUSPENDIDOS (sus4) ---
   'REsus4': ['x', 'x', 0, 2, 3, 3], 'MIsus4': [0, 2, 2, 2, 0, 0],
   'LAsus4': ['x', 0, 2, 2, 3, 0],   'SIsus4': ['x', 2, 4, 4, 5, 2],
+
+  // --- AGREGADOS (add9) ---
   'DOadd9': ['x', 3, 2, 0, 3, 0], 'FAadd9': ['x', 'x', 3, 2, 1, 3],
   'SOLadd9':[3, 2, 0, 0, 0, 5]
 };
@@ -388,64 +325,85 @@ const popoverTitle = document.getElementById('popover-title');
 
 function drawChordSVG(positions) {
   if (!positions) return '';
+  
   let frets = positions.filter(p => typeof p === 'number' && p > 0);
   let minFret = frets.length ? Math.min(...frets) : 1;
   let startFret = minFret > 3 ? minFret : 1;
+
   let svgHtml = `
-    <line x1="20" y1="15" x2="80" y2="15" stroke="#3E2415" stroke-width="${startFret === 1 ? 4 : 1}" />
+    <line x1="20" y1="15" x2="80" y2="15" stroke="#4A1A10" stroke-width="${startFret === 1 ? 4 : 1}" />
     <line x1="20" y1="40" x2="80" y2="40" stroke="#ccc" stroke-width="1" />
     <line x1="20" y1="65" x2="80" y2="65" stroke="#ccc" stroke-width="1" />
     <line x1="20" y1="90" x2="80" y2="90" stroke="#ccc" stroke-width="1" />
     <line x1="20" y1="115" x2="80" y2="115" stroke="#ccc" stroke-width="1" />
   `;
+
   for (let i = 0; i < 6; i++) {
     let x = 20 + i * 12;
-    svgHtml += `<line x1="${x}" y1="15" x2="${x}" y2="115" stroke="#aaa" stroke-width="1" />`;
+    svgHtml += `<line x1="${x}" y1="15" x2="${x}" y2="115" stroke="#666" stroke-width="1" />`;
   }
+
   if (startFret > 1) {
-    svgHtml += `<text x="5" y="32" font-family="system-ui" font-size="10" fill="#7A5638">${startFret}fr</text>`;
+    svgHtml += `<text x="5" y="32" font-family="system-ui" font-size="10" fill="#6B5046">${startFret}fr</text>`;
   }
+
   positions.forEach((fret, stringIndex) => {
     let x = 20 + stringIndex * 12;
+    
     if (fret === 'x' || fret === 'X') {
-      svgHtml += `<text x="${x-3}" y="10" font-family="system-ui" font-size="9" fill="#bbb" font-weight="bold">×</text>`;
+      svgHtml += `<text x="${x-3}" y="10" font-family="system-ui" font-size="9" fill="#999" font-weight="bold">×</text>`;
     } else if (fret === 0) {
-      svgHtml += `<circle cx="${x}" cy="8" r="3" fill="none" stroke="#B8862E" stroke-width="1.5" />`;
+      svgHtml += `<circle cx="${x}" cy="8" r="3" fill="none" stroke="#B8952A" stroke-width="1" />`;
     } else if (typeof fret === 'number') {
       let relativeFret = fret - startFret + 1;
       let y = 15 + (relativeFret * 25) - 12.5;
-      svgHtml += `<circle cx="${x}" cy="${y}" r="4.5" fill="#B8862E" />`;
+      svgHtml += `<circle cx="${x}" cy="${y}" r="4.5" fill="#B8952A" />`;
     }
   });
+
   return svgHtml;
 }
 
+// Escuchador global: Detecta clics en las etiquetas <c>
 document.addEventListener('click', (e) => {
   if (e.target.tagName === 'C') {
     e.stopPropagation();
+    
     let chordName = e.target.textContent.trim();
     let positions = CHORD_DICTIONARY[chordName];
+    
+    // Posicionar el cartel flotante justo arriba del elemento <c> cliqueado
     const rect = e.target.getBoundingClientRect();
     popover.style.display = 'block';
     popover.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 75}px`;
     popover.style.top = `${rect.top + window.scrollY - 185}px`;
+
+    // Ponemos el nombre del acorde como título del popover
     popoverTitle.textContent = chordName;
+
     if (positions) {
+      // SI EXISTE: Dibujamos el diapasón a escala
       popoverSvg.style.display = 'block';
       popoverSvg.innerHTML = drawChordSVG(positions);
+      
+      // Limpiamos cualquier cartel de error previo si quedó flotando
       const errorText = popover.querySelector('.popover-error');
       if (errorText) errorText.remove();
     } else {
+      // NO EXISTE: Ocultamos el espacio del dibujo y mostramos el cartel de "No encontrado"
       popoverSvg.style.display = 'none';
+      
+      // Evitamos duplicar el cartel si ya existía
       if (!popover.querySelector('.popover-error')) {
         let msg = document.createElement('div');
         msg.className = 'popover-error';
-        msg.style.cssText = "font-family:system-ui;font-size:0.75rem;color:#999;text-align:center;padding:20px 10px;font-style:italic;";
+        msg.style.cssText = "font-family: system-ui; font-size: 0.75rem; color: #999; text-align: center; padding: 20px 10px; font-style: italic;";
         msg.textContent = "Diagrama no disponible";
         popover.appendChild(msg);
       }
     }
   } else {
+    // Si hacen clic en cualquier otra parte de la pantalla, se oculta el popover
     popover.style.display = 'none';
     const errorText = popover.querySelector('.popover-error');
     if (errorText) errorText.remove();
