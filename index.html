@@ -474,6 +474,40 @@ footer {
 .carmel-banner  { animation: fadeUp 0.28s ease both; }
 .cat-scroll-wrap{ animation: fadeUp 0.3s ease 0.05s both; }
 .songs-list     { animation: fadeUp 0.32s ease 0.1s both; }
+
+/* ─── ADMIN BAR ─── */
+#admin-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.admin-action-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 50px;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg);
+  color: var(--brown-dark);
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(107,66,38,0.1);
+  transition: background 0.15s;
+}
+.admin-action-btn:hover { background: var(--brown-light); }
+.admin-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  padding: 0.2rem 0.65rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  font-family: 'EB Garamond', serif;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+.admin-btn:hover { background: var(--brown-light); }
 </style>
 </head>
 <body>
@@ -510,11 +544,11 @@ footer {
     <div class="banner-rule"></div>
   </div>
 
-  <div class="sec-label">
+  <div class="sec-label" id="cat-section">
     <span class="sec-label-text">Categorías</span>
     <div class="sec-label-rule"></div>
   </div>
-  <div class="cat-scroll-wrap">
+  <div class="cat-scroll-wrap" id="cat-wrap">
     <div class="cat-chips" id="cg"></div>
   </div>
 
@@ -536,7 +570,11 @@ footer {
   <div class="footer-text">Coro Santa María del Carmen · Parroquia del Carmen · Córdoba, Argentina</div>
 </footer>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <script>
+
 const SONGS = [
   // --- ENTRADA (ent_) ---
   { "id": "ent_bendecire", "num": 0, "title": "Bendeciré", "category": "entrada" },
@@ -649,24 +687,95 @@ const SONGS = [
 ];
 
 const CATS = [
-  ["entrada","Entrada","🚪"], ["gloria","Gloria / Kyrie","✨"], ["aleluya","Aleluya","🎶"],
-  ["ofertorio","Ofrenda","🌾"], ["santo","Santo / Cordero","🔔"], ["comunion","Comunión","✝️"],
-  ["adoracion","Adoración","🙏"], ["marianos","A María","🌹"], ["carmelitanos","Carmelitanos","📜"],
-  ["sanjose","San José","⚒️"], ["adviento","Adviento","🕯️"], ["navidad","Navidad","⭐"],
-  ["cuaresma","Cuaresma","🏜️"], ["pascua","Pascua","🕊️"], ["varias","Varios","🎵"]
+  ["misa","Misa de Hoy","⛪"],
+  ["entrada","Entrada","🚪"],
+  ["gloria","Gloria / Kyrie","✨"],
+  ["aleluya","Aleluya","🎶"],
+  ["ofertorio","Ofrenda","🌾"],
+  ["santo","Santo / Cordero","🔔"],
+  ["comunion","Comunión","✝️"],
+  ["adoracion","Post-Comunión / Meditación","🙏"],
+  ["marianos","A María","🌹"],
+  ["adoracion","Adoración","🕯️"],
+  ["carmelitanos","Carmelitanos","📜"],
+  ["sanjose","San José","⚒️"],
+  ["adviento","Adviento","🕯️"],
+  ["navidad","Navidad","⭐"],
+  ["cuaresma","Cuaresma","🏜️"],
+  ["pascua","Pascua","🕊️"],
+  ["varias","Varios","🎵"]
 ];
 const CMAP = Object.fromEntries(CATS.map(([id,label]) => [id, label]));
+
+// ── Firebase ──
+const firebaseConfig = {
+  apiKey: "AIzaSyAS91FegRQfqV-iRYT2Qeo10bj_wN3rbJE",
+  authDomain: "coro-97958.firebaseapp.com",
+  databaseURL: "https://coro-97958-default-rtdb.firebaseio.com",
+  projectId: "coro-97958",
+  storageBucket: "coro-97958.firebasestorage.app",
+  messagingSenderId: "126954599133",
+  appId: "1:126954599133:web:fd604b7e551b514040a134",
+  measurementId: "G-MK1R5WF7G4"
+};
+
+let db = null;
+let misaIds = [];
+
+if (Object.keys(firebaseConfig).length > 0) {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+  db.ref('misa_actual').on('value', snap => {
+    const val = snap.val();
+    misaIds = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+    renderCats();
+    if (af === 'misa') renderList(getMisaSongs());
+  });
+}
+
+// ── URL params ──
+const params = new URLSearchParams(window.location.search);
+const isAdmin = params.get('admin') === 'true';
+const isBanco = params.get('modo') === 'banco';
+
+// ── Banco mode: hide UI and acordes ──
+if (isBanco) {
+  document.getElementById('searchWrap').style.display = 'none';
+  document.getElementById('cat-wrap').style.display = 'none';
+  document.getElementById('cat-section').style.display = 'none';
+  const st = document.createElement('style');
+  st.textContent = 'c { display: none !important; } .songs-list pre { line-height: 1.65; }';
+  document.head.appendChild(st);
+}
+
+// ── Admin bar ──
+if (isAdmin) {
+  const bar = document.createElement('div');
+  bar.id = 'admin-bar';
+  bar.innerHTML = `<button class="admin-action-btn" onclick="publicarMisa()">💾 Publicar Misa</button>
+    <button class="admin-action-btn" onclick="limpiarMisa()">🗑️ Limpiar Misa</button>`;
+  document.querySelector('main').prepend(bar);
+}
 
 function normalize(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
-let af = null;
+function getMisaSongs() {
+  return misaIds.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
+}
+
+let af = Object.keys(firebaseConfig).length > 0 ? 'misa' : null;
 
 function renderCats() {
   document.getElementById('cg').innerHTML = CATS.map(([id, label, icon]) => {
-    const n = SONGS.filter(s => s.category === id).length;
-    if (!n) return '';
+    let n;
+    if (id === 'misa') {
+      n = misaIds.length;
+    } else {
+      n = SONGS.filter(s => s.category === id).length;
+      if (!n) return '';
+    }
     return `<button class="cat-chip${af === id ? ' active' : ''}" onclick="fc('${id}')">
       <span class="chip-icon">${icon}</span>
       <span class="chip-label">${label}</span>
@@ -686,19 +795,72 @@ function renderList(songs) {
   }
   list.style.display = 'block';
   document.getElementById('nr').style.display = 'none';
-  list.innerHTML = songs.map(s => `<a class="song-row" href="cancion.html?id=${s.id}">
-    <span class="song-tag">${CMAP[s.category] || s.category}</span>
-    <span class="song-name">${s.title}</span>
-    <span class="song-arrow">›</span>
-  </a>`).join('');
+  const songUrl = id => `cancion.html?id=${id}${isBanco ? '&modo=banco' : ''}`;
+  list.innerHTML = songs.map(s => {
+    if (isAdmin) {
+      const adminBtn = af === 'misa'
+        ? `<button class="admin-btn" data-action="remove" data-song-id="${s.id}">❌ Quitar</button>`
+        : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
+      return `<div class="song-row" onclick="location.href='${songUrl(s.id)}'" style="cursor:pointer">
+        <span class="song-tag">${CMAP[s.category] || s.category}</span>
+        <span class="song-name">${s.title}</span>
+        ${adminBtn}
+        <span class="song-arrow">›</span>
+      </div>`;
+    }
+    return `<a class="song-row" href="${songUrl(s.id)}">
+      <span class="song-tag">${CMAP[s.category] || s.category}</span>
+      <span class="song-name">${s.title}</span>
+      <span class="song-arrow">›</span>
+    </a>`;
+  }).join('');
+
+  list.querySelectorAll('.admin-btn[data-song-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (btn.dataset.action === 'add') addToMisa(btn.dataset.songId);
+      else removeFromMisa(btn.dataset.songId);
+    });
+  });
 }
 
 function fc(id) {
   af = af === id ? null : id;
   document.getElementById('si').value = '';
   renderCats();
-  renderList(af ? SONGS.filter(s => s.category === af) : SONGS);
+  const songs = af === 'misa' ? getMisaSongs() : (af ? SONGS.filter(s => s.category === af) : SONGS);
+  renderList(songs);
   if (af) document.getElementById('list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function addToMisa(songId) {
+  if (!misaIds.includes(songId)) {
+    misaIds.push(songId);
+    renderCats();
+    const songs = af === 'misa' ? getMisaSongs() : (af ? SONGS.filter(s => s.category === af) : SONGS);
+    renderList(songs);
+  }
+}
+
+function removeFromMisa(songId) {
+  misaIds = misaIds.filter(id => id !== songId);
+  renderCats();
+  renderList(getMisaSongs());
+}
+
+function publicarMisa() {
+  if (!db) { alert('Firebase no configurado. Completá firebaseConfig primero.'); return; }
+  db.ref('misa_actual').set(misaIds)
+    .then(() => alert('✅ Misa publicada correctamente'))
+    .catch(err => alert('❌ Error: ' + err.message));
+}
+
+function limpiarMisa() {
+  if (!confirm('¿Limpiar la lista local? (No afecta Firebase hasta que publiques)')) return;
+  misaIds = [];
+  renderCats();
+  if (af === 'misa') renderList(getMisaSongs());
 }
 
 document.getElementById('si').addEventListener('input', function () {
@@ -716,7 +878,7 @@ document.getElementById('si').addEventListener('input', function () {
 })();
 
 renderCats();
-renderList(SONGS);
+renderList(af === 'misa' ? getMisaSongs() : SONGS);
 </script>
 </body>
 </html>

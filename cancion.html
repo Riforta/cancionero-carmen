@@ -217,6 +217,11 @@ c:hover {
 .no-chords c { display: none; }
 .no-chords pre { line-height: 1.65; }
 
+/* ─── MODO BANCO (fieles, sin acordes) ─── */
+body.banco-mode c { display: none !important; }
+body.banco-mode pre { line-height: 1.65; }
+body.banco-mode .toolbar { display: none; }
+
 pre b { color: var(--brown-mid); font-weight: bold; }
 
 .error-msg {
@@ -275,6 +280,13 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
 </div>
 
 <script>
+// ── Banco mode ──
+if (new URLSearchParams(window.location.search).get('modo') === 'banco') {
+  document.body.classList.add('banco-mode');
+  const backLink = document.querySelector('.back-link');
+  if (backLink) backLink.href = 'index.html?modo=banco';
+}
+
 const SCALE = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
 
 const NOTE_MAP = {
