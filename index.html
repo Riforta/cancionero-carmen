@@ -562,6 +562,10 @@ footer {
     <span class="no-results-icon">♪</span>
     Sin resultados para "<span id="nrt"></span>"
   </div>
+  <div class="no-results" id="misa-empty">
+    <span class="no-results-icon">⛪</span>
+    Aún no se han seleccionado las canciones para la próxima misa
+  </div>
 
 </main>
 
@@ -789,12 +793,19 @@ function renderList(songs) {
   document.getElementById('cnt').textContent = songs.length + ' canciones';
   if (!songs.length) {
     list.style.display = 'none';
-    document.getElementById('nr').style.display = 'block';
-    document.getElementById('nrt').textContent = document.getElementById('si').value;
+    if (af === 'misa') {
+      document.getElementById('nr').style.display = 'none';
+      document.getElementById('misa-empty').style.display = 'block';
+    } else {
+      document.getElementById('nr').style.display = 'block';
+      document.getElementById('misa-empty').style.display = 'none';
+      document.getElementById('nrt').textContent = document.getElementById('si').value;
+    }
     return;
   }
   list.style.display = 'block';
   document.getElementById('nr').style.display = 'none';
+  document.getElementById('misa-empty').style.display = 'none';
   const songUrl = id => `cancion.html?id=${id}${isBanco ? '&modo=banco' : ''}`;
   list.innerHTML = songs.map(s => {
     if (isAdmin) {
