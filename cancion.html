@@ -178,11 +178,16 @@ h1 {
 }
 
 /* ─── LETRA / PRE ─── */
+/* white-space: pre + scroll horizontal: si la línea no entra, se desplaza
+   dentro de la tarjeta en vez de cortar y desalinear acordes de letra */
 pre {
   font-family: 'EB Garamond', Georgia, serif;
-  font-size: clamp(1.1rem, 2.8vw, 1.28rem);
+  font-size: clamp(1.05rem, 2.8vw, 1.28rem);
   line-height: 1.45;
-  white-space: pre-wrap;
+  white-space: pre;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
   background: var(--bg);
   padding: clamp(1.1rem, 3vw, 1.6rem) clamp(1rem, 3vw, 1.4rem);
   border-radius: 14px;
@@ -190,20 +195,31 @@ pre {
   box-shadow: 0 2px 6px rgba(107,66,38,0.06), 0 8px 28px rgba(107,66,38,0.06);
 }
 
+.letra-pendiente {
+  white-space: normal;
+  text-align: center;
+  font-style: italic;
+  color: var(--ink-soft);
+  padding: 2rem 0.5rem;
+  line-height: 1.7;
+}
+
 /* ─── COMPONENTE ACORDE <c> ─── */
 c {
   color: var(--brown-mid);
   font-family: system-ui, -apple-system, sans-serif;
-  font-size: 1rem;
+  /* Tamaño relativo al pre y sin relleno lateral: cuanto menos ancho ocupe
+     el acorde, menos se desfasa de la sílaba que tiene debajo */
+  font-size: 0.75em;
   font-weight: bold;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   border-bottom: 2px dotted var(--gold);
   cursor: pointer;
-  padding: 0 3px;
+  padding: 0 1px;
   display: inline-block;
-  height: 1.2rem;
+  height: 1.1em;
   line-height: 1;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
   transition: all 0.1s ease;
 }
 c:hover {
@@ -214,17 +230,22 @@ c:hover {
 }
 
 /* ─── ACORDES OCULTOS ─── */
-.no-chords c { display: none; }
-.no-chords pre { line-height: 1.65; }
+/* .chord-line envuelve cada línea que solo tiene acordes (ver JS):
+   ocultarla entera evita que queden renglones en blanco */
+.no-chords c,
+.no-chords .chord-line { display: none; }
+pre.no-chords { line-height: 1.65; }
 
 /* ─── MODO BANCO (fieles, sin acordes) ─── */
-body.banco-mode c { display: none !important; }
+body.banco-mode c,
+body.banco-mode .chord-line { display: none !important; }
 body.banco-mode pre { line-height: 1.65; }
 body.banco-mode .toolbar { display: none; }
 
 pre b { color: var(--brown-mid); font-weight: bold; }
 
 .error-msg {
+  white-space: normal;
   text-align: center;
   font-style: italic;
   color: var(--brown-mid);
@@ -295,6 +316,18 @@ const NOTE_MAP = {
   'REb': 'DO#', 'MIb': 'RE#', 'SOLb': 'FA#', 'LAb': 'SOL#', 'SIb': 'LA#'
 };
 
+// Envuelve cada línea compuesta solo por acordes (y espacios/guiones) en un
+// span.chord-line, para poder ocultarla entera sin dejar renglones en blanco
+function wrapChordLines(html) {
+  return html.replace(/\s+$/, '').split('\n').map(line => {
+    const resto = line.replace(/<c>[^<]*<\/c>/g, '');
+    if (/<c>/.test(line) && /^[\s\-–—|/.()]*$/.test(resto)) {
+      return '<span class="chord-line">' + line + '\n</span>';
+    }
+    return line + '\n';
+  }).join('');
+}
+
 const urlParams = new URLSearchParams(window.location.search);
 const idCancion = urlParams.get('id');
 
@@ -308,9 +341,11 @@ fetch(`letras/${idCancion}.html`)
     return response.text();
   })
   .then(textoLetra => {
-    document.getElementById('letra-box').innerHTML = textoLetra;
-    
-    const tituloLimpio = idCancion.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    document.getElementById('letra-box').innerHTML = wrapChordLines(textoLetra);
+
+    const tituloFallback = idCancion.replace(/^[a-z]+_/, '').split('-')
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+    const tituloLimpio = urlParams.get('t') || tituloFallback;
     document.getElementById('song-title').textContent = tituloLimpio;
     document.title = `${tituloLimpio} — Coro del Carmen`;
     
@@ -320,7 +355,7 @@ fetch(`letras/${idCancion}.html`)
   })
   .catch(() => {
     document.getElementById('letra-box').innerHTML = `<div class="error-msg">No se pudo cargar la letra.<br>Verificá el archivo: <b>letras/${idCancion}.html</b></div>`;
-    document.getElementById('song-title').textContent = "Error";
+    document.getElementById('song-title').textContent = urlParams.get('t') || "Error";
   });
 
 // ─── LÓGICA 1: MOSTRAR/OCULTAR ACORDES ───
@@ -344,55 +379,95 @@ let currentTranspose = 0;
 function transposeNote(noteText, semitones) {
   if (semitones === 0) return noteText;
   const regex = /^(DO#|RE#|FA#|SOL#|LA#|DO|RE|MI|FA|SOL|LA|SI|[CDEFGAB]#?)(b?)(.*)$/i;
-  const parts = noteText.toUpperCase().match(regex);
+  const parts = noteText.match(regex);
   if (!parts) return noteText;
-  let baseNote = parts[1] + parts[2];
-  let suffix = parts[3];
+  let baseNote = parts[1].toUpperCase() + parts[2].toLowerCase();
+  const suffix = parts[3];
   if (NOTE_MAP[baseNote]) baseNote = NOTE_MAP[baseNote];
   let index = SCALE.indexOf(baseNote);
   if (index === -1) return noteText;
   let newIndex = (index + semitones) % 12;
   if (newIndex < 0) newIndex += 12;
-  return SCALE[newIndex] + suffix.toLowerCase();
+  return SCALE[newIndex] + suffix;
+}
+
+// Transpone también el bajo de los acordes con barra (RE/FA#)
+function transposeChord(chordText, semitones) {
+  return chordText.split('/').map(p => transposeNote(p, semitones)).join('/');
 }
 
 function applyTransposition(semitones) {
   currentTranspose += semitones;
   document.querySelectorAll('pre c').forEach(el => {
     const original = el.getAttribute('data-original');
-    el.textContent = transposeNote(original, currentTranspose);
+    el.textContent = transposeChord(original, currentTranspose);
   });
 }
 
 // ─── LÓGICA 3: DICCIONARIO Y DIBUJO DE ACORDES ───
 const CHORD_DICTIONARY = {
-  'DO':   ['x', 3, 2, 0, 1, 0], 'DO#':  ['x', 4, 3, 1, 2, 1],
+  /* Mayores */
+  'DO':   ['x', 3, 2, 0, 1, 0],   'DO#':  ['x', 4, 3, 1, 2, 1],
   'RE':   ['x', 'x', 0, 2, 3, 2], 'RE#':  ['x', 'x', 1, 3, 4, 3],
   'MI':   [0, 2, 2, 1, 0, 0],     'FA':   [1, 3, 3, 2, 1, 1],
   'FA#':  [2, 4, 4, 3, 2, 2],     'SOL':  [3, 2, 0, 0, 0, 3],
   'SOL#': [4, 6, 6, 5, 4, 4],     'LA':   ['x', 0, 2, 2, 2, 0],
   'LA#':  ['x', 1, 3, 3, 3, 1],   'SI':   ['x', 2, 4, 4, 4, 2],
-  'DOm':  ['x', 3, 5, 5, 4, 3], 'DOm#': ['x', 4, 6, 6, 5, 4],
-  'REm':  ['x', 'x', 0, 2, 3, 1], 'REm#': ['x', 'x', 1, 3, 4, 2],
+  /* Menores */
+  'DOm':  ['x', 3, 5, 5, 4, 3],   'DO#m': ['x', 4, 6, 6, 5, 4],
+  'REm':  ['x', 'x', 0, 2, 3, 1], 'RE#m': ['x', 'x', 1, 3, 4, 2],
   'MIm':  [0, 2, 2, 0, 0, 0],     'FAm':  [1, 3, 3, 1, 1, 1],
-  'FAm#': [2, 4, 4, 2, 2, 2],     'SOLm': [3, 5, 5, 3, 3, 3],
-  'SOLm#': [4, 6, 6, 4, 4, 4],    'LAm':  ['x', 0, 2, 2, 1, 0],
-  'LAm#': ['x', 1, 3, 3, 2, 1],   'SIm':  ['x', 2, 4, 4, 3, 2],
-  'DO7':   ['x', 3, 2, 3, 1, 0], 'RE7':   ['x', 'x', 0, 2, 1, 2],
-  'MI7':   [0, 2, 0, 1, 0, 0],   'FA7':   [1, 3, 1, 2, 1, 1],
-  'FA#7':  [2, 4, 2, 3, 2, 2],   'SOL7':  [3, 2, 0, 0, 0, 1],
-  'LA7':   ['x', 0, 2, 0, 2, 0], 'SI7':   ['x', 2, 1, 2, 0, 2],
-  'DOmaj7': ['x', 3, 2, 0, 0, 0], 'REmaj7': ['x', 'x', 0, 2, 2, 2],
-  'MImaj7': [0, 2, 1, 1, 0, 0],   'FAmaj7': ['x', 'x', 3, 2, 1, 0],
-  'SOLmaj7':[3, 2, 0, 0, 0, 2],   'LAmaj7': ['x', 0, 2, 1, 2, 0],
-  'REm7':  ['x', 'x', 0, 2, 1, 1], 'MIm7':  [0, 2, 0, 0, 0, 0],
-  'FAm#7': [2, 4, 2, 2, 2, 2],     'LAm7':  ['x', 0, 2, 0, 1, 0],
-  'SIm7':  ['x', 2, 4, 2, 3, 2],
-  'REsus4': ['x', 'x', 0, 2, 3, 3], 'MIsus4': [0, 2, 2, 2, 0, 0],
-  'LAsus4': ['x', 0, 2, 2, 3, 0],   'SIsus4': ['x', 2, 4, 4, 5, 2],
-  'DOadd9': ['x', 3, 2, 0, 3, 0], 'FAadd9': ['x', 'x', 3, 2, 1, 3],
-  'SOLadd9':[3, 2, 0, 0, 0, 5]
+  'FA#m': [2, 4, 4, 2, 2, 2],     'SOLm': [3, 5, 5, 3, 3, 3],
+  'SOL#m':[4, 6, 6, 4, 4, 4],     'LAm':  ['x', 0, 2, 2, 1, 0],
+  'LA#m': ['x', 1, 3, 3, 2, 1],   'SIm':  ['x', 2, 4, 4, 3, 2],
+  /* Séptimas dominantes */
+  'DO7':  ['x', 3, 2, 3, 1, 0],   'DO#7': ['x', 4, 6, 4, 6, 4],
+  'RE7':  ['x', 'x', 0, 2, 1, 2], 'RE#7': ['x', 'x', 1, 3, 2, 3],
+  'MI7':  [0, 2, 0, 1, 0, 0],     'FA7':  [1, 3, 1, 2, 1, 1],
+  'FA#7': [2, 4, 2, 3, 2, 2],     'SOL7': [3, 2, 0, 0, 0, 1],
+  'SOL#7':[4, 6, 4, 5, 4, 4],     'LA7':  ['x', 0, 2, 0, 2, 0],
+  'LA#7': ['x', 1, 3, 1, 3, 1],   'SI7':  ['x', 2, 1, 2, 0, 2],
+  /* Menores con séptima */
+  'DOm7': ['x', 3, 5, 3, 4, 3],   'DO#m7':['x', 4, 6, 4, 5, 4],
+  'REm7': ['x', 'x', 0, 2, 1, 1], 'RE#m7':['x', 'x', 1, 3, 2, 2],
+  'MIm7': [0, 2, 0, 0, 0, 0],     'FAm7': [1, 3, 1, 1, 1, 1],
+  'FA#m7':[2, 4, 2, 2, 2, 2],     'SOLm7':[3, 5, 3, 3, 3, 3],
+  'SOL#m7':[4, 6, 4, 4, 4, 4],    'LAm7': ['x', 0, 2, 0, 1, 0],
+  'LA#m7':['x', 1, 3, 1, 2, 1],   'SIm7': ['x', 2, 4, 2, 3, 2],
+  /* Mayores con séptima mayor */
+  'DOmaj7': ['x', 3, 2, 0, 0, 0],   'DO#maj7':['x', 4, 6, 5, 6, 4],
+  'REmaj7': ['x', 'x', 0, 2, 2, 2], 'RE#maj7':['x', 6, 8, 7, 8, 6],
+  'MImaj7': [0, 2, 1, 1, 0, 0],     'FAmaj7': ['x', 'x', 3, 2, 1, 0],
+  'FA#maj7':[2, 4, 3, 3, 2, 2],     'SOLmaj7':[3, 2, 0, 0, 0, 2],
+  'SOL#maj7':[4, 6, 5, 5, 4, 4],    'LAmaj7': ['x', 0, 2, 1, 2, 0],
+  'LA#maj7':['x', 1, 3, 2, 3, 1],   'SImaj7': ['x', 2, 4, 3, 4, 2],
+  /* Suspendidas */
+  'DOsus4': ['x', 3, 3, 0, 1, 1],   'DO#sus4':['x', 4, 6, 6, 7, 4],
+  'REsus4': ['x', 'x', 0, 2, 3, 3], 'RE#sus4':['x', 6, 8, 8, 9, 6],
+  'MIsus4': [0, 2, 2, 2, 0, 0],     'FAsus4': [1, 3, 3, 3, 1, 1],
+  'FA#sus4':[2, 4, 4, 4, 2, 2],     'SOLsus4':[3, 3, 0, 0, 1, 3],
+  'SOL#sus4':[4, 6, 6, 6, 4, 4],    'LAsus4': ['x', 0, 2, 2, 3, 0],
+  'LA#sus4':['x', 1, 3, 3, 4, 1],   'SIsus4': ['x', 2, 4, 4, 5, 2],
+  /* Novenas agregadas */
+  'DOadd9': ['x', 3, 2, 0, 3, 0], 'REadd9': ['x', 'x', 0, 2, 3, 0],
+  'MIadd9': [0, 2, 4, 1, 0, 0],   'FAadd9': ['x', 'x', 3, 2, 1, 3],
+  'SOLadd9':[3, 2, 0, 0, 0, 5],   'LAadd9': ['x', 0, 2, 4, 2, 0]
 };
+
+// Normaliza el nombre para buscar el diagrama:
+// bemoles → sostenidos, RE4 → REsus4, DO9 → DOadd9, RE/FA# → RE
+function chordLookup(name) {
+  let n = name.trim().split('/')[0];
+  const flat = n.match(/^(DO|RE|MI|FA|SOL|LA|SI)b/);
+  if (flat && NOTE_MAP[flat[0]]) n = NOTE_MAP[flat[0]] + n.slice(flat[0].length);
+  n = n.replace(/^((?:DO|RE|FA|SOL|LA)#?|MI|SI)4$/, '$1sus4');
+  n = n.replace(/^((?:DO|RE|FA|SOL|LA)#?|MI|SI)9$/, '$1add9');
+  if (CHORD_DICTIONARY[n]) return CHORD_DICTIONARY[n];
+  // add9 sin voicing propio → diagrama del acorde mayor (compatible)
+  const add9 = n.match(/^(.+)add9$/);
+  if (add9) return CHORD_DICTIONARY[add9[1]];
+  return undefined;
+}
 
 const popover = document.getElementById('chord-popover');
 const popoverSvg = document.getElementById('popover-svg');
@@ -436,11 +511,7 @@ document.addEventListener('click', (e) => {
   if (e.target.tagName === 'C') {
     e.stopPropagation();
     let chordName = e.target.textContent.trim();
-    let positions = CHORD_DICTIONARY[chordName];
-    const rect = e.target.getBoundingClientRect();
-    popover.style.display = 'block';
-    popover.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 75}px`;
-    popover.style.top = `${rect.top + window.scrollY - 185}px`;
+    let positions = chordLookup(chordName);
     popoverTitle.textContent = chordName;
     if (positions) {
       popoverSvg.style.display = 'block';
@@ -457,6 +528,18 @@ document.addEventListener('click', (e) => {
         popover.appendChild(msg);
       }
     }
+    // Posicionar después de armar el contenido, clampeado al viewport
+    popover.style.display = 'block';
+    const rect = e.target.getBoundingClientRect();
+    const pw = popover.offsetWidth;
+    const ph = popover.offsetHeight;
+    const vw = document.documentElement.clientWidth;
+    let left = rect.left + rect.width / 2 - pw / 2;
+    left = Math.max(8, Math.min(left, vw - pw - 8));
+    let top = rect.top - ph - 10;
+    if (top < 8) top = rect.bottom + 10; // sin lugar arriba → debajo del acorde
+    popover.style.left = `${left + window.scrollX}px`;
+    popover.style.top = `${top + window.scrollY}px`;
   } else {
     popover.style.display = 'none';
     const errorText = popover.querySelector('.popover-error');

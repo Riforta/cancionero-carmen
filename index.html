@@ -702,9 +702,8 @@ const CATS = [
   ["ofertorio","Ofrenda","🌾"],
   ["santo","Santo / Cordero","🔔"],
   ["comunion","Comunión","✝️"],
-  ["adoracion","Post-Comunión / Meditación","🙏"],
+  ["adoracion","Adoración / Post-Comunión","🙏"],
   ["marianos","A María","🌹"],
-  ["adoracion","Adoración","🕯️"],
   ["carmelitanos","Carmelitanos","📜"],
   ["sanjose","San José","⚒️"],
   ["adviento","Adviento","🕯️"],
@@ -810,20 +809,20 @@ function renderList(songs) {
   list.style.display = 'block';
   document.getElementById('nr').style.display = 'none';
   document.getElementById('misa-empty').style.display = 'none';
-  const songUrl = id => `cancion.html?id=${id}${isBanco ? '&modo=banco' : ''}`;
+  const songUrl = s => `cancion.html?id=${s.id}&t=${encodeURIComponent(s.title)}${isBanco ? '&modo=banco' : ''}`;
   list.innerHTML = songs.map(s => {
     if (isAdmin) {
       const adminBtn = af === 'misa'
         ? `<button class="admin-btn" data-action="remove" data-song-id="${s.id}">❌ Quitar</button>`
         : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
-      return `<div class="song-row" onclick="location.href='${songUrl(s.id)}'" style="cursor:pointer">
+      return `<div class="song-row" onclick="location.href='${songUrl(s)}'" style="cursor:pointer">
         <span class="song-tag">${CMAP[s.category] || s.category}</span>
         <span class="song-name">${s.title}</span>
         ${adminBtn}
         <span class="song-arrow">›</span>
       </div>`;
     }
-    return `<a class="song-row" href="${songUrl(s.id)}">
+    return `<a class="song-row" href="${songUrl(s)}">
       <span class="song-tag">${CMAP[s.category] || s.category}</span>
       <span class="song-name">${s.title}</span>
       <span class="song-arrow">›</span>
