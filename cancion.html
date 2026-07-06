@@ -177,6 +177,53 @@ h1 {
   box-shadow: 0 4px 16px rgba(62,36,21,0.38);
 }
 
+/* ─── SELECTOR DE CAPOTRASTE (mismo look que .btn-toggle) ─── */
+.capo-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B4226' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  color: var(--brown);
+  border: 1.5px solid var(--border);
+  padding: 0.6rem 2.1rem 0.6rem 1.25rem;
+  border-radius: 50px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(107,66,38,0.1), inset 0 1px 0 rgba(255,255,255,0.7);
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+.capo-select:hover {
+  background-color: var(--brown-light);
+  border-color: var(--brown-mid);
+}
+.capo-select.active {
+  background-color: var(--brown-dark);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23DDB45E' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(62,36,21,0.38);
+}
+
+/* ─── INDICADOR DE CAPO ─── */
+.capo-indicator {
+  display: none;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--brown-mid);
+  margin: -0.5rem 0 1.1rem;
+}
+.capo-indicator.visible { display: block; }
+body.banco-mode .capo-indicator { display: none !important; }
+
 /* ─── LETRA / PRE ─── */
 /* white-space: pre + scroll horizontal: si la línea no entra, se desplaza
    dentro de la tarjeta en vez de cortar y desalinear acordes de letra */
@@ -292,7 +339,20 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
     <button class="btn-toggle" onclick="applyTransposition(-1)">− ½ Tono</button>
     <button id="toggleChords" class="btn-toggle active">Acordes: Visibles</button>
     <button class="btn-toggle" onclick="applyTransposition(1)">+ ½ Tono</button>
+    <select id="capoSelect" class="capo-select" aria-label="Posición del capotraste">
+      <option value="0">Capo: No</option>
+      <option value="1">Capo: Traste 1</option>
+      <option value="2">Capo: Traste 2</option>
+      <option value="3">Capo: Traste 3</option>
+      <option value="4">Capo: Traste 4</option>
+      <option value="5">Capo: Traste 5</option>
+      <option value="6">Capo: Traste 6</option>
+      <option value="7">Capo: Traste 7</option>
+      <option value="8">Capo: Traste 8</option>
+    </select>
   </div>
+
+  <div id="capo-indicator" class="capo-indicator" aria-live="polite"></div>
 
   <div class="toolbar toolbar-lectura">
     <button id="btnSpeak" class="btn-toggle" aria-pressed="false" aria-label="Escuchar la letra en voz alta">🔊 Escuchar letra</button>
@@ -384,8 +444,9 @@ btnToggle.addEventListener('click', () => {
   }
 });
 
-// ─── LÓGICA 2: ALGORITMO DE TRANSPOSICIÓN ───
+// ─── LÓGICA 2: ALGORITMO DE TRANSPOSICIÓN Y CAPOTRASTE ───
 let currentTranspose = 0;
+let capoFret = 0;
 
 function transposeNote(noteText, semitones) {
   if (semitones === 0) return noteText;
@@ -407,13 +468,34 @@ function transposeChord(chordText, semitones) {
   return chordText.split('/').map(p => transposeNote(p, semitones)).join('/');
 }
 
-function applyTransposition(semitones) {
-  currentTranspose += semitones;
+// Con capo en traste N, la posición a tocar queda N semitonos abajo
+// del acorde que suena: mostrado = original + transposición − capo
+function renderChords() {
   document.querySelectorAll('pre c').forEach(el => {
     const original = el.getAttribute('data-original');
-    el.textContent = transposeChord(original, currentTranspose);
+    el.textContent = transposeChord(original, currentTranspose - capoFret);
   });
 }
+
+function applyTransposition(semitones) {
+  currentTranspose += semitones;
+  renderChords();
+}
+
+const capoSelect = document.getElementById('capoSelect');
+const capoIndicator = document.getElementById('capo-indicator');
+
+capoSelect.addEventListener('change', () => {
+  capoFret = parseInt(capoSelect.value, 10) || 0;
+  renderChords();
+  capoSelect.classList.toggle('active', capoFret > 0);
+  if (capoFret > 0) {
+    capoIndicator.textContent = `🎸 Capotraste en traste ${capoFret} — acordes en posición de tocar`;
+    capoIndicator.classList.add('visible');
+  } else {
+    capoIndicator.classList.remove('visible');
+  }
+});
 
 // ─── LÓGICA 3: DICCIONARIO Y DIBUJO DE ACORDES ───
 const CHORD_DICTIONARY = {
@@ -523,7 +605,7 @@ document.addEventListener('click', (e) => {
     e.stopPropagation();
     let chordName = e.target.textContent.trim();
     let positions = chordLookup(chordName);
-    popoverTitle.textContent = chordName;
+    popoverTitle.textContent = capoFret > 0 ? `${chordName} · capo ${capoFret}` : chordName;
     if (positions) {
       popoverSvg.style.display = 'block';
       popoverSvg.innerHTML = drawChordSVG(positions);
