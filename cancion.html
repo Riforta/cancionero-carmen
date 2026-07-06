@@ -241,6 +241,8 @@ body.banco-mode c,
 body.banco-mode .chord-line { display: none !important; }
 body.banco-mode pre { line-height: 1.65; }
 body.banco-mode .toolbar { display: none; }
+/* El lector de letra sí queda disponible en modo banco (accesibilidad) */
+body.banco-mode .toolbar-lectura { display: flex; }
 
 pre b { color: var(--brown-mid); font-weight: bold; }
 
@@ -290,6 +292,10 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
     <button class="btn-toggle" onclick="applyTransposition(-1)">− ½ Tono</button>
     <button id="toggleChords" class="btn-toggle active">Acordes: Visibles</button>
     <button class="btn-toggle" onclick="applyTransposition(1)">+ ½ Tono</button>
+  </div>
+
+  <div class="toolbar toolbar-lectura">
+    <button id="btnSpeak" class="btn-toggle" aria-pressed="false" aria-label="Escuchar la letra en voz alta">🔊 Escuchar letra</button>
   </div>
 
   <pre id="letra-box">Buscando letra y acordes...</pre>
@@ -351,6 +357,11 @@ fetch(`letras/${idCancion}.html`)
     
     document.querySelectorAll('pre c').forEach(el => {
       el.setAttribute('data-original', el.textContent.trim());
+    });
+
+    // Los lectores de pantalla saltean los acordes: solo leen la letra
+    document.querySelectorAll('pre c, pre .chord-line').forEach(el => {
+      el.setAttribute('aria-hidden', 'true');
     });
   })
   .catch(() => {
@@ -548,6 +559,67 @@ document.addEventListener('click', (e) => {
 });
 
 window.addEventListener('scroll', () => { popover.style.display = 'none'; });
+
+// ─── LÓGICA 4: LECTOR DE LETRA EN VOZ ALTA (accesibilidad) ───
+const btnSpeak = document.getElementById('btnSpeak');
+
+if (!('speechSynthesis' in window)) {
+  btnSpeak.parentElement.style.display = 'none';
+} else {
+
+  let leyendo = false;
+
+  // Devuelve solo las líneas de letra: sin <c>, sin líneas de acordes
+  // y sin renglones que quedan vacíos o con puro signo
+  function extraerLetra() {
+    const clon = letraBox.cloneNode(true);
+    clon.querySelectorAll('c, .chord-line, .error-msg').forEach(el => el.remove());
+    return clon.textContent
+      .split('\n')
+      .map(l => l.replace(/\s+/g, ' ').trim())
+      .filter(l => l && !/^[\s\-–—|/.():,;×xX]*$/.test(l));
+  }
+
+  function detenerLectura() {
+    speechSynthesis.cancel();
+    leyendo = false;
+    btnSpeak.textContent = '🔊 Escuchar letra';
+    btnSpeak.classList.remove('active');
+    btnSpeak.setAttribute('aria-pressed', 'false');
+  }
+
+  btnSpeak.addEventListener('click', () => {
+    if (leyendo) {
+      detenerLectura();
+      return;
+    }
+    const lineas = extraerLetra();
+    if (!lineas.length) return;
+
+    speechSynthesis.cancel();
+    leyendo = true;
+    btnSpeak.textContent = '⏹ Detener lectura';
+    btnSpeak.classList.add('active');
+    btnSpeak.setAttribute('aria-pressed', 'true');
+
+    const vozEs = speechSynthesis.getVoices()
+      .find(v => v.lang && v.lang.toLowerCase().startsWith('es')) || null;
+
+    // Una utterance por línea: evita el corte de Chrome en textos largos
+    // y marca una pausa natural al final de cada verso
+    lineas.forEach((linea, i) => {
+      const u = new SpeechSynthesisUtterance(linea);
+      u.lang = 'es-ES';
+      if (vozEs) u.voice = vozEs;
+      u.rate = 0.95;
+      if (i === lineas.length - 1) u.onend = detenerLectura;
+      u.onerror = () => { if (leyendo) detenerLectura(); };
+      speechSynthesis.speak(u);
+    });
+  });
+
+  window.addEventListener('pagehide', () => speechSynthesis.cancel());
+}
 </script>
 </body>
 </html>
