@@ -37,5 +37,8 @@ Sitio estático sin build. Para ver un cambio funcionando hay que servirlo por H
 
 - Al terminar: matar el Chrome headless (filtrar `chrome.exe` por el
   `--user-data-dir` usado) y el servidor HTTP.
+- Reutilizar el `--user-data-dir` entre corridas sirve HTML **cacheado**:
+  después de editar un archivo, borrar el perfil (o usar uno nuevo) antes
+  de volver a verificar.
 - PowerShell 5.1: comillas dobles dentro de `git commit -m` rompen los
   argumentos; usar `git commit -F <archivo>`.
