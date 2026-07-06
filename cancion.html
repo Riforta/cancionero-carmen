@@ -366,10 +366,20 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
 
 <script>
 // ── Banco mode ──
-if (new URLSearchParams(window.location.search).get('modo') === 'banco') {
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('modo') === 'banco') {
   document.body.classList.add('banco-mode');
-  const backLink = document.querySelector('.back-link');
-  if (backLink) backLink.href = 'index.html?modo=banco';
+}
+
+// "Volver" conserva modo, admin y categoría activa del índice
+{
+  const backQuery = new URLSearchParams();
+  ['modo', 'admin', 'cat'].forEach(k => {
+    const v = urlParams.get(k);
+    if (v) backQuery.set(k, v);
+  });
+  const qs = backQuery.toString();
+  if (qs) document.querySelector('.back-link').href = 'index.html?' + qs;
 }
 
 const SCALE = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
@@ -392,7 +402,6 @@ function wrapChordLines(html) {
   }).join('');
 }
 
-const urlParams = new URLSearchParams(window.location.search);
 const idCancion = urlParams.get('id');
 
 if (!idCancion) {

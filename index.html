@@ -746,6 +746,14 @@ const params = new URLSearchParams(window.location.search);
 const isAdmin = params.get('admin') === 'true';
 const isBanco = params.get('modo') === 'banco';
 
+// Categoría activa: se restaura desde ?cat= al volver de una canción
+// ('todas' = sin filtro). Sin parámetro, arranca en Misa de Hoy.
+const catParam = params.get('cat');
+let af;
+if (catParam === 'todas') af = null;
+else if (catParam && CATS.some(([id]) => id === catParam)) af = catParam;
+else af = Object.keys(firebaseConfig).length > 0 ? 'misa' : null;
+
 // ── Banco mode: hide UI and acordes ──
 if (isBanco) {
   document.getElementById('searchWrap').style.display = 'none';
@@ -773,7 +781,17 @@ function getMisaSongs() {
   return misaIds.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
 }
 
-let af = Object.keys(firebaseConfig).length > 0 ? 'misa' : null;
+function songsForFilter() {
+  return af === 'misa' ? getMisaSongs() : (af ? SONGS.filter(s => s.category === af) : SONGS);
+}
+
+// Refleja la categoría activa en la URL sin recargar, para que al volver
+// desde una canción (botón atrás o Volver) se conserve el filtro
+function syncCatParam() {
+  const url = new URL(window.location);
+  url.searchParams.set('cat', af || 'todas');
+  history.replaceState(null, '', url);
+}
 
 function renderCats() {
   document.getElementById('cg').innerHTML = CATS.map(([id, label, icon]) => {
@@ -810,7 +828,10 @@ function renderList(songs) {
   list.style.display = 'block';
   document.getElementById('nr').style.display = 'none';
   document.getElementById('misa-empty').style.display = 'none';
-  const songUrl = s => `cancion.html?id=${s.id}&t=${encodeURIComponent(s.title)}${isBanco ? '&modo=banco' : ''}`;
+  // El link a la canción arrastra modo, admin y categoría activa para que
+  // el "Volver" de cancion.html restaure exactamente este contexto
+  const songUrl = s => `cancion.html?id=${s.id}&t=${encodeURIComponent(s.title)}` +
+    `${isBanco ? '&modo=banco' : ''}${isAdmin ? '&admin=true' : ''}&cat=${af || 'todas'}`;
   list.innerHTML = songs.map(s => {
     if (isAdmin) {
       const adminBtn = af === 'misa'
@@ -843,9 +864,9 @@ function renderList(songs) {
 function fc(id) {
   af = af === id ? null : id;
   document.getElementById('si').value = '';
+  syncCatParam();
   renderCats();
-  const songs = af === 'misa' ? getMisaSongs() : (af ? SONGS.filter(s => s.category === af) : SONGS);
-  renderList(songs);
+  renderList(songsForFilter());
   if (af) document.getElementById('list').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -853,8 +874,7 @@ function addToMisa(songId) {
   if (!misaIds.includes(songId)) {
     misaIds.push(songId);
     renderCats();
-    const songs = af === 'misa' ? getMisaSongs() : (af ? SONGS.filter(s => s.category === af) : SONGS);
-    renderList(songs);
+    renderList(songsForFilter());
   }
 }
 
@@ -880,7 +900,7 @@ function limpiarMisa() {
 
 document.getElementById('si').addEventListener('input', function () {
   const q = normalize(this.value.trim());
-  af = null; renderCats();
+  af = null; syncCatParam(); renderCats();
   renderList(q ? SONGS.filter(s => normalize(s.title).includes(q)) : SONGS);
 });
 
@@ -893,7 +913,7 @@ document.getElementById('si').addEventListener('input', function () {
 })();
 
 renderCats();
-renderList(af === 'misa' ? getMisaSongs() : SONGS);
+renderList(songsForFilter());
 </script>
 </body>
 </html>
