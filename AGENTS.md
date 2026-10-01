@@ -228,7 +228,18 @@ más de 100 fieles a la vez.
 
 - Se arma en `index.html?admin=true`: `+` agrega, `❌ Quitar` saca y
   `💾 Publicar Misa` guarda en Firebase (`misa_actual`, un array de ids).
+- **Orden** (2026-10-01): `+` inserta cada canción en su momento litúrgico,
+  según el orden de `CATS` (entrada → gloria → aleluya → ofrenda → santo →
+  comunión → adoración → marianos…), después de las que ya están en ese
+  momento. El orden fino se ajusta con ↑ ↓ en la vista de la misa. El orden del
+  array es el orden de la misa.
 - `🗑️ Limpiar Misa` vacía solo la lista local hasta que se publique.
+- **Anterior / siguiente:** en `cancion.html`, si se llegó desde Misa de Hoy
+  (`cat=misa`), abajo de la letra aparecen la canción anterior y la siguiente,
+  y la posición ("2 / 6"). Está en todos los modos, incluido banco.
+- **Copia local:** cada vez que se recibe la misa se guarda en
+  `localStorage.misa_cache`. Anterior/siguiente la muestra mientras llega la
+  versión publicada.
 - Al entrar sin `?cat=`, el índice arranca en "Misa de Hoy". Si no hay
   canciones, muestra "Aún no se han seleccionado las canciones…".
 - Los ids de `misa_actual` que ya no existan en `SONGS` se ignoran. **Renombrar
@@ -249,6 +260,20 @@ más de 100 fieles a la vez.
   canción deja su nota huérfana:** hay que moverla a mano en la base.
 - **Tiempo real:** como "Misa de Hoy", una nota guardada aparece al instante en
   las páginas abiertas.
+
+## 4c. Ayudas para tocar (`cancion.html`, músicos y admin)
+
+Ninguna aparece en modo banco.
+
+- **Pantalla encendida:** al abrir una canción se pide el wake lock de
+  pantalla. Se renueva al volver a la pestaña y con el primer toque, porque
+  algunos navegadores lo exigen. Si el navegador no lo soporta, no pasa nada.
+- **Desplazamiento automático:** botón flotante ▶ abajo a la derecha.
+  - Mientras corre muestra − / velocidad / + / ⏸, con 10 velocidades (6 a
+    60 px/s).
+  - Se detiene al tocar o desplazar a mano fuera del control, o al llegar al
+    final.
+  - La velocidad se recuerda en el celular (`localStorage.autoscroll_nivel`).
 
 ---
 
@@ -271,6 +296,25 @@ más de 100 fieles a la vez.
 
 ## 6. Implementaciones futuras
 
+### Plan de mejoras aprobado (2026-10-01)
+
+Se implementa por fases, con un commit y una verificación en el navegador por
+fase:
+
+| Fase | Contenido | Estado |
+|---|---|---|
+| 0 | `songs.js` compartido; modo banco por REST (D14) | Hecha |
+| 1 | Pantalla encendida, desplazamiento automático, orden de la misa, anterior/siguiente | Hecha |
+| 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Pendiente |
+| 3 | Login de admin con Google + reglas de Firebase | Pendiente |
+| 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Pendiente |
+| 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Pendiente |
+
+Ya decidido:
+- Los fieles (modo banco) tienen anterior/siguiente y funcionan sin internet.
+  No tienen pantalla encendida, desplazamiento automático ni audios.
+- El login de admin es con cuenta de Google y una lista de emails autorizados.
+
 ### Audios y links por canción (decidido 2026-10-01, sin implementar)
 
 - **Idea:** debajo de la caja de la letra en `cancion.html`, mostrar
@@ -283,7 +327,7 @@ más de 100 fieles a la vez.
   asocia cada `id` de canción con una lista de `{ tipo, url, etiqueta }`. Se
   edita como las letras, no desde la web.
 - **Sin links:** la canción no muestra nada.
-- **Pendiente de definir:** si los reproductores se ven en `?modo=banco`.
+- **Modo banco:** sin reproductores (decidido 2026-10-01).
 
 ### Otros pendientes
 

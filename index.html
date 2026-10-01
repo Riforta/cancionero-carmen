@@ -426,6 +426,7 @@ main {
   line-height: 1.3;
   color: var(--ink);
   min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .song-arrow {
@@ -532,6 +533,13 @@ footer {
   white-space: nowrap;
 }
 .admin-btn:hover { background: var(--brown-light); }
+/* Celulares: filas de admin compactas para que el título no quede tapado */
+@media (max-width: 480px) {
+  .admin-row { gap: 0.4rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+  .admin-row .admin-btn { padding: 0.2rem 0.5rem; }
+  .admin-row .btn-txt,
+  .admin-row .song-arrow { display: none; }
+}
 </style>
 </head>
 <body>
@@ -617,6 +625,8 @@ let misaIds = [];
 
 function recibirMisa(val) {
   misaIds = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+  // Copia local: la usan anterior/siguiente en cancion.html y el modo sin conexión
+  try { localStorage.setItem('misa_cache', JSON.stringify(misaIds)); } catch (e) {}
   renderCats();
   if (af === 'misa') renderList(getMisaSongs());
 }
@@ -737,9 +747,11 @@ function renderList(songs) {
   list.innerHTML = songs.map(s => {
     if (isAdmin) {
       const adminBtn = af === 'misa'
-        ? `<button class="admin-btn" data-action="remove" data-song-id="${s.id}">❌ Quitar</button>`
+        ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
+           <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
+           <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">❌<span class="btn-txt"> Quitar</span></button>`
         : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
-      return `<div class="song-row" onclick="location.href='${songUrl(s)}'" style="cursor:pointer">
+      return `<div class="song-row admin-row" onclick="location.href='${songUrl(s)}'" style="cursor:pointer">
         <span class="song-tag">${CMAP[s.category] || s.category}</span>
         <span class="song-name">${s.title}</span>
         ${adminBtn}
@@ -757,7 +769,10 @@ function renderList(songs) {
     btn.addEventListener('click', e => {
       e.stopPropagation();
       e.preventDefault();
-      if (btn.dataset.action === 'add') addToMisa(btn.dataset.songId);
+      const action = btn.dataset.action;
+      if (action === 'add') addToMisa(btn.dataset.songId);
+      else if (action === 'up') moverEnMisa(btn.dataset.songId, -1);
+      else if (action === 'down') moverEnMisa(btn.dataset.songId, 1);
       else removeFromMisa(btn.dataset.songId);
     });
   });
@@ -772,13 +787,33 @@ function fc(id) {
   if (af) document.getElementById('list').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// Posición del momento litúrgico de una canción según el orden de CATS
+function momentoDe(songId) {
+  const s = SONGS.find(x => x.id === songId);
+  const i = s ? CATS.findIndex(([id]) => id === s.category) : -1;
+  return i < 0 ? CATS.length : i;
+}
+
+// Agrega la canción en su momento (entrada → gloria → … → marianos), después
+// de las que ya estén en ese momento; el orden fino se ajusta con ↑ ↓
 function addToMisa(songId) {
   if (!misaIds.includes(songId)) {
-    misaIds.push(songId);
+    const pos = misaIds.findIndex(id => momentoDe(id) > momentoDe(songId));
+    if (pos < 0) misaIds.push(songId);
+    else misaIds.splice(pos, 0, songId);
     misaSinPublicar = true;
     renderCats();
     renderList(songsForFilter());
   }
+}
+
+function moverEnMisa(songId, delta) {
+  const i = misaIds.indexOf(songId);
+  const j = i + delta;
+  if (i < 0 || j < 0 || j >= misaIds.length) return;
+  [misaIds[i], misaIds[j]] = [misaIds[j], misaIds[i]];
+  misaSinPublicar = true;
+  renderList(getMisaSongs());
 }
 
 function removeFromMisa(songId) {
