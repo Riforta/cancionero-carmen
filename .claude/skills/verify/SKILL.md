@@ -36,8 +36,27 @@ Sitio estático sin build. Para ver un cambio funcionando hay que servirlo por H
   `Fetch.enable` + `Fetch.fulfillRequest` y servir un `window.firebase` falso
   en memoria (`initializeApp`, `database().ref(p)` con `on/set/remove`).
   Leer con el Firebase real sí se puede.
-- `index.html` — búsqueda y categorías. "Misa de Hoy" depende de Firebase
-  (`?admin=true` para editar); no verificable offline.
+- `index.html` — búsqueda y categorías. "Misa de Hoy" se lee de Firebase real
+  (solo lectura); para publicar o reordenar, usar el Firebase falso.
+- Node: el `node` por defecto es v16 (sin `fetch`/`WebSocket`); usar
+  `%LOCALAPPDATA%
+vm22.14.0
+ode.exe`.
+
+## Service worker (desde la fase 2 del plan)
+
+- **Firebase falso + service worker:** si el SW ya controla la página, sirve el
+  SDK **real** desde su caché y `Fetch.fulfillRequest` no llega a reemplazarlo.
+  En toda página que use el Firebase falso, llamar antes
+  `Network.setBypassServiceWorker({bypass: true})`. Si no, una prueba de
+  "publicar" escribe en la base real. Antes de cualquier escritura de prueba,
+  confirmar que existe `window.__writes` (marca del falso).
+- **Probar sin conexión:** `Network.emulateNetworkConditions({offline:true})` en
+  la página **y** en el target del service worker (`Target.getTargets` → tipo
+  `service_worker` con URL `http…`, `attachToTarget`). La emulación de la
+  página no alcanza a los pedidos que hace el SW.
+- **Esperar la instalación:** `await navigator.serviceWorker.ready` y unos
+  segundos para el precache, y recargar para que la página quede controlada.
 
 ## Gotchas
 

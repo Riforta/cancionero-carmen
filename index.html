@@ -8,6 +8,10 @@
 <title>Cancionero — Coro Virgen Del Carmen</title>
 
 <link rel="icon" type="image/png" href="assets/logo-medallon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cancionero">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -609,6 +613,7 @@ footer {
 
 <script src="firebase-config.js"></script>
 <script src="songs.js"></script>
+<script src="offline.js"></script>
 
 <script>
 
@@ -621,12 +626,13 @@ const isBanco = params.get('modo') === 'banco';
 // Músicos y admin la siguen en vivo con el SDK; el modo banco la lee una sola
 // vez por REST para no ocupar conexiones simultáneas (AGENTS.md D14)
 let db = null;
-let misaIds = [];
+// Arranca con la copia local (sin conexión se queda con esa)
+let misaIds = Array.isArray(leerCopia('misa_cache')) ? leerCopia('misa_cache') : [];
 
 function recibirMisa(val) {
   misaIds = Array.isArray(val) ? val : (val ? Object.values(val) : []);
   // Copia local: la usan anterior/siguiente en cancion.html y el modo sin conexión
-  try { localStorage.setItem('misa_cache', JSON.stringify(misaIds)); } catch (e) {}
+  guardarCopia('misa_cache', misaIds);
   renderCats();
   if (af === 'misa') renderList(getMisaSongs());
 }
@@ -824,7 +830,7 @@ function removeFromMisa(songId) {
 }
 
 function publicarMisa() {
-  if (!db) { alert('❌ Sin conexión con Firebase: no se puede publicar ahora.'); return; }
+  if (!db || !navigator.onLine) { alert('❌ Sin conexión: no se puede publicar ahora.'); return; }
   db.ref('misa_actual').set(misaIds)
     .then(() => { misaSinPublicar = false; alert('✅ Misa publicada correctamente'); })
     .catch(err => alert('❌ Error: ' + err.message));

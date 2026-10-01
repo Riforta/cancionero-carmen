@@ -42,7 +42,13 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   `letras/<id>.html` y la renderiza dentro de un `<pre>`.
 - `letras/*.html`: un archivo por canción. Contiene solo un fragmento HTML (sin
   `<html>` ni `<head>`).
-- `assets/`: logos e imágenes.
+- `assets/`: logos, imágenes e íconos de la app (`icon-192.png`, `icon-512.png`,
+  `apple-touch-icon.png`, generados desde `virgen-icono-color.jpg`).
+- `sw.js`: service worker para funcionar sin internet (D15).
+- `offline.js`: registra el service worker, muestra el aviso "Sin conexión" y
+  trae `leerCopia()` y `guardarCopia()` para las copias locales.
+- `manifest.webmanifest`: permite instalar el sitio como app ("Agregar a
+  pantalla de inicio").
 - `firebase-config.js`: config de Firebase compartida por las dos páginas, más
   `cargarFirebase()` (carga el SDK bajo demanda) y `leerFirebase(ruta)`
   (lectura puntual por REST).
@@ -130,6 +136,28 @@ más de 100 fieles a la vez.
 - Toda funcionalidad nueva para los fieles tiene que respetar esta regla.
 - Si Firebase no carga (sin conexión), las páginas siguen funcionando sin esos
   datos.
+
+**D15. Funciona sin internet** (2026-10-01). Lo hace el service worker `sw.js`:
+- **Qué guarda al instalarse** (en la primera visita con conexión): las
+  páginas, **todas** las letras (la lista sale de `songs.js` con
+  `importScripts`), los íconos, el CSS de Google Fonts y el SDK de Firebase.
+- **Estrategias:**
+  - Páginas y JS propios: primero la red (3 s de espera) y, si falla, la copia.
+    Por eso con conexión nunca se ve una versión vieja.
+  - Letras: la copia al instante y se actualiza en segundo plano.
+  - Imágenes, fuentes y SDK: primero la copia.
+  - `firebaseio.com` no pasa por el service worker.
+- **Datos de Firebase:** cada página guarda su copia en `localStorage`
+  (`misa_cache`, `nota_<id>`) y la muestra mientras llega la versión en vivo.
+  Sin conexión se queda con la copia y aparece el aviso "📴 Sin conexión".
+- **Escrituras sin conexión:** publicar la misa o guardar una nota se bloquea
+  con un aviso, para que no queden encoladas sin que nadie lo sepa.
+- **Al cambiar `sw.js`, subir `VERSION`:** así se descarta la caché anterior.
+  Las letras y canciones nuevas no requieren tocarlo, porque salen de
+  `songs.js`. Un archivo propio nuevo (otra página, otro script) sí hay que
+  agregarlo a `PROPIOS`.
+- **iPhone:** Safari borra los datos de un sitio que no se abre en 7 días. Para
+  evitarlo, recomendar "Agregar a pantalla de inicio".
 
 ---
 
@@ -305,7 +333,7 @@ fase:
 |---|---|---|
 | 0 | `songs.js` compartido; modo banco por REST (D14) | Hecha |
 | 1 | Pantalla encendida, desplazamiento automático, orden de la misa, anterior/siguiente | Hecha |
-| 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Pendiente |
+| 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Hecha |
 | 3 | Login de admin con Google + reglas de Firebase | Pendiente |
 | 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Pendiente |
 | 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Pendiente |
