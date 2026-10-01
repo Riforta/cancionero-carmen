@@ -542,6 +542,7 @@ footer {
   transition: background 0.15s;
 }
 .admin-action-btn:hover { background: var(--brown-light); }
+a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: center; }
 .admin-btn {
   background: none;
   border: 1.5px solid var(--border);
@@ -693,7 +694,8 @@ if (isAdmin) {
   bar.id = 'admin-bar';
   bar.hidden = true;
   bar.innerHTML = `<button class="admin-action-btn" onclick="publicarMisa()">💾 Publicar Misa</button>
-    <button class="admin-action-btn" onclick="limpiarMisa()">🗑️ Limpiar Misa</button>`;
+    <button class="admin-action-btn" onclick="limpiarMisa()">🗑️ Limpiar Misa</button>
+    <a class="admin-action-btn" href="qr.html">🖨️ QR para fieles</a>`;
   document.querySelector('main').prepend(bar);
   panelSesion(document.querySelector('main'));
   document.addEventListener('sesion-admin', e => {

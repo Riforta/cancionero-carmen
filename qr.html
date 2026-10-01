@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#3E2415">
+<title>QR para fieles — Coro Virgen del Carmen</title>
+<link rel="icon" type="image/png" href="assets/logo-medallon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* Página para imprimir el QR que abre la Misa de Hoy en modo banco
+   (AGENTS.md §4e). Se imprime una sola vez: la dirección no cambia. */
+:root {
+  --brown: #6B4226;
+  --brown-dark: #3E2415;
+  --brown-mid: #8A5733;
+  --gold: #B8862E;
+  --peach: #F9CD8E;
+  --cream: #FFFDF7;
+  --ink: #2C1A0D;
+  --ink-soft: #7A5638;
+  --border: #E8CFA8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'EB Garamond', Georgia, serif;
+  background: var(--peach);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ─── CONTROLES (no se imprimen) ─── */
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1rem 16px;
+  background: var(--brown-dark);
+  color: #fff;
+}
+.controles a { color: #DDB45E; text-decoration: none; margin-right: auto; font-family: 'Cinzel', serif; font-size: 0.8rem; }
+.controles label { font-size: 1rem; }
+.controles select, .controles button {
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 50px;
+  border: 1.5px solid #DDB45E;
+  background: var(--cream);
+  color: var(--brown-dark);
+}
+.controles button { background: #DDB45E; border-color: transparent; cursor: pointer; font-weight: 500; }
+.ayuda { max-width: 640px; margin: 1rem auto 0; padding: 0 16px; font-style: italic; color: var(--ink-soft); text-align: center; }
+
+/* ─── HOJA ─── */
+.hoja {
+  width: 100%;
+  max-width: 210mm;
+  margin: 1rem auto 2rem;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(62,36,21,0.25);
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.hoja.tarjetas { grid-template-columns: 1fr 1fr; }
+
+.cartel {
+  text-align: center;
+  padding: 14mm 10mm;
+  border: 2px solid var(--gold);
+  outline: 1px solid var(--border);
+  outline-offset: -6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4mm;
+  break-inside: avoid;
+}
+.hoja.tarjetas .cartel { padding: 7mm 5mm; gap: 2.5mm; border-style: dashed; }
+
+.logo { width: 34mm; height: 34mm; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+.hoja.tarjetas .logo { width: 16mm; height: 16mm; }
+.titulo { font-family: 'Cinzel', serif; font-weight: 700; color: var(--brown-dark); font-size: 26pt; line-height: 1.15; }
+.hoja.tarjetas .titulo { font-size: 13pt; }
+.bajada { font-size: 17pt; color: var(--brown); max-width: 150mm; }
+.hoja.tarjetas .bajada { font-size: 10pt; }
+.qr { width: 95mm; height: 95mm; image-rendering: pixelated; }
+.hoja.tarjetas .qr { width: 48mm; height: 48mm; }
+.instruccion { font-size: 14pt; color: var(--ink-soft); }
+.hoja.tarjetas .instruccion { font-size: 8.5pt; }
+.url { font-size: 10pt; color: var(--ink-soft); word-break: break-all; }
+.hoja.tarjetas .url { display: none; }
+.pie { font-family: 'Cinzel', serif; font-size: 10pt; color: var(--brown-mid); letter-spacing: 0.06em; }
+.hoja.tarjetas .pie { font-size: 6.5pt; }
+
+/* ─── IMPRESIÓN ─── */
+@page { size: A4 portrait; margin: 10mm; }
+@media print {
+  body { background: #fff; }
+  .controles, .ayuda { display: none; }
+  .hoja { box-shadow: none; margin: 0; max-width: none; }
+  .hoja:not(.tarjetas) .cartel { min-height: 270mm; }
+  .hoja.tarjetas .cartel { min-height: 135mm; }
+  .cartel { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<div class="controles">
+  <a href="index.html?admin=true">‹ Volver</a>
+  <label for="formato">Formato:</label>
+  <select id="formato">
+    <option value="cartel">Cartel (hoja completa)</option>
+    <option value="tarjetas">4 tarjetas por hoja</option>
+  </select>
+  <button type="button" onclick="window.print()">🖨️ Imprimir</button>
+</div>
+<p class="ayuda">El QR abre la Misa de Hoy en modo banco (solo letras). La dirección no cambia: alcanza con imprimirlo una vez.</p>
+
+<div id="hoja" class="hoja"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script>
+// La dirección pública del sitio. Si la página se abre en otro lado (por
+// ejemplo, probando en la compu), el QR igual apunta al sitio publicado
+const URL_FIELES = location.hostname.endsWith('github.io')
+  ? new URL('index.html?modo=banco', location.href).href
+  : 'https://riforta.github.io/cancionero-carmen/index.html?modo=banco';
+
+// QR en alta resolución (se escala al imprimir sin perder nitidez).
+// Nivel M: tolera manchas o dobleces del papel
+const qrDataUrl = new QRious({ value: URL_FIELES, size: 1000, level: 'M', padding: 0 }).toDataURL('image/png');
+
+function cartel() {
+  const c = document.createElement('section');
+  c.className = 'cartel';
+  c.innerHTML = `
+    <img class="logo" src="assets/logo-medallon-color.png" alt="">
+    <div class="titulo">Cantos de la Misa</div>
+    <div class="bajada">Seguí las letras desde tu celular</div>
+    <img class="qr" alt="Código QR">
+    <div class="instruccion">Escaneá el código con la cámara</div>
+    <div class="url"></div>
+    <div class="pie">Coro Virgen del Carmen</div>`;
+  c.querySelector('.qr').src = qrDataUrl;
+  c.querySelector('.url').textContent = URL_FIELES;
+  return c;
+}
+
+function armar() {
+  const tarjetas = document.getElementById('formato').value === 'tarjetas';
+  const hoja = document.getElementById('hoja');
+  hoja.className = 'hoja' + (tarjetas ? ' tarjetas' : '');
+  hoja.textContent = '';
+  for (let i = 0; i < (tarjetas ? 4 : 1); i++) hoja.appendChild(cartel());
+}
+
+document.getElementById('formato').addEventListener('change', armar);
+armar();
+</script>
+</body>
+</html>

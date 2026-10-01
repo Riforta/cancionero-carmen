@@ -51,6 +51,7 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   pantalla de inicio").
 - `sesion.js`: barra de sesión del modo admin (login con Google) y la variable
   `esAdminOk` (D16).
+- `qr.html`: página para imprimir el QR de los fieles (§4e).
 - `database.rules.json`: reglas de la base. Son la referencia: se aplican a mano
   en la consola de Firebase (§7).
 - `firebase-config.js`: config de Firebase compartida por las dos páginas, más
@@ -69,8 +70,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 
 **D1. Sitio estático, sin build y sin dependencias.** Se edita a mano y se
 publica tal cual en GitHub Pages. No agregar frameworks, bundlers, `npm` ni
-pasos de compilación. Las librerías externas solo vienen por CDN (hoy Firebase y
-Google Fonts).
+pasos de compilación. Las librerías externas solo vienen por CDN: hoy Firebase,
+Google Fonts y `qrious` (cdnjs, solo en `qr.html`).
 
 **D2. Letras como fragmentos HTML cargados por `fetch`.** Así agregar una
 canción es solo crear un archivo. Consecuencia: el sitio no funciona abriéndolo
@@ -369,6 +370,18 @@ Ninguna aparece en modo banco.
   - Usa el menú de compartir del celular (`navigator.share`).
   - Si no está disponible, abre WhatsApp (`wa.me`).
 
+## 4e. QR para los fieles (`qr.html`)
+
+- **Qué abre:** la Misa de Hoy en modo banco
+  (`https://riforta.github.io/cancionero-carmen/index.html?modo=banco`). Como la
+  dirección no cambia, se imprime una sola vez y sirve para todas las misas.
+- **Formatos:** cartel de hoja completa o 4 tarjetas por hoja A4, para recortar.
+- **Dónde está:** en la barra de admin, "🖨️ QR para fieles".
+- **Si se abre fuera de GitHub Pages** (por ejemplo, probando en la compu), el
+  QR apunta igual al sitio publicado.
+- **Antes de difundirlo:** tienen que estar publicadas las fases 0 (banco sin
+  conexión en vivo, D14) y 3 (escrituras protegidas, §7).
+
 ---
 
 ## 5. Cómo trabajar en el repo
@@ -402,7 +415,7 @@ fase:
 | 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Hecha |
 | 3 | Login de admin con Google + reglas de Firebase | Código hecho; falta la configuración en la consola (§7) |
 | 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Hecha |
-| 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Pendiente |
+| 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Hecha |
 
 Ya decidido:
 - Los fieles (modo banco) tienen anterior/siguiente y funcionan sin internet.
