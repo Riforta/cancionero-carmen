@@ -469,8 +469,9 @@ Ya decidido:
 
 ### Otros pendientes
 
-- Cargar los links de audio (`medios` en `songs.js`): todavía ninguna canción
-  tiene.
+- Cargar los links de audio (`medios` en `songs.js`). Al 2026-10-01 tienen 6
+  canciones carmelitanas (La confianza, Porque te amo oh Madre, El abandono,
+  Una lluvia de rosas, No conozco otro medio, Lo que agrada a Dios).
 - Cargar las letras de `com_eucaristia` y `var_glorioso-rey-en-la-cruz` (hoy
   tienen el aviso de "letra pendiente").
 - `ador_noche-oscura-jesed`: los acordes vinieron amontonados al principio de
