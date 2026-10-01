@@ -6,7 +6,8 @@ Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENT
 
 ## Estructura
 
-- `index.html` — lista de canciones con búsqueda y categorías. La lista `SONGS` (dentro del `<script>`) es la fuente de verdad del índice: cada entrada tiene `id`, `title`, `category`. El `id` debe coincidir con el nombre del archivo en `letras/`.
+- `songs.js` — la lista `SONGS` es la fuente de verdad del índice: cada entrada tiene `id`, `num`, `title`, `category`. El `id` debe coincidir con el nombre del archivo en `letras/`. También define `CATS` (categorías y su orden).
+- `index.html` — lista de canciones con búsqueda y categorías.
 - `cancion.html` — muestra una letra (`?id=<id>`), con transposición de acordes y popover con diagrama de guitarra (`CHORD_DICTIONARY`).
 - `letras/*.html` — fragmentos HTML (sin `<html>`/`<head>`) con la letra y los acordes.
 - `assets/` — logos e imágenes.
@@ -27,4 +28,4 @@ Toma Señor y recibe toda mi libertad,
 ## Agregar una canción
 
 1. Crear `letras/<prefijo>_<slug>.html` con el formato de arriba. Prefijos: `ent_` entrada, `glo_` gloria/kyrie, `ale_` aleluya, `ofert_` ofertorio, `snt_` santo/cordero, `com_` comunión, `ador_` adoración/post-comunión, `mar_` marianos, `var_` varias.
-2. Agregar la entrada correspondiente en `SONGS` en `index.html`, con la `category` que corresponda.
+2. Agregar la entrada correspondiente en `SONGS` en `songs.js`, con la `category` que corresponda.

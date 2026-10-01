@@ -35,15 +35,17 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 
 ### Piezas
 
-- `index.html`: índice con búsqueda y categorías. La lista `SONGS` (en el
-  `<script>`) es la fuente de verdad de qué canciones existen. `CATS` define las
-  categorías y su orden.
+- `songs.js`: la lista `SONGS`, fuente de verdad de qué canciones existen, y
+  `CATS`, que define las categorías y su orden. La cargan las dos páginas.
+- `index.html`: índice con búsqueda y categorías.
 - `cancion.html`: muestra una letra (`?id=<id>`). Hace `fetch` de
   `letras/<id>.html` y la renderiza dentro de un `<pre>`.
 - `letras/*.html`: un archivo por canción. Contiene solo un fragmento HTML (sin
   `<html>` ni `<head>`).
 - `assets/`: logos e imágenes.
-- `firebase-config.js`: config de Firebase compartida por las dos páginas.
+- `firebase-config.js`: config de Firebase compartida por las dos páginas, más
+  `cargarFirebase()` (carga el SDK bajo demanda) y `leerFirebase(ruta)`
+  (lectura puntual por REST).
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
@@ -60,9 +62,10 @@ Google Fonts).
 canción es solo crear un archivo. Consecuencia: el sitio no funciona abriéndolo
 con `file://`; para probarlo hay que servirlo por HTTP (ver §5).
 
-**D3. `SONGS` en `index.html` es la fuente de verdad del índice.** `cancion.html`
-no conoce `SONGS`: el título le llega por el parámetro `?t=`. Si falta, lo
-reconstruye desde el `id`, sin tildes.
+**D3. `SONGS` en `songs.js` es la fuente de verdad del índice** (archivo propio
+desde 2026-10-01). Lo cargan `index.html` y `cancion.html`, y también lo usará el
+service worker. `cancion.html` toma el título de `SONGS`. El parámetro `?t=`
+queda solo como respaldo para links viejos.
 
 **D4. El contexto de navegación viaja por la URL.** `modo`, `admin` y `cat`
 (categoría activa, `todas` = sin filtro) pasan de `index.html` a `cancion.html` y
@@ -114,8 +117,19 @@ aún sin implementar; ver §6). No guardar audio en GitHub ni en Firebase:
 
 **D13. Notas por canción en Firebase** (2026-10-01). Se guardan en Firebase y no
 en el repo porque se escriben desde la web en modo admin, sin pasar por git.
-`cancion.html` carga Firebase solo para esto; si Firebase no carga, la página
-funciona igual, sin nota. En modo banco ni se consulta.
+Si Firebase no carga, la página funciona igual, sin nota. En modo banco ni se
+consulta.
+
+**D14. El modo banco no abre conexión en tiempo real con Firebase**
+(2026-10-01). El plan gratuito admite **100 conexiones simultáneas**, y no se
+puede subir. Cada página con el SDK abierto ocupa una, y con el QR puede haber
+más de 100 fieles a la vez.
+- Músicos y admin cargan el SDK con `cargarFirebase()` y ven los datos en vivo.
+- El modo banco nunca carga el SDK: lee con `leerFirebase('misa_actual')`, un
+  `fetch` puntual a la API REST.
+- Toda funcionalidad nueva para los fieles tiene que respetar esta regla.
+- Si Firebase no carga (sin conexión), las páginas siguen funcionando sin esos
+  datos.
 
 ---
 
@@ -125,7 +139,8 @@ funciona igual, sin nota. En modo banco ni se consulta.
 
 1. Crear `letras/<prefijo>_<slug>.html`. El slug va en minúsculas, sin tildes ni
    ñ, con palabras separadas por guiones (`senor`, `oracion-del-alma-enamorada`).
-2. Agregar la entrada en `SONGS`, dentro del bloque comentado de su prefijo:
+2. Agregar la entrada en `SONGS` (`songs.js`), dentro del bloque comentado de
+   su prefijo:
    ```js
    { "id": "com_mi-cancion", "num": 0, "title": "Mi canción", "category": "comunion" },
    ```

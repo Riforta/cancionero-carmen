@@ -470,9 +470,8 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
   <svg id="popover-svg" width="130" height="155" viewBox="0 0 100 120" style="display:block; margin:0 auto;"></svg>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="songs.js"></script>
 
 <script>
 // ── Banco mode ──
@@ -539,6 +538,13 @@ if (!idCancion) {
   window.location.href = 'index.html';
 }
 
+// Título: de SONGS (songs.js); si la canción no está, el de ?t= o uno armado
+// desde el id
+const cancionActual = SONGS.find(s => s.id === idCancion) || null;
+const tituloCancion = (cancionActual && cancionActual.title) || urlParams.get('t') ||
+  (idCancion || '').replace(/^[a-z]+_/, '').split('-')
+    .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+
 fetch(`letras/${idCancion}.html`)
   .then(response => {
     if (!response.ok) throw new Error();
@@ -547,12 +553,9 @@ fetch(`letras/${idCancion}.html`)
   .then(textoLetra => {
     document.getElementById('letra-box').innerHTML = wrapChordLines(textoLetra);
 
-    const tituloFallback = idCancion.replace(/^[a-z]+_/, '').split('-')
-      .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-    const tituloLimpio = urlParams.get('t') || tituloFallback;
-    document.getElementById('song-title').textContent = tituloLimpio;
-    document.title = `${tituloLimpio} — Coro del Carmen`;
-    
+    document.getElementById('song-title').textContent = tituloCancion;
+    document.title = `${tituloCancion} — Coro del Carmen`;
+
     document.querySelectorAll('pre c').forEach(el => {
       el.setAttribute('data-original', el.textContent.trim());
     });
@@ -564,7 +567,7 @@ fetch(`letras/${idCancion}.html`)
   })
   .catch(() => {
     document.getElementById('letra-box').innerHTML = `<div class="error-msg">No se pudo cargar la letra.<br>Verificá el archivo: <b>letras/${idCancion}.html</b></div>`;
-    document.getElementById('song-title').textContent = urlParams.get('t') || "Error";
+    document.getElementById('song-title').textContent = tituloCancion || "Error";
   });
 
 // ─── LÓGICA 1: MOSTRAR/OCULTAR ACORDES ───
@@ -844,10 +847,8 @@ if (!('speechSynthesis' in window)) {
 // ─── LÓGICA 5: NOTA PARA MÚSICOS (Firebase notas/<id>) ───
 // Se ve en la vista de músicos y en admin; solo se edita con ?admin=true.
 // En modo banco ni se consulta. Si Firebase no cargó, la página sigue igual.
-if (urlParams.get('modo') !== 'banco' && idCancion && typeof firebase !== 'undefined') {
-  firebase.initializeApp(firebaseConfig);
-  const notaRef = firebase.database().ref('notas/' + idCancion);
-
+if (urlParams.get('modo') !== 'banco' && idCancion) {
+  let notaRef = null;
   const notaBox = document.getElementById('nota');
   const notaTexto = document.getElementById('notaTexto');
   const notaEditBtn = document.getElementById('notaEditBtn');
@@ -865,11 +866,14 @@ if (urlParams.get('modo') !== 'banco' && idCancion && typeof firebase !== 'undef
     notaBox.hidden = !notaActual && !isAdmin;
   }
 
-  notaRef.on('value', snap => {
-    const val = snap.val();
-    notaActual = typeof val === 'string' ? val : '';
-    renderNota();
-  });
+  cargarFirebase().then(fb => {
+    notaRef = fb.database().ref('notas/' + idCancion);
+    notaRef.on('value', snap => {
+      const val = snap.val();
+      notaActual = typeof val === 'string' ? val : '';
+      renderNota();
+    });
+  }).catch(() => {});
 
   if (isAdmin) {
     notaEditBtn.addEventListener('click', () => {
@@ -884,6 +888,7 @@ if (urlParams.get('modo') !== 'banco' && idCancion && typeof firebase !== 'undef
     });
     // Guardar vacío borra la nota
     notaSave.addEventListener('click', () => {
+      if (!notaRef) { alert('❌ Sin conexión con Firebase: no se puede guardar ahora.'); return; }
       const texto = notaInput.value.trim();
       notaSave.disabled = true;
       (texto ? notaRef.set(texto) : notaRef.remove())
