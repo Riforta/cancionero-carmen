@@ -1,0 +1,280 @@
+# AGENTS.md — Cancionero Coro Virgen del Carmen
+
+Documento vivo con las reglas de negocio, las decisiones de arquitectura y las
+ideas de implementaciones futuras del cancionero. Lo leen tanto personas como
+agentes de IA antes de tocar el proyecto.
+
+**Mantenimiento:** cuando se tome una decisión nueva, se agregue una regla o se
+pida una funcionalidad para más adelante, actualizar este archivo en el mismo
+cambio. Las decisiones llevan fecha (AAAA-MM-DD).
+
+---
+
+## 1. Qué es y para quién
+
+Cancionero web del coro de la Parroquia Virgen del Carmen (Córdoba, Argentina).
+Tiene tres públicos:
+
+| Público | Cómo entra | Qué ve |
+|---|---|---|
+| Músicos del coro | `index.html` | Letras con acordes, transposición, capotraste y diagramas de guitarra |
+| Fieles en el banco | `?modo=banco` | Solo la letra: sin acordes, sin controles, sin búsqueda ni categorías |
+| Quien arma la misa | `?admin=true` | Botones para elegir las canciones de "Misa de Hoy" y publicarlas, y para editar las notas |
+
+En las vistas de músicos y admin, el botón "🔧 Modo admin" / "🎵 Salir de
+admin" del encabezado pasa de una a otra (2026-10-01):
+- **Qué hace:** recarga la misma página con o sin `admin=true` y conserva el
+  resto de los parámetros.
+- **Confirmación:** la pide si hay cambios en la misa sin publicar o una nota
+  sin guardar.
+- **Modo banco:** no tiene el botón; solo se sale cambiando la URL.
+
+---
+
+## 2. Arquitectura
+
+### Piezas
+
+- `index.html`: índice con búsqueda y categorías. La lista `SONGS` (en el
+  `<script>`) es la fuente de verdad de qué canciones existen. `CATS` define las
+  categorías y su orden.
+- `cancion.html`: muestra una letra (`?id=<id>`). Hace `fetch` de
+  `letras/<id>.html` y la renderiza dentro de un `<pre>`.
+- `letras/*.html`: un archivo por canción. Contiene solo un fragmento HTML (sin
+  `<html>` ni `<head>`).
+- `assets/`: logos e imágenes.
+- `firebase-config.js`: config de Firebase compartida por las dos páginas.
+- Firebase Realtime Database: guarda solo datos que se editan desde la web.
+  - `misa_actual`: array con los ids de "Misa de Hoy".
+  - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
+- Hosting: GitHub Pages.
+
+### Decisiones de arquitectura
+
+**D1. Sitio estático, sin build y sin dependencias.** Se edita a mano y se
+publica tal cual en GitHub Pages. No agregar frameworks, bundlers, `npm` ni
+pasos de compilación. Las librerías externas solo vienen por CDN (hoy Firebase y
+Google Fonts).
+
+**D2. Letras como fragmentos HTML cargados por `fetch`.** Así agregar una
+canción es solo crear un archivo. Consecuencia: el sitio no funciona abriéndolo
+con `file://`; para probarlo hay que servirlo por HTTP (ver §5).
+
+**D3. `SONGS` en `index.html` es la fuente de verdad del índice.** `cancion.html`
+no conoce `SONGS`: el título le llega por el parámetro `?t=`. Si falta, lo
+reconstruye desde el `id`, sin tildes.
+
+**D4. El contexto de navegación viaja por la URL.** `modo`, `admin` y `cat`
+(categoría activa, `todas` = sin filtro) pasan de `index.html` a `cancion.html` y
+vuelven con el botón "Volver". No usar `localStorage` para esto.
+
+**D5. Firebase solo para lo que se edita desde la web.** Hoy son "Misa de Hoy"
+y las notas de las canciones. Lo que se edita como código (letras, índice,
+links de audio) va en el repo. La config de Firebase (`firebase-config.js`) es
+pública por diseño (así funciona Firebase web); la seguridad depende de las
+reglas de la base, que no están en este repo. Al 2026-10-01 las reglas permiten
+leer y escribir toda la base sin login.
+
+**D6. `?admin=true` no es seguridad.** Solo muestra los botones. Desde
+2026-10-01 el modo admin ni siquiera está escondido: cualquier músico entra con
+el botón del encabezado y puede publicar la misa o editar las notas. Es una
+limitación aceptada para el uso actual. Si hiciera falta restringirlo, el
+camino es Firebase Authentication más reglas de escritura en la base, no
+esconder el botón.
+
+**D7. Acordes en `<c>`, alineados con espacios dentro de un `<pre>`.** La fuente
+es proporcional (EB Garamond), así que la alineación es aproximada. Al cargar
+letras se conserva el espaciado del original, que suele venir de un documento
+con fuente proporcional y cae razonablemente bien.
+
+**D8. Las líneas que solo tienen acordes se envuelven en `.chord-line`.** Lo
+hace `wrapChordLines` en `cancion.html`. Así se ocultan enteras al esconder los
+acordes y en modo banco, sin dejar renglones en blanco. Cuenta como línea de
+acordes la que, además de los `<c>`, solo tiene espacios, guiones, barras,
+puntos, paréntesis o un prefijo `Intro:`.
+
+**D9. Transposición y capotraste.** Acorde mostrado = original + transposición −
+traste del capo. Con capo, los acordes se muestran en la posición en que se
+tocan. La transposición siempre devuelve sostenidos (un `SIb` transpuesto se
+muestra como `LA#`, `SI`, etc.).
+
+**D10. Modo banco sin lector de voz** (2026-07-06). El lector de letra en voz
+alta está en `cancion.html` para personas invidentes, pero en `?modo=banco` se
+oculta junto con el resto de los controles.
+
+**D11. Accesibilidad.** Los `<c>` y las `.chord-line` llevan `aria-hidden` para
+que los lectores de pantalla lean solo la letra.
+
+**D12. Audios por canción: solo links, guardados en el repo** (2026-10-01,
+aún sin implementar; ver §6). No guardar audio en GitHub ni en Firebase:
+- Firebase Storage exige el plan Blaze (con tarjeta) desde febrero de 2026.
+- Firebase Realtime Database no sirve para archivos.
+- Subir MP3 al repo infla para siempre el historial de git (GitHub recomienda
+  repos de menos de 1 GB).
+
+**D13. Notas por canción en Firebase** (2026-10-01). Se guardan en Firebase y no
+en el repo porque se escriben desde la web en modo admin, sin pasar por git.
+`cancion.html` carga Firebase solo para esto; si Firebase no carga, la página
+funciona igual, sin nota. En modo banco ni se consulta.
+
+---
+
+## 3. Reglas de negocio: canciones
+
+### Archivo y entrada en el índice
+
+1. Crear `letras/<prefijo>_<slug>.html`. El slug va en minúsculas, sin tildes ni
+   ñ, con palabras separadas por guiones (`senor`, `oracion-del-alma-enamorada`).
+2. Agregar la entrada en `SONGS`, dentro del bloque comentado de su prefijo:
+   ```js
+   { "id": "com_mi-cancion", "num": 0, "title": "Mi canción", "category": "comunion" },
+   ```
+   - `id`: igual al nombre del archivo, sin `.html`.
+   - `num`: número de la canción en el cancionero impreso del coro. Usar `0` si
+     no tiene.
+   - `title`: con tildes y mayúsculas normales.
+   - `category`: una de las claves de `CATS`.
+3. Antes de crear una canción, **verificar que no exista ya** (buscar por título
+   y por número). Si existe y la letra coincide, no tocarla.
+
+### Prefijos y categorías
+
+| Prefijo | `category` | Categoría visible |
+|---|---|---|
+| `ent_` | `entrada` | Entrada |
+| `glo_` | `gloria` | Gloria / Kyrie |
+| `ale_` | `aleluya` | Aleluya |
+| `ofert_` | `ofertorio` | Ofrenda |
+| `snt_` | `santo` | Santo / Cordero |
+| `com_` | `comunion` | Comunión |
+| `ador_` | `adoracion` | Adoración / Post-Comunión |
+| `ador_` | `carmelitanos` | Carmelitanos (Santa Teresita, San Juan de la Cruz, Santa Teresa…) |
+| `mar_` | `marianos` | A María |
+| `var_` | `varias` | Varios |
+
+- Las categorías `sanjose`, `adviento`, `navidad`, `cuaresma` y `pascua` existen
+  en `CATS` pero todavía no tienen canciones. Su botón aparece solo al cargar la
+  primera. **Su prefijo no está definido todavía:** preguntar al usuario.
+- "Misa de Hoy" (`misa`) no es una categoría de `SONGS`: se arma desde
+  Firebase.
+
+### Títulos
+
+- Si sirve para buscarla, agregar entre paréntesis el autor o el grupo:
+  `(San Juan de la Cruz)`, `(Jesed)`, `(Pascua Joven)`, `(Fones)`.
+- No incluir las marcas de tono del cancionero impreso (`T1`, `T2/3`, `T3/4`).
+  "La fonte T5" es una excepción histórica.
+
+### Formato de la letra
+
+- Acordes en notación latina y mayúsculas, dentro de `<c>`, en una línea propia
+  encima del verso:
+  ```
+  <c>SOL</c>             <c>MIm</c>  <c>DO</c>
+  Toma Señor y recibe toda mi libertad,
+  ```
+- Así se escriben los acordes:
+  - Menores: `m` después del sostenido (`FA#m`, no `FAm#`).
+  - Séptimas y otros: `RE7`, `FA#m7`, `SOLmaj7`, `REsus4`, `DOadd9`.
+  - Bemoles: se aceptan (`SIb`).
+  - Con bajo: `RE/FA#`.
+  - Optativos: entre paréntesis por fuera de la etiqueta (`(<c>MI</c>)`).
+- Las fuentes llegan con otras notaciones. Se convierten siempre:
+  - Americana: `Am` → `LAm`, `G/F#` → `SOL/FA#`.
+  - Latina en minúscula: `Rem` → `REm`.
+  - Menor con guion: `La-` → `LAm`.
+- **Estribillo** entre `<b>` y `</b>`, cada etiqueta en su propia línea. Si el
+  estribillo se repite sin escribirlo entero: `<b>(Estribillo) Primeras palabras…</b>`.
+- **Repeticiones:** `(bis)` al final del verso, o `/…/ (bis)` para marcar el
+  tramo.
+- **Intro:** una línea `Intro: <c>DO</c> <c>FA</c> …` al principio, seguida de
+  una línea en blanco. También vale una progresión entre paréntesis.
+- **Subtítulos** dentro de una letra (varias canciones en un archivo, como
+  Antífonas): `<h3>`. **Aclaraciones:** `<i>`.
+- Estrofas separadas por una línea en blanco. Sin espacios al final de línea.
+- **Letra pendiente:** si la canción está en el índice pero falta la letra, usar
+  el bloque `<div class="letra-pendiente">` (ver `com_eucaristia.html`).
+
+### Correcciones al cargar
+
+- Se pueden corregir errores evidentes de ortografía y tildes, y agregar signos
+  de puntuación faltantes (`¿?`, `¡!`). Hay que **avisarle al usuario la lista de
+  cambios**.
+- No reescribir versos ni "corregir" contra el poema original si el coro canta
+  otra versión (ej.: "pastorcito" en vez de "pastorcico").
+- Marcar un estribillo con `<b>` es una interpretación: avisar al usuario cuando
+  no está indicado en la fuente.
+- Si la fuente trae los acordes amontonados o sin alinear, no inventar en qué
+  sílaba cae cada uno: dejarlos como vienen y avisar.
+
+---
+
+## 4. Reglas de negocio: Misa de Hoy
+
+- Se arma en `index.html?admin=true`: `+` agrega, `❌ Quitar` saca y
+  `💾 Publicar Misa` guarda en Firebase (`misa_actual`, un array de ids).
+- `🗑️ Limpiar Misa` vacía solo la lista local hasta que se publique.
+- Al entrar sin `?cat=`, el índice arranca en "Misa de Hoy". Si no hay
+  canciones, muestra "Aún no se han seleccionado las canciones…".
+- Los ids de `misa_actual` que ya no existan en `SONGS` se ignoran. **Renombrar
+  un `id` rompe la misa publicada que lo contenga.**
+
+## 4b. Reglas de negocio: notas de las canciones
+
+- **Para qué sirven:** indicaciones para el coro, como el tono en que se canta,
+  dónde entra cada voz o una aclaración del ensayo.
+- **Quién las ve:** la vista de músicos y la de admin, en una tarjeta "📝 Nota"
+  arriba de la letra. **Nunca en `?modo=banco`.**
+- **Quién las edita:** solo con `?admin=true`, con "➕ Agregar nota" o
+  "✏️ Editar".
+  - **Guardar vacío borra la nota.**
+  - Máximo 500 caracteres.
+  - Texto plano: los saltos de línea se respetan y no se interpreta HTML.
+- **Dónde se guardan:** en Firebase, en `notas/<id>`. **Renombrar el `id` de una
+  canción deja su nota huérfana:** hay que moverla a mano en la base.
+- **Tiempo real:** como "Misa de Hoy", una nota guardada aparece al instante en
+  las páginas abiertas.
+
+---
+
+## 5. Cómo trabajar en el repo
+
+- **Verificar en un navegador real** con la skill `.claude/skills/verify`
+  (`python -m http.server` + Chrome headless + CDP). Revisar al menos que la
+  letra cargue, que no haya acordes sin diagrama (`chordLookup`) y que la
+  canción aparezca en su categoría.
+- **Node:** el `node` por defecto de esta máquina es v16 (no tiene `fetch` ni
+  `WebSocket`). Para los scripts de CDP usar
+  `%LOCALAPPDATA%\nvm\v22.14.0\node.exe`.
+- **Commits:** solo cuando el usuario lo pide. Mensaje corto en español,
+  describiendo el cambio (ej.: "Navegacion que conserva categoria activa y modo
+  admin"). En PowerShell 5.1 usar `git commit -F <archivo>`.
+- **Diagramas de guitarra:** un acorde nuevo que no esté en `CHORD_DICTIONARY`
+  muestra "Diagrama no disponible". Si aparece en una letra, agregar su voicing.
+
+---
+
+## 6. Implementaciones futuras
+
+### Audios y links por canción (decidido 2026-10-01, sin implementar)
+
+- **Idea:** debajo de la caja de la letra en `cancion.html`, mostrar
+  reproductores de los audios de esa canción, para escucharla y ensayar.
+- **Tipos de link:** YouTube, Spotify, Google Drive y MP3 por URL directa. Cada
+  uno con su reproductor embebido.
+- **Grabaciones propias del coro:** van a Google Drive (15 GB gratis) y se
+  carga solo el link (ver D12).
+- **Dónde se guardan los links:** un archivo en el repo (ej. `medios.js`) que
+  asocia cada `id` de canción con una lista de `{ tipo, url, etiqueta }`. Se
+  edita como las letras, no desde la web.
+- **Sin links:** la canción no muestra nada.
+- **Pendiente de definir:** si los reproductores se ven en `?modo=banco`.
+
+### Otros pendientes
+
+- Cargar las letras de `com_eucaristia` y `var_glorioso-rey-en-la-cruz` (hoy
+  tienen el aviso de "letra pendiente").
+- `ador_noche-oscura-jesed`: los acordes vinieron amontonados al principio de
+  cada verso. Reacomodarlos cuando alguien del coro confirme en qué sílaba cae
+  cada cambio.
+- Definir los prefijos para San José, Adviento, Navidad, Cuaresma y Pascua.

@@ -2,6 +2,8 @@
 
 Sitio estático (sin build, sin dependencias) para el cancionero del coro parroquial. Se publica en GitHub Pages.
 
+Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENTS.md (mantenerlo actualizado al tomar decisiones nuevas).
+
 ## Estructura
 
 - `index.html` — lista de canciones con búsqueda y categorías. La lista `SONGS` (dentro del `<script>`) es la fuente de verdad del índice: cada entrada tiene `id`, `title`, `category`. El `id` debe coincidir con el nombre del archivo en `letras/`.

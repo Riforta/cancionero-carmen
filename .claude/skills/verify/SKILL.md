@@ -28,8 +28,14 @@ Sitio estático sin build. Para ver un cambio funcionando hay que servirlo por H
   (la letra se carga por fetch). Probar transposición (±½ tono), selector de
   capo (`#capoSelect`, evento `change`), toggle de acordes, popover de
   diagramas (click en un `<c>`).
-- `?modo=banco` — toolbar/acordes/indicador deben quedar ocultos; el botón de
-  lectura en voz alta sigue visible.
+- `?modo=banco` — toolbar/acordes/indicador y el botón de lectura en voz alta
+  deben quedar ocultos; las líneas de acordes (incluido `Intro:`) no dejan
+  renglones en blanco.
+- Nota para músicos (`#nota`, Firebase `notas/<id>`) — **no escribir en la base
+  real** para probar: interceptar `*gstatic.com/firebasejs/*` con
+  `Fetch.enable` + `Fetch.fulfillRequest` y servir un `window.firebase` falso
+  en memoria (`initializeApp`, `database().ref(p)` con `on/set/remove`).
+  Leer con el Firebase real sí se puede.
 - `index.html` — búsqueda y categorías. "Misa de Hoy" depende de Firebase
   (`?admin=true` para editar); no verificable offline.
 
