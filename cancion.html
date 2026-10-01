@@ -91,7 +91,34 @@ header {
   letter-spacing: 0.12em;
   color: rgba(255,255,255,0.6);
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+/* ─── BOTÓN MODO MÚSICO / ADMIN ─── */
+.mode-toggle {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(221,180,94,0.45);
+  color: var(--gold-light);
+  border-radius: 50px;
+  padding: 0.35rem 0.8rem;
+  min-height: 36px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.mode-toggle:hover { background: rgba(255,255,255,0.14); border-color: var(--gold-light); }
+.mode-toggle.is-admin { background: var(--gold-light); color: var(--brown-dark); border-color: transparent; }
+.mode-toggle.is-admin:hover { background: var(--gold-bright); }
+.mode-toggle[hidden] { display: none; }
 
 .header-logo {
   flex-shrink: 0;
@@ -384,6 +411,7 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
     <div class="header-center">
       <div class="header-brand">Cancionero</div>
     </div>
+    <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
     <div class="header-logo">
       <img src="assets/logo-medallon-color.png" alt="Virgen del Carmen" />
     </div>
@@ -462,6 +490,26 @@ if (urlParams.get('modo') === 'banco') {
   });
   const qs = backQuery.toString();
   if (qs) document.querySelector('.back-link').href = 'index.html?' + qs;
+}
+
+const isAdmin = urlParams.get('admin') === 'true';
+
+// Botón para pasar entre vista de músicos y admin (no existe en modo banco).
+// Recarga la misma canción con o sin admin=true; conserva id, t y cat
+if (urlParams.get('modo') !== 'banco') {
+  const btn = document.getElementById('modeToggle');
+  btn.textContent = isAdmin ? '🎵 Salir de admin' : '🔧 Modo admin';
+  btn.classList.toggle('is-admin', isAdmin);
+  btn.setAttribute('aria-label', isAdmin ? 'Cambiar a vista de músicos' : 'Cambiar a modo admin');
+  btn.hidden = false;
+  btn.addEventListener('click', () => {
+    const editandoNota = !document.getElementById('notaForm').hidden;
+    if (editandoNota && !confirm('Hay una nota sin guardar. ¿Salir igual?')) return;
+    const url = new URL(window.location);
+    if (isAdmin) url.searchParams.delete('admin');
+    else url.searchParams.set('admin', 'true');
+    window.location.href = url;
+  });
 }
 
 const SCALE = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
@@ -797,7 +845,6 @@ if (!('speechSynthesis' in window)) {
 // Se ve en la vista de músicos y en admin; solo se edita con ?admin=true.
 // En modo banco ni se consulta. Si Firebase no cargó, la página sigue igual.
 if (urlParams.get('modo') !== 'banco' && idCancion && typeof firebase !== 'undefined') {
-  const isAdmin = urlParams.get('admin') === 'true';
   firebase.initializeApp(firebaseConfig);
   const notaRef = firebase.database().ref('notas/' + idCancion);
 

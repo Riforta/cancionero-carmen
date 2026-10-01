@@ -107,6 +107,30 @@ header {
   text-overflow: ellipsis;
 }
 
+/* ─── BOTÓN MODO MÚSICO / ADMIN ─── */
+.mode-toggle {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  border: 1.5px solid rgba(221,180,94,0.45);
+  color: var(--gold-light);
+  border-radius: 50px;
+  padding: 0.35rem 0.8rem;
+  min-height: 36px;
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.mode-toggle:hover { background: rgba(255,255,255,0.14); border-color: var(--gold-light); }
+.mode-toggle.is-admin { background: var(--gold-light); color: var(--brown-dark); border-color: transparent; }
+.mode-toggle.is-admin:hover { background: var(--gold-bright); }
+.mode-toggle[hidden] { display: none; }
+
 /* ─── SEARCH ─── */
 .search-wrap {
   background: linear-gradient(180deg, #34200F 0%, #241308 100%);
@@ -522,6 +546,7 @@ footer {
       <div class="h-title">Cancionero <span class="accent">✦</span></div>
       <div class="h-sub">Coro Virgen del Carmen · Parroquia Virgen del Carmen</div>
     </div>
+    <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
   </div>
 </header>
 
@@ -772,6 +797,24 @@ if (isAdmin) {
   document.querySelector('main').prepend(bar);
 }
 
+// ── Botón para pasar entre vista de músicos y admin (no existe en modo banco) ──
+// Recarga la misma URL con o sin admin=true; conserva cat y el resto
+let misaSinPublicar = false;
+if (!isBanco) {
+  const btn = document.getElementById('modeToggle');
+  btn.textContent = isAdmin ? '🎵 Salir de admin' : '🔧 Modo admin';
+  btn.classList.toggle('is-admin', isAdmin);
+  btn.setAttribute('aria-label', isAdmin ? 'Cambiar a vista de músicos' : 'Cambiar a modo admin');
+  btn.hidden = false;
+  btn.addEventListener('click', () => {
+    if (misaSinPublicar && !confirm('Hay cambios en la Misa sin publicar. ¿Salir igual?')) return;
+    const url = new URL(window.location);
+    if (isAdmin) url.searchParams.delete('admin');
+    else url.searchParams.set('admin', 'true');
+    window.location.href = url;
+  });
+}
+
 function normalize(s) {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
@@ -872,6 +915,7 @@ function fc(id) {
 function addToMisa(songId) {
   if (!misaIds.includes(songId)) {
     misaIds.push(songId);
+    misaSinPublicar = true;
     renderCats();
     renderList(songsForFilter());
   }
@@ -879,6 +923,7 @@ function addToMisa(songId) {
 
 function removeFromMisa(songId) {
   misaIds = misaIds.filter(id => id !== songId);
+  misaSinPublicar = true;
   renderCats();
   renderList(getMisaSongs());
 }
@@ -886,13 +931,14 @@ function removeFromMisa(songId) {
 function publicarMisa() {
   if (!db) { alert('Firebase no configurado. Completá firebaseConfig primero.'); return; }
   db.ref('misa_actual').set(misaIds)
-    .then(() => alert('✅ Misa publicada correctamente'))
+    .then(() => { misaSinPublicar = false; alert('✅ Misa publicada correctamente'); })
     .catch(err => alert('❌ Error: ' + err.message));
 }
 
 function limpiarMisa() {
   if (!confirm('¿Limpiar la lista local? (No afecta Firebase hasta que publiques)')) return;
   misaIds = [];
+  misaSinPublicar = true;
   renderCats();
   if (af === 'misa') renderList(getMisaSongs());
 }
