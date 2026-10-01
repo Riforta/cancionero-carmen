@@ -580,6 +580,7 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
 <script src="firebase-config.js"></script>
 <script src="songs.js"></script>
 <script src="offline.js"></script>
+<script src="sesion.js"></script>
 
 <script>
 // ── Banco mode ──
@@ -600,6 +601,12 @@ if (urlParams.get('modo') === 'banco') {
 }
 
 const isAdmin = urlParams.get('admin') === 'true';
+
+// Admin: barra de sesión con Google. Editar requiere un admin autorizado
+// (esAdminOk y el evento 'sesion-admin' vienen de sesion.js)
+if (isAdmin && urlParams.get('modo') !== 'banco') {
+  panelSesion(document.querySelector('main'));
+}
 
 // Botón para pasar entre vista de músicos y admin (no existe en modo banco).
 // Recarga la misma canción con o sin admin=true; conserva id, t y cat
@@ -953,7 +960,7 @@ if (!('speechSynthesis' in window)) {
 }
 
 // ─── LÓGICA 5: NOTA PARA MÚSICOS (Firebase notas/<id>) ───
-// Se ve en la vista de músicos y en admin; solo se edita con ?admin=true.
+// Se ve en la vista de músicos y en admin; solo la edita un admin con sesión.
 // En modo banco ni se consulta. Si Firebase no cargó, la página sigue igual.
 if (urlParams.get('modo') !== 'banco' && idCancion) {
   let notaRef = null;
@@ -969,10 +976,15 @@ if (urlParams.get('modo') !== 'banco' && idCancion) {
     const editando = !notaForm.hidden;
     notaTexto.textContent = notaActual;
     notaTexto.hidden = !notaActual || editando;
-    notaEditBtn.hidden = !isAdmin || editando;
+    notaEditBtn.hidden = !puedeEditar() || editando;
     notaEditBtn.textContent = notaActual ? '✏️ Editar' : '➕ Agregar nota';
-    notaBox.hidden = !notaActual && !isAdmin;
+    notaBox.hidden = !notaActual && !puedeEditar();
   }
+  const puedeEditar = () => isAdmin && esAdminOk;
+  document.addEventListener('sesion-admin', () => {
+    if (!puedeEditar()) notaForm.hidden = true;
+    renderNota();
+  });
 
   // Primero la copia local (sin conexión se queda con esa), después la de Firebase
   const copiaNota = leerCopia('nota_' + idCancion);

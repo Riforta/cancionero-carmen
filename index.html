@@ -511,6 +511,7 @@ footer {
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
+#admin-bar[hidden] { display: none; }
 .admin-action-btn {
   padding: 0.5rem 1.1rem;
   border-radius: 50px;
@@ -614,6 +615,7 @@ footer {
 <script src="firebase-config.js"></script>
 <script src="songs.js"></script>
 <script src="offline.js"></script>
+<script src="sesion.js"></script>
 
 <script>
 
@@ -664,13 +666,20 @@ if (isBanco) {
   document.head.appendChild(st);
 }
 
-// ── Admin bar ──
+// ── Admin: barra de sesión (Google) y botones de edición ──
+// Los botones aparecen solo con sesión de un admin autorizado (sesion.js)
 if (isAdmin) {
   const bar = document.createElement('div');
   bar.id = 'admin-bar';
+  bar.hidden = true;
   bar.innerHTML = `<button class="admin-action-btn" onclick="publicarMisa()">💾 Publicar Misa</button>
     <button class="admin-action-btn" onclick="limpiarMisa()">🗑️ Limpiar Misa</button>`;
   document.querySelector('main').prepend(bar);
+  panelSesion(document.querySelector('main'));
+  document.addEventListener('sesion-admin', e => {
+    bar.hidden = !e.detail;
+    renderList(listaVisible());
+  });
 }
 
 // ── Botón para pasar entre vista de músicos y admin (no existe en modo banco) ──
@@ -751,7 +760,7 @@ function renderList(songs) {
   const songUrl = s => `cancion.html?id=${s.id}&t=${encodeURIComponent(s.title)}` +
     `${isBanco ? '&modo=banco' : ''}${isAdmin ? '&admin=true' : ''}&cat=${af || 'todas'}`;
   list.innerHTML = songs.map(s => {
-    if (isAdmin) {
+    if (isAdmin && esAdminOk) {
       const adminBtn = af === 'misa'
         ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
            <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
@@ -842,6 +851,12 @@ function limpiarMisa() {
   misaSinPublicar = true;
   renderCats();
   if (af === 'misa') renderList(getMisaSongs());
+}
+
+// Lo que muestra la lista ahora: el resultado de la búsqueda o la categoría
+function listaVisible() {
+  const q = normalize(document.getElementById('si').value.trim());
+  return q ? SONGS.filter(s => normalize(s.title).includes(q)) : songsForFilter();
 }
 
 document.getElementById('si').addEventListener('input', function () {

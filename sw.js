@@ -10,13 +10,14 @@
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'cancionero-' + VERSION;
 
 importScripts('songs.js');
 
 const PROPIOS = [
   './', 'index.html', 'cancion.html', 'songs.js', 'firebase-config.js',
+  'offline.js', 'sesion.js',
   'manifest.webmanifest',
   'assets/logo-medallon.png', 'assets/logo-medallon-color.png',
   'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png'

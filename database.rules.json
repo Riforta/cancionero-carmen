@@ -1,0 +1,27 @@
+{
+  "rules": {
+    "misa_actual": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true"
+    },
+    "notas": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+        ".validate": "newData.isString() && newData.val().length <= 500"
+      }
+    },
+    "tonos": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+        ".validate": "newData.child('transponer').isNumber() && newData.child('capo').isNumber()"
+      }
+    },
+    "admins": {
+      "$email": {
+        ".read": "auth != null && auth.token.email.toLowerCase().replace('.', ',') == $email"
+      }
+    }
+  }
+}

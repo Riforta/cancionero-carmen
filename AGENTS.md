@@ -49,12 +49,18 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   trae `leerCopia()` y `guardarCopia()` para las copias locales.
 - `manifest.webmanifest`: permite instalar el sitio como app ("Agregar a
   pantalla de inicio").
+- `sesion.js`: barra de sesión del modo admin (login con Google) y la variable
+  `esAdminOk` (D16).
+- `database.rules.json`: reglas de la base. Son la referencia: se aplican a mano
+  en la consola de Firebase (§7).
 - `firebase-config.js`: config de Firebase compartida por las dos páginas, más
   `cargarFirebase()` (carga el SDK bajo demanda) y `leerFirebase(ruta)`
   (lectura puntual por REST).
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
+  - `admins/<email>`: `true` para cada admin autorizado. El email va en
+    minúsculas y con los puntos cambiados por comas (`claveAdmin()`).
 - Hosting: GitHub Pages.
 
 ### Decisiones de arquitectura
@@ -81,15 +87,11 @@ vuelven con el botón "Volver". No usar `localStorage` para esto.
 y las notas de las canciones. Lo que se edita como código (letras, índice,
 links de audio) va en el repo. La config de Firebase (`firebase-config.js`) es
 pública por diseño (así funciona Firebase web); la seguridad depende de las
-reglas de la base, que no están en este repo. Al 2026-10-01 las reglas permiten
-leer y escribir toda la base sin login.
+reglas de la base (`database.rules.json`, D16).
 
-**D6. `?admin=true` no es seguridad.** Solo muestra los botones. Desde
-2026-10-01 el modo admin ni siquiera está escondido: cualquier músico entra con
-el botón del encabezado y puede publicar la misa o editar las notas. Es una
-limitación aceptada para el uso actual. Si hiciera falta restringirlo, el
-camino es Firebase Authentication más reglas de escritura en la base, no
-esconder el botón.
+**D6. `?admin=true` no es seguridad.** Solo cambia la vista: cualquiera entra
+con el botón del encabezado. La seguridad la dan el login con Google y las
+reglas de la base (D16).
 
 **D7. Acordes en `<c>`, alineados con espacios dentro de un `<pre>`.** La fuente
 es proporcional (EB Garamond), así que la alineación es aproximada. Al cargar
@@ -158,6 +160,21 @@ más de 100 fieles a la vez.
   agregarlo a `PROPIOS`.
 - **iPhone:** Safari borra los datos de un sitio que no se abre en 7 días. Para
   evitarlo, recomendar "Agregar a pantalla de inicio".
+
+**D16. Login de admin con Google** (2026-10-01).
+- **En la página:** en modo admin, `sesion.js` muestra una barra con "Entrar con
+  Google". Los botones de edición (publicar, ↑ ↓, ❌, `+`, editar nota)
+  aparecen solo si el email de la sesión está en `admins/` (`esAdminOk` y el
+  evento `sesion-admin`).
+- **En la base:** las reglas de `database.rules.json` dejan escribir solo a esos
+  emails, verificados. Bloquean también a quien intente escribir por REST sin
+  pasar por la página. Lectura pública solo en `misa_actual`, `notas` y
+  `tonos`; cada admin puede leer únicamente su propia entrada en `admins/`.
+- **Popup, no redirect:** el login usa popup. El redirect falla en GitHub Pages
+  porque el navegador bloquea el almacenamiento de terceros de
+  `firebaseapp.com`. Si el popup está bloqueado, se intenta con redirect.
+- **Cuándo se carga Auth:** solo en modo admin. Músicos y banco no lo cargan.
+- **Agregar un admin:** en la consola de Firebase (§7), sin tocar el código.
 
 ---
 
@@ -254,8 +271,9 @@ más de 100 fieles a la vez.
 
 ## 4. Reglas de negocio: Misa de Hoy
 
-- Se arma en `index.html?admin=true`: `+` agrega, `❌ Quitar` saca y
-  `💾 Publicar Misa` guarda en Firebase (`misa_actual`, un array de ids).
+- Se arma en `index.html?admin=true`, con sesión de admin (D16): `+` agrega,
+  `❌ Quitar` saca y `💾 Publicar Misa` guarda en Firebase (`misa_actual`, un
+  array de ids).
 - **Orden** (2026-10-01): `+` inserta cada canción en su momento litúrgico,
   según el orden de `CATS` (entrada → gloria → aleluya → ofrenda → santo →
   comunión → adoración → marianos…), después de las que ya están en ese
@@ -279,8 +297,8 @@ más de 100 fieles a la vez.
   dónde entra cada voz o una aclaración del ensayo.
 - **Quién las ve:** la vista de músicos y la de admin, en una tarjeta "📝 Nota"
   arriba de la letra. **Nunca en `?modo=banco`.**
-- **Quién las edita:** solo con `?admin=true`, con "➕ Agregar nota" o
-  "✏️ Editar".
+- **Quién las edita:** un admin con sesión de Google autorizada (D16), con
+  "➕ Agregar nota" o "✏️ Editar".
   - **Guardar vacío borra la nota.**
   - Máximo 500 caracteres.
   - Texto plano: los saltos de línea se respetan y no se interpreta HTML.
@@ -334,7 +352,7 @@ fase:
 | 0 | `songs.js` compartido; modo banco por REST (D14) | Hecha |
 | 1 | Pantalla encendida, desplazamiento automático, orden de la misa, anterior/siguiente | Hecha |
 | 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Hecha |
-| 3 | Login de admin con Google + reglas de Firebase | Pendiente |
+| 3 | Login de admin con Google + reglas de Firebase | Código hecho; falta la configuración en la consola (§7) |
 | 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Pendiente |
 | 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Pendiente |
 
@@ -365,3 +383,28 @@ Ya decidido:
   cada verso. Reacomodarlos cuando alguien del coro confirme en qué sílaba cae
   cada cambio.
 - Definir los prefijos para San José, Adviento, Navidad, Cuaresma y Pascua.
+
+---
+
+## 7. Configuración de Firebase (se hace una vez, en la consola)
+
+Proyecto `coro-97958` en https://console.firebase.google.com. Hacerlo en este
+orden: los pasos 1 a 3 no rompen nada, y las reglas van al final.
+
+1. **Activar el login con Google:** Authentication → Comenzar → Sign-in method
+   → Google → Habilitar → elegir el email de asistencia → Guardar.
+2. **Autorizar el dominio del sitio:** Authentication → Configuración →
+   Dominios autorizados → Agregar dominio → `riforta.github.io`.
+3. **Cargar los admins:** Realtime Database → Datos → en la raíz, agregar el
+   nodo `admins`. Dentro, una entrada por admin, con el email en minúsculas y
+   los puntos cambiados por comas, y el valor `true`. Ejemplo:
+   `admins` → `nombre,apellido@gmail,com` : `true`.
+4. **Publicar el código** (push a `main`) y probar el login desde el celular.
+5. **Aplicar las reglas:** Realtime Database → Reglas → reemplazar todo por el
+   contenido de `database.rules.json` → Publicar.
+
+**Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
+`Permission denied`. Por ejemplo:
+`curl -X PUT -d '"x"' https://coro-97958-default-rtdb.firebaseio.com/notas/prueba.json`.
+
+**Para sacar a un admin:** borrar su entrada en `admins`.
