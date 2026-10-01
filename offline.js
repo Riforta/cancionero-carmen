@@ -6,6 +6,22 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
+
+  // "📥 Listo para usar sin internet" (pie del índice, #estado-offline):
+  // aparece cuando la caché del service worker ya tiene todas las letras
+  navigator.serviceWorker.ready.then(async () => {
+    const estado = document.getElementById('estado-offline');
+    if (!estado || typeof SONGS === 'undefined' || !window.caches) return;
+    let guardadas = 0;
+    for (const clave of (await caches.keys()).filter(k => k.startsWith('cancionero-'))) {
+      const urls = (await (await caches.open(clave)).keys()).map(r => r.url);
+      guardadas = Math.max(guardadas, urls.filter(u => u.includes('/letras/')).length);
+    }
+    if (guardadas >= SONGS.length) {
+      estado.textContent = '📥 Listo para usar sin internet';
+      estado.hidden = false;
+    }
+  }).catch(() => {});
 }
 
 // Copias locales en localStorage. Fallan en silencio (modo privado, sin

@@ -165,6 +165,9 @@ más de 100 fieles a la vez.
   Las letras y canciones nuevas no requieren tocarlo, porque salen de
   `songs.js`. Un archivo propio nuevo (otra página, otro script) sí hay que
   agregarlo a `PROPIOS`.
+- **Aviso de que está listo:** en el pie del índice aparece "📥 Listo para usar
+  sin internet" cuando la caché ya tiene todas las letras (`offline.js`). Para
+  probarlo: abrir el sitio con conexión, esperar el aviso y poner modo avión.
 - **iPhone:** Safari borra los datos de un sitio que no se abre en 7 días. Para
   evitarlo, recomendar "Agregar a pantalla de inicio".
 
@@ -359,9 +362,19 @@ cargan las dos páginas en el `<head>`.
 
 Ninguna aparece en modo banco.
 
-- **Pantalla encendida:** al abrir una canción se pide el wake lock de
-  pantalla. Se renueva al volver a la pestaña y con el primer toque, porque
-  algunos navegadores lo exigen. Si el navegador no lo soporta, no pasa nada.
+- **Pantalla encendida**, con dos mecanismos:
+  - **Wake Lock API:** se pide al abrir la canción y se renueva al volver a la
+    pestaña y con cada toque.
+  - **Respaldo para iPhone:** un video mudo e invisible en bucle
+    (`assets/pantalla-encendida.mp4`/`.webm`, de NoSleep.js, licencia MIT).
+    iOS no apaga la pantalla mientras hay un video reproduciéndose. Se usa si
+    no hay Wake Lock, si el pedido falla (bajo consumo, ahorro de batería) o
+    siempre en iPhone abierto desde el ícono de inicio
+    (`navigator.standalone`), porque hasta iOS 18.4 el Wake Lock ahí no hacía
+    nada. iOS solo lo deja arrancar después de un toque.
+  - **Límite:** en iPhone con modo de bajo consumo puede seguir apagándose.
+    Recomendar actualizar a iOS 18.4 o posterior, o desactivar el bajo consumo
+    durante la misa.
 - **Desplazamiento automático:** botón flotante ▶ abajo a la derecha.
   - Mientras corre muestra − / velocidad / + / ⏸, con 10 velocidades (6 a
     60 px/s).
@@ -421,6 +434,10 @@ Ninguna aparece en modo banco.
 - **Commits:** solo cuando el usuario lo pide. Mensaje corto en español,
   describiendo el cambio (ej.: "Navegacion que conserva categoria activa y modo
   admin"). En PowerShell 5.1 usar `git commit -F <archivo>`.
+- **Zoom:** las dos páginas tienen `html { touch-action: manipulation; }`, que
+  saca el zoom por doble toque (molesta al tocar rápido los botones). No usar
+  `user-scalable=no`: el pellizco para agrandar tiene que seguir funcionando,
+  para quien ve poco.
 - **Modo oscuro:** al agregar estilos, probar la pantalla en los dos temas
   (botón 🌙/☀️). Ningún color fijo pensado para fondo claro debe quedar sin su
   ajuste en `tema.css` (D17).

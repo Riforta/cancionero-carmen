@@ -10,7 +10,7 @@
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = 'cancionero-' + VERSION;
 
 importScripts('songs.js');
@@ -20,7 +20,8 @@ const PROPIOS = [
   'offline.js', 'sesion.js', 'tema.js', 'tema.css',
   'manifest.webmanifest',
   'assets/logo-medallon.png', 'assets/logo-medallon-color.png',
-  'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png'
+  'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png',
+  'assets/pantalla-encendida.mp4', 'assets/pantalla-encendida.webm'
 ];
 const LETRAS = SONGS.map(s => `letras/${s.id}.html`);
 const EXTERNOS = [

@@ -42,6 +42,9 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+/* touch-action: sin zoom por doble toque (molesta al tocar rápido los
+   botones), pero se puede seguir agrandando con dos dedos */
+html { touch-action: manipulation; }
 
 body {
   font-family: 'EB Garamond', Georgia, serif;
@@ -1174,18 +1177,57 @@ if (urlParams.get('cat') === 'misa' && idCancion) {
 }
 
 // ─── LÓGICA 7: PANTALLA SIEMPRE ENCENDIDA (músicos y admin) ───
-// Pide el wake lock al abrir y lo renueva al volver a la pestaña (el
-// navegador lo suelta al ocultarla). Algunos navegadores solo lo dan tras un
-// toque, así que también se reintenta con la primera interacción
-if (!esBanco && 'wakeLock' in navigator) {
+// Dos mecanismos (AGENTS.md §4c):
+// 1. Wake Lock API: se pide al abrir y se renueva al volver a la pestaña (el
+//    navegador lo suelta al ocultarla) y con cada toque si no está activo.
+// 2. Respaldo para iPhone: un video mudo e invisible en bucle, porque iOS no
+//    bloquea la pantalla mientras se reproduce un video. Se usa si no hay Wake
+//    Lock, si el pedido falla (bajo consumo, ahorro de batería) o si se abrió
+//    desde el ícono de inicio en iPhone (hasta iOS 18.4 el Wake Lock ahí no
+//    hace nada). iOS solo deja reproducirlo tras un toque.
+//    Videos de NoSleep.js v0.12.0 (Rich Tibbett, licencia MIT).
+if (!esBanco) {
+  const esIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let usarVideo = !('wakeLock' in navigator) || (esIOS && navigator.standalone === true);
   let wakeLock = null;
-  const pedirWakeLock = () => {
-    if (document.visibilityState !== 'visible' || (wakeLock && !wakeLock.released)) return;
-    navigator.wakeLock.request('screen').then(l => { wakeLock = l; }).catch(() => {});
-  };
-  pedirWakeLock();
-  document.addEventListener('visibilitychange', pedirWakeLock);
-  ['click', 'touchend'].forEach(ev => document.addEventListener(ev, pedirWakeLock, { passive: true }));
+  let video = null;
+
+  function prepararVideo() {
+    if (video) return video;
+    video = document.createElement('video');
+    video.muted = true;
+    video.loop = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('aria-hidden', 'true');
+    video.style.cssText = 'position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+    [['assets/pantalla-encendida.webm', 'video/webm'], ['assets/pantalla-encendida.mp4', 'video/mp4']]
+      .forEach(([src, type]) => {
+        const s = document.createElement('source');
+        s.src = src;
+        s.type = type;
+        video.appendChild(s);
+      });
+    document.body.appendChild(video);
+    return video;
+  }
+
+  function mantenerEncendida() {
+    if (document.visibilityState !== 'visible') return;
+    if (!usarVideo && (!wakeLock || wakeLock.released)) {
+      navigator.wakeLock.request('screen')
+        .then(l => { wakeLock = l; })
+        .catch(() => { usarVideo = true; prepararVideo(); });
+    }
+    // Sin toque previo iOS rechaza play(); se reintenta en el próximo toque
+    if (usarVideo && prepararVideo().paused) video.play().catch(() => {});
+  }
+
+  if (usarVideo) prepararVideo();
+  mantenerEncendida();
+  document.addEventListener('visibilitychange', mantenerEncendida);
+  ['click', 'touchend'].forEach(ev => document.addEventListener(ev, mantenerEncendida, { passive: true }));
 }
 
 // ─── LÓGICA 8: DESPLAZAMIENTO AUTOMÁTICO (músicos y admin) ───

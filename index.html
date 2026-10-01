@@ -44,7 +44,9 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+/* touch-action: sin zoom por doble toque (molesta al tocar rápido los
+   botones), pero se puede seguir agrandando con dos dedos */
+html { scroll-behavior: smooth; touch-action: manipulation; }
 body {
   font-family: 'EB Garamond', Georgia, serif;
   background: var(--page-bg);
@@ -496,6 +498,8 @@ footer {
   opacity: 0.55;
   margin-bottom: 0.4rem;
 }
+.footer-text.estado-offline { margin-top: 0.4rem; opacity: 0.85; font-style: normal; }
+.footer-text.estado-offline[hidden] { display: none; }
 .footer-text {
   font-family: 'EB Garamond', serif;
   font-size: 0.8rem;
@@ -639,6 +643,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 <footer>
   <div class="footer-ornament">✦ ✝ ✦</div>
   <div class="footer-text">Coro Santa María del Carmen · Parroquia del Carmen · Córdoba, Argentina</div>
+  <div class="footer-text estado-offline" id="estado-offline" hidden></div>
 </footer>
 
 <script src="firebase-config.js"></script>
