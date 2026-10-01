@@ -25,7 +25,7 @@ function panelSesion(contenedor) {
     .sesion-btn {
       padding: 0.45rem 1rem; border-radius: 50px; cursor: pointer;
       border: 1.5px solid var(--border-mid); background: var(--bg);
-      color: var(--brown-dark); font-family: 'EB Garamond', serif; font-size: 1rem;
+      color: var(--text-strong); font-family: 'EB Garamond', serif; font-size: 1rem;
       white-space: nowrap;
     }
     .sesion-btn.principal { background: var(--brown-dark); color: #fff; border-color: transparent; }

@@ -49,6 +49,7 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   trae `leerCopia()` y `guardarCopia()` para las copias locales.
 - `manifest.webmanifest`: permite instalar el sitio como app ("Agregar a
   pantalla de inicio").
+- `tema.js` y `tema.css`: modo oscuro (D17).
 - `sesion.js`: barra de sesión del modo admin (login con Google) y la variable
   `esAdminOk` (D16).
 - `qr.html`: página para imprimir el QR de los fieles (§4e).
@@ -182,6 +183,30 @@ más de 100 fieles a la vez.
 - **Cuándo se carga Auth:** solo en modo admin. Músicos y banco no lo cargan.
 - **Agregar un admin:** en la consola de Firebase (§7), sin tocar el código.
 
+
+**D17. Modo oscuro** (2026-10-01). Lo manejan `tema.js` y `tema.css`, que
+cargan las dos páginas en el `<head>`.
+- **Qué tema se ve:**
+  - `tema.js` pone `data-theme="light"` o `"dark"` en `<html>` antes de pintar,
+    así no hay destello claro.
+  - Arranca con el tema del celular (`prefers-color-scheme`) y sigue sus
+    cambios.
+  - Si la persona toca 🌙/☀️ en el encabezado, su elección queda en
+    `localStorage.tema` y ya no sigue al sistema.
+  - El botón está en todos los modos, banco incluido.
+- **Cómo está armado:** `tema.css` redefine las variables bajo
+  `:root[data-theme="dark"]` (`--bg`, `--ink`, `--border`, `--brown-mid`…) y
+  activa `color-scheme: dark`. También ajusta lo que no sale de variables:
+  - activos y botones principales en dorado con texto oscuro;
+  - flecha del selector de capo;
+  - diagrama de acordes, por clases `cd-*`;
+  - sombras.
+- **Regla para el texto:** usar `--text-strong` y `--text-accent`.
+  `--brown-dark` y `--brown` quedan para **fondos** (encabezado, banner, botones
+  activos), que son oscuros en los dos temas.
+- **Color nuevo sobre una superficie clara:** tiene que funcionar en los dos
+  temas. Usar una variable, o agregar su ajuste en `tema.css`.
+- **Excepción:** `qr.html` queda siempre clara, porque es para imprimir.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -396,6 +421,9 @@ Ninguna aparece en modo banco.
 - **Commits:** solo cuando el usuario lo pide. Mensaje corto en español,
   describiendo el cambio (ej.: "Navegacion que conserva categoria activa y modo
   admin"). En PowerShell 5.1 usar `git commit -F <archivo>`.
+- **Modo oscuro:** al agregar estilos, probar la pantalla en los dos temas
+  (botón 🌙/☀️). Ningún color fijo pensado para fondo claro debe quedar sin su
+  ajuste en `tema.css` (D17).
 - **Diagramas de guitarra:** un acorde nuevo que no esté en `CHORD_DICTIONARY`
   muestra "Diagrama no disponible". Si aparece en una letra, agregar su voicing.
 

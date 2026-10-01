@@ -9,6 +9,8 @@
 
 <link rel="icon" type="image/png" href="assets/logo-medallon.png">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="tema.css">
+<script src="tema.js"></script>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cancionero">
@@ -35,13 +37,17 @@
   --border:      #E8CFA8;   /* Borde cálido */
   --border-mid:  #D2AE7E;   /* Borde medio */
   --bg:          #FFFDF7;   /* Superficie de tarjeta */
+  /* Semánticos: cambian con el tema (modo oscuro en tema.css) */
+  --text-strong: var(--brown-dark);   /* títulos y texto de botones */
+  --text-accent: var(--brown);        /* etiquetas de chips y controles */
+  --page-bg:     linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
   font-family: 'EB Garamond', Georgia, serif;
-  background: linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
+  background: var(--page-bg);
   background-repeat: no-repeat;
   color: var(--ink);
   min-height: 100vh;
@@ -357,7 +363,7 @@ main {
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--brown);
+  color: var(--text-accent);
   text-transform: uppercase;
 }
 .cat-chip.active .chip-label { color: #fff; }
@@ -534,7 +540,7 @@ footer {
   border-radius: 50px;
   border: 1.5px solid var(--border-mid);
   background: var(--bg);
-  color: var(--brown-dark);
+  color: var(--text-strong);
   font-family: 'EB Garamond', serif;
   font-size: 1rem;
   cursor: pointer;
@@ -552,6 +558,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
   font-size: 0.82rem;
   flex-shrink: 0;
   font-family: 'EB Garamond', serif;
+  color: var(--ink);
   transition: background 0.12s;
   white-space: nowrap;
 }
@@ -577,6 +584,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
       <div class="h-title">Cancionero <span class="accent">✦</span></div>
       <div class="h-sub">Coro Virgen del Carmen · Parroquia Virgen del Carmen</div>
     </div>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"></button>
     <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
   </div>
 </header>

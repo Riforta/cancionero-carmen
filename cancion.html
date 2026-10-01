@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#3E2415">
 <link rel="icon" type="image/png" href="assets/logo-medallon.png">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="tema.css">
+<script src="tema.js"></script>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cancionero">
@@ -33,13 +35,17 @@
   --border:      #E8CFA8;
   --border-mid:  #D2AE7E;
   --bg:          #FFFDF7;
+  /* Semánticos: cambian con el tema (modo oscuro en tema.css) */
+  --text-strong: var(--brown-dark);   /* títulos y texto de botones */
+  --text-accent: var(--brown);        /* etiquetas de chips y controles */
+  --page-bg:     linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'EB Garamond', Georgia, serif;
-  background: linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
+  background: var(--page-bg);
   background-repeat: no-repeat;
   color: var(--ink);
   min-height: 100vh;
@@ -156,7 +162,7 @@ main {
 h1 {
   font-family: 'Cinzel', serif;
   font-size: clamp(1.4rem, 5vw, 1.9rem);
-  color: var(--brown-dark);
+  color: var(--text-strong);
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 0.3rem;
@@ -180,7 +186,7 @@ h1 {
 
 .btn-toggle {
   background: var(--bg);
-  color: var(--brown);
+  color: var(--text-accent);
   border: 1.5px solid var(--border);
   padding: 0.6rem 1.25rem;
   border-radius: 50px;
@@ -217,7 +223,7 @@ h1 {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B4226' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.9rem center;
-  color: var(--brown);
+  color: var(--text-accent);
   border: 1.5px solid var(--border);
   padding: 0.6rem 2.1rem 0.6rem 1.25rem;
   border-radius: 50px;
@@ -272,7 +278,7 @@ body.banco-mode .capo-indicator { display: none !important; }
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: var(--brown-dark);
+  color: var(--text-strong);
 }
 .tono-texto.apartado { color: var(--ink-soft); font-weight: 600; }
 .tono-acciones { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
@@ -283,7 +289,7 @@ body.banco-mode .capo-indicator { display: none !important; }
   padding: 0.3rem 0.85rem;
   font-family: 'EB Garamond', serif;
   font-size: 0.95rem;
-  color: var(--brown-dark);
+  color: var(--text-strong);
   cursor: pointer;
 }
 .tono-btn.principal { background: var(--brown-dark); color: #fff; border-color: transparent; }
@@ -321,7 +327,7 @@ body.banco-mode .tono-coro { display: none !important; }
   padding: 0.25rem 0.8rem;
   font-family: 'EB Garamond', serif;
   font-size: 0.9rem;
-  color: var(--brown-dark);
+  color: var(--text-strong);
   cursor: pointer;
 }
 .nota-edit:hover { background: var(--peach-soft); }
@@ -567,6 +573,7 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
     <div class="header-center">
       <div class="header-brand">Cancionero</div>
     </div>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"></button>
     <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
     <div class="header-logo">
       <img src="assets/logo-medallon-color.png" alt="Virgen del Carmen" />
@@ -648,7 +655,7 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
 </div>
 
 <div id="chord-popover" style="display:none; position:absolute; background:var(--bg); border:1.5px solid var(--border-mid); border-radius:10px; padding:12px; box-shadow:0 6px 24px rgba(62,36,21,0.18); z-index:1000; pointer-events:none;">
-  <div id="popover-title" style="font-family:system-ui,-apple-system,sans-serif; font-size:0.95rem; font-weight:bold; color:var(--brown-dark); text-align:center; margin-bottom:8px;"></div>
+  <div id="popover-title" style="font-family:system-ui,-apple-system,sans-serif; font-size:0.95rem; font-weight:bold; color:var(--text-strong); text-align:center; margin-bottom:8px;"></div>
   <svg id="popover-svg" width="130" height="155" viewBox="0 0 100 120" style="display:block; margin:0 auto;"></svg>
 </div>
 
@@ -916,23 +923,23 @@ function drawChordSVG(positions) {
   let minFret = frets.length ? Math.min(...frets) : 1;
   let startFret = minFret > 3 ? minFret : 1;
   let svgHtml = `
-    <line x1="20" y1="15" x2="80" y2="15" stroke="#3E2415" stroke-width="${startFret === 1 ? 4 : 1}" />
-    <line x1="20" y1="40" x2="80" y2="40" stroke="#ccc" stroke-width="1" />
-    <line x1="20" y1="65" x2="80" y2="65" stroke="#ccc" stroke-width="1" />
-    <line x1="20" y1="90" x2="80" y2="90" stroke="#ccc" stroke-width="1" />
-    <line x1="20" y1="115" x2="80" y2="115" stroke="#ccc" stroke-width="1" />
+    <line class="cd-cejuela" x1="20" y1="15" x2="80" y2="15" stroke="#3E2415" stroke-width="${startFret === 1 ? 4 : 1}" />
+    <line class="cd-traste" x1="20" y1="40" x2="80" y2="40" stroke="#ccc" stroke-width="1" />
+    <line class="cd-traste" x1="20" y1="65" x2="80" y2="65" stroke="#ccc" stroke-width="1" />
+    <line class="cd-traste" x1="20" y1="90" x2="80" y2="90" stroke="#ccc" stroke-width="1" />
+    <line class="cd-traste" x1="20" y1="115" x2="80" y2="115" stroke="#ccc" stroke-width="1" />
   `;
   for (let i = 0; i < 6; i++) {
     let x = 20 + i * 12;
-    svgHtml += `<line x1="${x}" y1="15" x2="${x}" y2="115" stroke="#aaa" stroke-width="1" />`;
+    svgHtml += `<line class="cd-cuerda" x1="${x}" y1="15" x2="${x}" y2="115" stroke="#aaa" stroke-width="1" />`;
   }
   if (startFret > 1) {
-    svgHtml += `<text x="5" y="32" font-family="system-ui" font-size="10" fill="#7A5638">${startFret}fr</text>`;
+    svgHtml += `<text class="cd-fr" x="5" y="32" font-family="system-ui" font-size="10" fill="#7A5638">${startFret}fr</text>`;
   }
   positions.forEach((fret, stringIndex) => {
     let x = 20 + stringIndex * 12;
     if (fret === 'x' || fret === 'X') {
-      svgHtml += `<text x="${x-3}" y="10" font-family="system-ui" font-size="9" fill="#bbb" font-weight="bold">×</text>`;
+      svgHtml += `<text class="cd-muda" x="${x-3}" y="10" font-family="system-ui" font-size="9" fill="#bbb" font-weight="bold">×</text>`;
     } else if (fret === 0) {
       svgHtml += `<circle cx="${x}" cy="8" r="3" fill="none" stroke="#B8862E" stroke-width="1.5" />`;
     } else if (typeof fret === 'number') {
