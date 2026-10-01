@@ -391,10 +391,11 @@ const NOTE_MAP = {
 };
 
 // Envuelve cada línea compuesta solo por acordes (y espacios/guiones) en un
-// span.chord-line, para poder ocultarla entera sin dejar renglones en blanco
+// span.chord-line, para poder ocultarla entera sin dejar renglones en blanco.
+// Una línea "Intro: <c>DO</c> <c>FA</c>" también cuenta como línea de acordes
 function wrapChordLines(html) {
   return html.replace(/\s+$/, '').split('\n').map(line => {
-    const resto = line.replace(/<c>[^<]*<\/c>/g, '');
+    const resto = line.replace(/<c>[^<]*<\/c>/g, '').replace(/^\s*intro:/i, '');
     if (/<c>/.test(line) && /^[\s\-–—|/.()]*$/.test(resto)) {
       return '<span class="chord-line">' + line + '\n</span>';
     }
