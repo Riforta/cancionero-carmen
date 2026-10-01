@@ -59,6 +59,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
+  - `tonos/<id>`: `{ transponer, capo }`, el tono en que canta el coro cada
+    canción (ver §4c).
   - `admins/<email>`: `true` para cada admin autorizado. El email va en
     minúsculas y con los puntos cambiados por comas (`claveAdmin()`).
 - Hosting: GitHub Pages.
@@ -116,12 +118,15 @@ oculta junto con el resto de los controles.
 **D11. Accesibilidad.** Los `<c>` y las `.chord-line` llevan `aria-hidden` para
 que los lectores de pantalla lean solo la letra.
 
-**D12. Audios por canción: solo links, guardados en el repo** (2026-10-01,
-aún sin implementar; ver §6). No guardar audio en GitHub ni en Firebase:
+**D12. Audios por canción: solo links, en `songs.js`** (2026-10-01). Van en el
+campo opcional `medios` de cada canción (§3); el reproductor lo arma
+`cancion.html`. No guardar audio en GitHub ni en Firebase:
 - Firebase Storage exige el plan Blaze (con tarjeta) desde febrero de 2026.
 - Firebase Realtime Database no sirve para archivos.
 - Subir MP3 al repo infla para siempre el historial de git (GitHub recomienda
   repos de menos de 1 GB).
+- Las grabaciones propias del coro van a Google Drive (15 GB gratis), y en
+  `medios` se carga solo el link.
 
 **D13. Notas por canción en Firebase** (2026-10-01). Se guardan en Firebase y no
 en el repo porque se escriben desde la web en modo admin, sin pasar por git.
@@ -194,6 +199,23 @@ más de 100 fieles a la vez.
      no tiene.
    - `title`: con tildes y mayúsculas normales.
    - `category`: una de las claves de `CATS`.
+   - `medios` (opcional): audios y links para escucharla, debajo de la letra.
+     Lista de `{ url, etiqueta }`. Ejemplo:
+     ```js
+     { "id": "ofert_toma", "num": 45, "title": "Toma", "category": "ofertorio",
+       "medios": [
+         { "url": "https://www.youtube.com/watch?v=XXXXXXXXXXX", "etiqueta": "Versión de referencia" },
+         { "url": "https://drive.google.com/file/d/ID/view", "etiqueta": "Ensayo del coro" }
+       ] },
+     ```
+     El tipo se deduce de la URL:
+     - YouTube: reproductor de `youtube-nocookie`.
+     - Spotify: track, álbum o playlist.
+     - Google Drive: el archivo tiene que estar compartido como "cualquiera con
+       el link".
+     - `.mp3`, `.m4a`, etc.: reproductor de audio.
+     - Cualquier otra URL `https://`: un link común.
+     Solo músicos y admin. No aparece en banco ni sin conexión.
 3. Antes de crear una canción, **verificar que no exista ya** (buscar por título
    y por número). Si existe y la letra coincide, no tocarla.
 
@@ -320,6 +342,32 @@ Ninguna aparece en modo banco.
   - Se detiene al tocar o desplazar a mano fuera del control, o al llegar al
     final.
   - La velocidad se recuerda en el celular (`localStorage.autoscroll_nivel`).
+- **Tono del coro** (`tonos/<id>` en Firebase, `{ transponer, capo }`):
+  - Al abrir la canción, los acordes se muestran ya en el tono del coro.
+    Arriba se indica "🎼 Tono del coro: empieza en RE · capo 2", calculado con
+    el primer acorde.
+  - "Ver tono original" / "Volver al tono del coro" alterna entre los dos.
+  - Si el músico transpone o pone capo a mano, eso queda solo en su celular y
+    el indicador dice "(estás viendo otro tono)".
+  - Un admin con sesión ve "💾 Guardar como tono del coro" cuando el tono que
+    tiene en pantalla es distinto del guardado. Guardar el original sin capo
+    borra el tono del coro.
+  - Copia local en `localStorage.tono_<id>`.
+- **Audios y links:** debajo de la letra, desde el campo `medios` (§3).
+
+## 4d. Índice: búsqueda y compartir
+
+- **Búsqueda:** primero las canciones cuyo título coincide. Desde 3 letras,
+  también las que tienen la frase en la letra, con el verso encontrado y la
+  coincidencia resaltada.
+  - La primera búsqueda descarga todas las letras (sin conexión salen de la
+    caché del service worker) y arma un índice en memoria.
+  - Las líneas de solo acordes no cuentan.
+- **Compartir la misa:** en Misa de Hoy (músicos y admin), "📤 Compartir la misa"
+  arma un texto con las canciones por momento, un link para músicos
+  (`?cat=misa`) y otro para fieles (`?modo=banco`).
+  - Usa el menú de compartir del celular (`navigator.share`).
+  - Si no está disponible, abre WhatsApp (`wa.me`).
 
 ---
 
@@ -353,7 +401,7 @@ fase:
 | 1 | Pantalla encendida, desplazamiento automático, orden de la misa, anterior/siguiente | Hecha |
 | 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Hecha |
 | 3 | Login de admin con Google + reglas de Firebase | Código hecho; falta la configuración en la consola (§7) |
-| 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Pendiente |
+| 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Hecha |
 | 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Pendiente |
 
 Ya decidido:
@@ -361,22 +409,10 @@ Ya decidido:
   No tienen pantalla encendida, desplazamiento automático ni audios.
 - El login de admin es con cuenta de Google y una lista de emails autorizados.
 
-### Audios y links por canción (decidido 2026-10-01, sin implementar)
-
-- **Idea:** debajo de la caja de la letra en `cancion.html`, mostrar
-  reproductores de los audios de esa canción, para escucharla y ensayar.
-- **Tipos de link:** YouTube, Spotify, Google Drive y MP3 por URL directa. Cada
-  uno con su reproductor embebido.
-- **Grabaciones propias del coro:** van a Google Drive (15 GB gratis) y se
-  carga solo el link (ver D12).
-- **Dónde se guardan los links:** un archivo en el repo (ej. `medios.js`) que
-  asocia cada `id` de canción con una lista de `{ tipo, url, etiqueta }`. Se
-  edita como las letras, no desde la web.
-- **Sin links:** la canción no muestra nada.
-- **Modo banco:** sin reproductores (decidido 2026-10-01).
-
 ### Otros pendientes
 
+- Cargar los links de audio (`medios` en `songs.js`): todavía ninguna canción
+  tiene.
 - Cargar las letras de `com_eucaristia` y `var_glorioso-rey-en-la-cruz` (hoy
   tienen el aviso de "letra pendiente").
 - `ador_noche-oscura-jesed`: los acordes vinieron amontonados al principio de

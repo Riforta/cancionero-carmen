@@ -442,6 +442,23 @@ main {
 }
 .song-row:hover .song-arrow { transform: translateX(4px); color: var(--gold); }
 
+/* Fragmento de letra en los resultados de búsqueda */
+.song-snippet {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.song-snippet mark { background: var(--peach-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
+
+/* Compartir la misa */
+.misa-share { display: flex; justify-content: flex-end; margin: -0.4rem 0 0.8rem; }
+.misa-share[hidden] { display: none; }
+
 /* ─── NO RESULTS ─── */
 .no-results {
   display: none;
@@ -595,6 +612,9 @@ footer {
     <div class="sec-label-rule"></div>
     <span class="sec-label-count" id="cnt"></span>
   </div>
+  <div class="misa-share" id="misa-share" hidden>
+    <button id="btnCompartir" class="admin-action-btn" type="button">📤 Compartir la misa</button>
+  </div>
   <div class="songs-list" id="list"></div>
   <div class="no-results" id="nr">
     <span class="no-results-icon">♪</span>
@@ -742,6 +762,7 @@ function renderList(songs) {
   document.getElementById('cnt').textContent = songs.length + ' canciones';
   if (!songs.length) {
     list.style.display = 'none';
+    document.getElementById('misa-share').hidden = true;
     if (af === 'misa') {
       document.getElementById('nr').style.display = 'none';
       document.getElementById('misa-empty').style.display = 'block';
@@ -753,6 +774,7 @@ function renderList(songs) {
     return;
   }
   list.style.display = 'block';
+  document.getElementById('misa-share').hidden = !(af === 'misa' && !isBanco);
   document.getElementById('nr').style.display = 'none';
   document.getElementById('misa-empty').style.display = 'none';
   // El link a la canción arrastra modo, admin y categoría activa para que
@@ -768,14 +790,14 @@ function renderList(songs) {
         : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
       return `<div class="song-row admin-row" onclick="location.href='${songUrl(s)}'" style="cursor:pointer">
         <span class="song-tag">${CMAP[s.category] || s.category}</span>
-        <span class="song-name">${s.title}</span>
+        <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
         ${adminBtn}
         <span class="song-arrow">›</span>
       </div>`;
     }
     return `<a class="song-row" href="${songUrl(s)}">
       <span class="song-tag">${CMAP[s.category] || s.category}</span>
-      <span class="song-name">${s.title}</span>
+      <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
       <span class="song-arrow">›</span>
     </a>`;
   }).join('');
@@ -853,16 +875,99 @@ function limpiarMisa() {
   if (af === 'misa') renderList(getMisaSongs());
 }
 
+// ── Búsqueda por título y por letra ──
+// La primera búsqueda descarga todas las letras (≈ 450 KB; sin conexión
+// salen de la caché del service worker) y arma un índice en memoria
+let indiceLetras = null;   // id → [{ texto, normal }] (líneas de letra, sin acordes)
+let cargandoLetras = null;
+
+function lineasDeLetra(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.querySelectorAll('c').forEach(el => el.remove());
+  return div.textContent.split('\n')
+    .map(l => l.replace(/\s+/g, ' ').trim())
+    .filter(l => l.length > 2 && !/^[\s\-–—|/.():,;×xX]*$/.test(l))
+    .map(texto => ({ texto, normal: normalize(texto) }));
+}
+
+function cargarIndiceLetras() {
+  if (!cargandoLetras) {
+    cargandoLetras = Promise.all(SONGS.map(s =>
+      fetch(`letras/${s.id}.html`)
+        .then(r => r.ok ? r.text() : '')
+        .catch(() => '')
+        .then(html => [s.id, lineasDeLetra(html)])
+    )).then(pares => { indiceLetras = Object.fromEntries(pares); });
+  }
+  return cargandoLetras;
+}
+
+// Primero las que coinciden en el título; después (desde 3 letras) las que
+// coinciden en la letra, con el verso encontrado como fragmento
+function buscar(texto) {
+  const q = normalize(texto.trim());
+  if (!q) return SONGS;
+  const porTitulo = SONGS.filter(s => normalize(s.title).includes(q));
+  if (q.length < 3 || !indiceLetras) return porTitulo;
+  const yaEstan = new Set(porTitulo.map(s => s.id));
+  const porLetra = [];
+  SONGS.forEach(s => {
+    if (yaEstan.has(s.id)) return;
+    const linea = (indiceLetras[s.id] || []).find(l => l.normal.includes(q));
+    if (linea) porLetra.push({ ...s, fragmento: linea.texto, busqueda: q });
+  });
+  return porTitulo.concat(porLetra);
+}
+
+function escaparHtml(t) {
+  return t.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+}
+
+// Verso encontrado, con la coincidencia resaltada. normalize() conserva la
+// longitud del texto (solo saca tildes), así que las posiciones coinciden
+function fragmentoHtml(s) {
+  if (!s.fragmento) return '';
+  const i = normalize(s.fragmento).indexOf(s.busqueda);
+  if (i < 0) return `<span class="song-snippet">«${escaparHtml(s.fragmento)}»</span>`;
+  const antes = s.fragmento.slice(0, i), medio = s.fragmento.slice(i, i + s.busqueda.length), despues = s.fragmento.slice(i + s.busqueda.length);
+  return `<span class="song-snippet">«${escaparHtml(antes)}<mark>${escaparHtml(medio)}</mark>${escaparHtml(despues)}»</span>`;
+}
+
 // Lo que muestra la lista ahora: el resultado de la búsqueda o la categoría
 function listaVisible() {
-  const q = normalize(document.getElementById('si').value.trim());
-  return q ? SONGS.filter(s => normalize(s.title).includes(q)) : songsForFilter();
+  const q = document.getElementById('si').value;
+  return q.trim() ? buscar(q) : songsForFilter();
 }
 
 document.getElementById('si').addEventListener('input', function () {
-  const q = normalize(this.value.trim());
   af = null; syncCatParam(); renderCats();
-  renderList(q ? SONGS.filter(s => normalize(s.title).includes(q)) : SONGS);
+  renderList(buscar(this.value));
+  if (normalize(this.value.trim()).length >= 3 && !indiceLetras) {
+    cargarIndiceLetras().then(() => {
+      if (this.value.trim()) renderList(buscar(this.value));
+    });
+  }
+});
+
+// ── Compartir la misa (WhatsApp o lo que ofrezca el celular) ──
+function textoMisa() {
+  const base = new URL('index.html', window.location.href).href;
+  const lineas = getMisaSongs().map(s => {
+    const cat = CATS.find(([id]) => id === s.category);
+    return `${cat ? cat[2] + ' ' + cat[1] : '🎵'}: ${s.title}`;
+  });
+  return `🎶 *Misa de Hoy* — Coro Virgen del Carmen\n\n${lineas.join('\n')}\n\n` +
+    `🎸 Músicos: ${base}?cat=misa\n🙏 Para seguir las letras: ${base}?modo=banco`;
+}
+
+document.getElementById('btnCompartir').addEventListener('click', () => {
+  const texto = textoMisa();
+  if (navigator.share) {
+    navigator.share({ text: texto }).catch(() => {});
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+  }
 });
 
 /* Sticky search flush below header */
