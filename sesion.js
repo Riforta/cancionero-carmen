@@ -6,6 +6,7 @@
 // 'sesion-admin' en document (detail = true si puede editar).
 
 let esAdminOk = false;
+let usuarioAdmin = null;   // { email, nombre } del admin con sesión (para "Publicada por…")
 
 function panelSesion(contenedor) {
   const barra = document.createElement('div');
@@ -40,7 +41,7 @@ function panelSesion(contenedor) {
     accion = nuevaAccion;
   }
 
-  observarAdmin(({ estado, email }) => {
+  observarAdmin(({ estado, email, nombre }) => {
     if (estado === 'cargando') mostrar(estado, 'Verificando sesión…');
     else if (estado === 'sin-sesion') mostrar(estado, 'Para editar, entrá con tu cuenta de Google.', 'Entrar con Google', entrarConGoogle, true);
     else if (estado === 'no-admin') mostrar(estado, `Tu cuenta (${email}) no está autorizada para editar.`, 'Cerrar sesión', salirDeSesion);
@@ -48,6 +49,7 @@ function panelSesion(contenedor) {
     else mostrar(estado, '📴 Sin conexión: no se puede verificar la sesión ni editar.');
 
     esAdminOk = estado === 'admin';
+    usuarioAdmin = esAdminOk ? { email, nombre: nombre || '' } : null;
     document.dispatchEvent(new CustomEvent('sesion-admin', { detail: esAdminOk }));
   });
 }

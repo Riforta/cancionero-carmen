@@ -432,6 +432,14 @@ main {
 }
 .song-snippet mark { background: var(--peach-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
 
+/* Quién publicó la misa */
+.misa-meta {
+  margin: -0.5rem 0 0.8rem;
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
 /* Compartir la misa */
 .misa-share { display: flex; justify-content: flex-end; margin: -0.4rem 0 0.8rem; }
 
@@ -611,6 +619,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     <div class="sec-label-rule"></div>
     <span class="sec-label-count" id="cnt"></span>
   </div>
+  <div class="misa-meta" id="misa-meta" hidden></div>
   <div class="misa-share" id="misa-share" hidden>
     <button id="btnCompartir" class="admin-action-btn" type="button">📤 Compartir la misa</button>
   </div>
@@ -681,6 +690,20 @@ function cargarMisaPublicada() {
 }
 
 suscribirMisa(recibirMisa).then(ref => { misaRef = ref; });
+
+// Quién publicó la misa y cuándo (músicos y admin; en banco no se lee)
+let misaMeta = null;
+if (!MODO.banco) {
+  seguirDato('misa_meta', 'misa_meta_cache', val => { misaMeta = val; render(); });
+}
+
+const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+function textoPublicada(meta) {
+  if (!meta || typeof meta.por !== 'string' || typeof meta.cuando !== 'number') return '';
+  const d = new Date(meta.cuando);
+  const hora = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return `Publicada por ${meta.por} · ${DIAS_CORTOS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}, ${hora}`;
+}
 
 // ── Tiempo litúrgico de hoy (liturgia.js), en todos los modos ──
 // window.FECHA_PRUEBA ('AAAA-MM-DD') solo lo usan las pruebas, para fijar el día
@@ -768,6 +791,9 @@ function cancionesVisibles() {
 function render() {
   renderCats();
   renderList(cancionesVisibles());
+  const meta = document.getElementById('misa-meta');
+  meta.textContent = textoPublicada(misaMeta);
+  meta.hidden = !(af === 'misa' && meta.textContent && !document.getElementById('si').value.trim());
 }
 
 // Refleja la categoría activa en la URL sin recargar, para que al volver
@@ -884,10 +910,15 @@ function removeFromMisa(songId) {
 
 // La marca de cambios se baja antes del set(): así el eco de la propia
 // publicación (igual a la lista local) no dispara el aviso de otra versión
+// Se guardan en una sola operación la misa y quién/cuándo la publicó
 function publicarMisa() {
   const habiaCambios = misaSinPublicar;
   misaSinPublicar = false;
-  escribirDato(misaRef, misaIds, null, 'publicar la misa')
+  const por = (usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin';
+  escribirVarios(misaRef, {
+    misa_actual: misaIds,
+    misa_meta: { por: por.slice(0, 80), cuando: horaServidor() }
+  }, null, 'publicar la misa')
     .then(() => alert('✅ Misa publicada correctamente'))
     .catch(() => { misaSinPublicar = habiaCambios; });
 }

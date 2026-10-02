@@ -14,7 +14,7 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
   check('A2: la lista coincide con el chip', (await p.ev(`document.querySelectorAll('.song-row').length`)) === 2);
   await guardia(p);
   await p.ev('publicarMisa()'); await wait(300);
-  check('A2: publicar no vuelve a guardar el id inexistente', (await p.ev('JSON.stringify(__writes)')) === '[["set","misa_actual",["ent_bendecire","com_alma-misionera"]]]', await p.ev('JSON.stringify(__writes)'));
+  check('A2: publicar no vuelve a guardar el id inexistente', (await p.ev('JSON.stringify(__writes[0])')) === '["update","misa_actual",["ent_bendecire","com_alma-misionera"]]', await p.ev('JSON.stringify(__writes)'));
   await p.close();
 }
 // A3: otra versión publicada mientras el admin edita

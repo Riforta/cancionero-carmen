@@ -19,7 +19,14 @@ window.firebase = {
     on(ev, cb) { (__subs[p] = __subs[p] || []).push(cb); setTimeout(() => cb({ val: () => __db[p] ?? null }), 0); },
     once() { return Promise.resolve({ val: () => __db[p] ?? null }); },
     set(v) { __writes.push(['set', p, v]); __db[p] = v; __emit(p); return Promise.resolve(); },
-    remove() { __writes.push(['remove', p]); delete __db[p]; __emit(p); return Promise.resolve(); }
+    remove() { __writes.push(['remove', p]); delete __db[p]; __emit(p); return Promise.resolve(); },
+    root: { update(cambios) {
+      // Varias rutas juntas; la hora del servidor se resuelve a Date.now()
+      const resolver = v => v && typeof v === 'object' && !Array.isArray(v)
+        ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x && x['.sv'] === 'timestamp' ? Date.now() : resolver(x)])) : v;
+      Object.entries(cambios).forEach(([k, v]) => { v = resolver(v); __writes.push(['update', k, v]); if (v === null) delete __db[k]; else __db[k] = v; __emit(k); });
+      return Promise.resolve();
+    } }
   }; } }; },
   auth() { return {
     get currentUser() { return __auth; },
@@ -28,6 +35,7 @@ window.firebase = {
     signOut() { __auth = null; __authSubs.forEach(cb => cb(null)); return Promise.resolve(); }
   }; }
 };
+window.firebase.database.ServerValue = { TIMESTAMP: { '.sv': 'timestamp' } };
 window.firebase.auth.GoogleAuthProvider = function () {};
 window.firebase.auth.GoogleAuthProvider.prototype.setCustomParameters = function () {};
 `;

@@ -7,6 +7,20 @@
         ".validate": "newData.isString() && newData.val().length <= 80"
       }
     },
+    "misa_meta": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+      ".validate": "newData.hasChildren(['por', 'cuando'])",
+      "por": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+      },
+      "cuando": {
+        ".validate": "newData.isNumber() && newData.val() <= now"
+      },
+      "$otro": {
+        ".validate": false
+      }
+    },
     "notas": {
       ".read": true,
       "$id": {

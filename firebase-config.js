@@ -69,8 +69,8 @@ function observarAdmin(cb) {
     auth.onAuthStateChanged(user => {
       if (!user) { cb({ estado: 'sin-sesion' }); return; }
       firebase.database().ref('admins/' + claveAdmin(user.email)).once('value')
-        .then(snap => cb({ estado: snap.val() === true ? 'admin' : 'no-admin', email: user.email }))
-        .catch(() => cb({ estado: 'no-admin', email: user.email }));
+        .then(snap => cb({ estado: snap.val() === true ? 'admin' : 'no-admin', email: user.email, nombre: user.displayName }))
+        .catch(() => cb({ estado: 'no-admin', email: user.email, nombre: user.displayName }));
     });
   }).catch(() => cb({ estado: 'sin-conexion' }));
 }
@@ -150,4 +150,23 @@ function escribirDato(ref, valor, boton, accion) {
   return (borrar ? ref.remove() : ref.set(valor))
     .catch(err => { alert(`❌ No se pudo ${accion}: ${err.message}`); throw err; })
     .finally(() => { if (boton) boton.disabled = false; });
+}
+
+// Como escribirDato, pero varias rutas en una sola operación: se guardan
+// todas o ninguna. `ref` es cualquier ref del SDK (se usa su raíz);
+// `cambios` = { 'ruta': valor, … }
+function escribirVarios(ref, cambios, boton, accion) {
+  if (!ref || !navigator.onLine) {
+    alert(`❌ Sin conexión: no se puede ${accion} ahora.`);
+    return Promise.reject(new Error('sin conexión'));
+  }
+  if (boton) boton.disabled = true;
+  return ref.root.update(cambios)
+    .catch(err => { alert(`❌ No se pudo ${accion}: ${err.message}`); throw err; })
+    .finally(() => { if (boton) boton.disabled = false; });
+}
+
+// Hora del servidor de Firebase (para "cuándo" se publicó algo)
+function horaServidor() {
+  return firebase.database.ServerValue.TIMESTAMP;
 }

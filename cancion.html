@@ -390,12 +390,38 @@ h1 {
 .medio audio { display: block; width: 100%; }
 .medio a { color: var(--brown-mid); }
 
+/* ─── TAMAÑO DE LETRA (todos los modos, también banco) ─── */
+.tam-letra {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+.tam-btn {
+  min-width: 44px;
+  min-height: 36px;
+  padding: 0 0.7rem;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  color: var(--text-strong);
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(107,66,38,0.08);
+  -webkit-tap-highlight-color: transparent;
+}
+.tam-btn:disabled { opacity: 0.4; cursor: default; }
+
 /* ─── LETRA / PRE ─── */
 /* white-space: pre + scroll horizontal: si la línea no entra, se desplaza
    dentro de la tarjeta en vez de cortar y desalinear acordes de letra */
 pre {
   font-family: 'EB Garamond', Georgia, serif;
-  font-size: clamp(1.05rem, 2.8vw, 1.28rem);
+  /* --escala-letra: botones A− / A+ (cancion.js). Los acordes son em, así
+     que escalan junto con la letra y la alineación se mantiene */
+  font-size: calc(clamp(1.05rem, 2.8vw, 1.28rem) * var(--escala-letra, 1));
   line-height: 1.45;
   white-space: pre;
   overflow-x: auto;
@@ -568,6 +594,11 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
       </div>
     </div>
   </section>
+
+  <div class="tam-letra" role="group" aria-label="Tamaño de letra">
+    <button id="letraMenos" class="tam-btn" type="button" aria-label="Achicar la letra">A−</button>
+    <button id="letraMas" class="tam-btn" type="button" aria-label="Agrandar la letra">A+</button>
+  </div>
 
   <pre id="letra-box">Buscando letra y acordes...</pre>
 

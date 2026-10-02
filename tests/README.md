@@ -54,6 +54,8 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `tema.mjs` | Modo oscuro: sistema, botón y contraste |
 | `audios.mjs` | Reproductores de las canciones con `medios` |
 | `corderos.mjs` | Las canciones de Santo / Cordero cargan con diagramas |
+| `publicada.mjs` | "Publicada por … · fecha": se guarda junto con la misa y solo se ve en Misa de Hoy (no en banco) |
+| `letra.mjs` | Tamaño de letra A− / A+: escala, topes, se recuerda, acordes alineados, visible en banco |
 | `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
 | `sin-internet.mjs` | Service worker, caché de letras, modo avión |
 | `iphone.mjs` | Pantalla encendida en iPhone, zoom, aviso "Listo sin internet" |

@@ -594,3 +594,31 @@ function renderMedios(lista) {
 if (!esBanco && cancionActual && Array.isArray(cancionActual.medios)) {
   renderMedios(cancionActual.medios);
 }
+
+// ─── LÓGICA 11: TAMAÑO DE LETRA (todos los modos, también banco) ───
+// 6 tamaños; el elegido se recuerda en el celular. Excepción a D10: es el
+// único control que ven los fieles (AGENTS.md §4c)
+{
+  const ESCALAS = [0.85, 1, 1.15, 1.3, 1.45, 1.6];
+  const menos = document.getElementById('letraMenos');
+  const mas = document.getElementById('letraMas');
+  let nivel = 1;
+  try {
+    const guardado = parseInt(localStorage.getItem('tam_letra'), 10);
+    if (guardado >= 0 && guardado < ESCALAS.length) nivel = guardado;
+  } catch (e) {}
+
+  function aplicarTamano() {
+    letraBox.style.setProperty('--escala-letra', ESCALAS[nivel]);
+    menos.disabled = nivel === 0;
+    mas.disabled = nivel === ESCALAS.length - 1;
+  }
+  function cambiarTamano(delta) {
+    nivel = Math.min(ESCALAS.length - 1, Math.max(0, nivel + delta));
+    try { localStorage.setItem('tam_letra', String(nivel)); } catch (e) {}
+    aplicarTamano();
+  }
+  menos.addEventListener('click', () => cambiarTamano(-1));
+  mas.addEventListener('click', () => cambiarTamano(1));
+  aplicarTamano();
+}
