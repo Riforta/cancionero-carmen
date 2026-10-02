@@ -56,6 +56,7 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `corderos.mjs` | Las canciones de Santo / Cordero cargan con diagramas |
 | `publicada.mjs` | "Publicada por … · fecha": se guarda junto con la misa y solo se ve en Misa de Hoy (no en banco) |
 | `letra.mjs` | Tamaño de letra A− / A+: escala, topes, se recuerda, acordes alineados, visible en banco |
+| `avisos.mjs` | Avisos del coro: lista por mes con fiestas, sin lo pasado, `.ics`, alta/edición/baja de admin, sin conexión, banco, "Próximos avisos" del índice |
 | `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
 | `sin-internet.mjs` | Service worker, caché de letras, modo avión |
 | `iphone.mjs` | Pantalla encendida en iPhone, zoom, aviso "Listo sin internet" |

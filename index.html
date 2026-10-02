@@ -242,6 +242,35 @@ main {
   color: var(--ink-soft);
 }
 
+/* ─── PRÓXIMOS AVISOS (músicos y admin) ─── */
+.proximos {
+  display: block;
+  margin-bottom: clamp(0.9rem, 2.5vw, 1.3rem);
+  padding: 0.7rem 0.9rem 0.6rem;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(107,66,38,0.08);
+  color: var(--ink);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.proximos:hover { border-color: var(--brown-mid); }
+.proximos-cabecera { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.35rem; }
+.proximos-titulo {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-strong);
+}
+.proximos-ver { font-size: 0.9rem; color: var(--ink-soft); white-space: nowrap; }
+.proximos-lista { list-style: none; }
+.proximos-lista li { display: flex; gap: 0.6rem; padding: 0.2rem 0; font-size: 1rem; line-height: 1.3; }
+.px-fecha { flex-shrink: 0; min-width: 5.6rem; color: var(--brown-mid); font-weight: 500; }
+.px-titulo { min-width: 0; overflow-wrap: break-word; }
+.proximos-lista .vacio { color: var(--ink-soft); font-style: italic; }
+
 /* ─── SECTION LABEL ─── */
 .sec-label {
   display: flex;
@@ -606,6 +635,14 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     </div>
   </div>
 
+  <a class="proximos" id="proximos" href="avisos.html" hidden>
+    <div class="proximos-cabecera">
+      <span class="proximos-titulo">📢 Próximos avisos</span>
+      <span class="proximos-ver">Ver todos ›</span>
+    </div>
+    <ul class="proximos-lista" id="proximosLista"></ul>
+  </a>
+
   <div class="sec-label" id="cat-section">
     <span class="sec-label-text">Categorías</span>
     <div class="sec-label-rule"></div>
@@ -697,7 +734,6 @@ if (!MODO.banco) {
   seguirDato('misa_meta', 'misa_meta_cache', val => { misaMeta = val; render(); });
 }
 
-const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 function textoPublicada(meta) {
   if (!meta || typeof meta.por !== 'string' || typeof meta.cuando !== 'number') return '';
   const d = new Date(meta.cuando);
@@ -706,9 +742,7 @@ function textoPublicada(meta) {
 }
 
 // ── Tiempo litúrgico de hoy (liturgia.js), en todos los modos ──
-// window.FECHA_PRUEBA ('AAAA-MM-DD') solo lo usan las pruebas, para fijar el día
-const HOY = window.FECHA_PRUEBA ? new Date(window.FECHA_PRUEBA + 'T12:00') : new Date();
-const hoyLiturgico = diaLiturgico(HOY);
+const hoyLiturgico = diaLiturgico(fechaHoy());   // fechaHoy() en comun.js
 {
   const caja = document.getElementById('liturgia');
   caja.dataset.color = hoyLiturgico.color;
@@ -717,6 +751,23 @@ const hoyLiturgico = diaLiturgico(HOY);
     ? `${hoyLiturgico.nombreTiempo} · color ${hoyLiturgico.color}`
     : `Color litúrgico: ${hoyLiturgico.color}`;
   caja.hidden = false;
+}
+
+// ── Próximos avisos del coro (solo músicos y admin; los avisos completos
+// están en avisos.html). Avisos de Firebase + fiestas litúrgicas ──
+if (!MODO.banco) {
+  const caja = document.getElementById('proximos');
+  caja.href = linkCon('avisos.html');
+  const pintarProximos = avisos => {
+    const eventos = proximosEventos(avisos, 30).slice(0, 3);
+    document.getElementById('proximosLista').innerHTML = eventos.length
+      ? eventos.map(ev => `<li><span class="px-fecha">${fechaCorta(ev.fecha)}${ev.hora ? ' · ' + ev.hora : ''}</span>` +
+          `<span class="px-titulo">${TIPOS_AVISO[ev.tipo].icono} ${escaparHtml(ev.titulo)}</span></li>`).join('')
+      : '<li class="vacio">No hay avisos para los próximos días</li>';
+    caja.hidden = false;
+  };
+  pintarProximos(null);
+  seguirDato('avisos', 'avisos_cache', pintarProximos);
 }
 
 // En Adviento, Navidad, Cuaresma y Pascua, esa categoría va primera después

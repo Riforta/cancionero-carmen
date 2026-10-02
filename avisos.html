@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#3E2415">
+<link rel="icon" type="image/png" href="assets/logo-medallon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="comun.css">
+<script src="tema.js"></script>
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cancionero">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Avisos del coro — Coro del Carmen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* Avisos del coro (AGENTS.md §4f): ensayos, celebraciones y fiestas
+   litúrgicas próximas. Solo para el coro: en modo banco no se muestra. */
+main {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: clamp(1.2rem, 3vw, 2rem) clamp(0.9rem, 4vw, 1.5rem) 5rem;
+}
+
+.avisos-cabecera { text-align: center; margin-bottom: 1.2rem; }
+.avisos-cabecera h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  color: var(--text-strong);
+  line-height: 1.2;
+}
+.avisos-intro { margin-top: 0.3rem; font-style: italic; color: var(--ink-soft); }
+
+.avisos-acciones { display: flex; justify-content: flex-end; margin-bottom: 0.9rem; }
+.admin-action-btn {
+  padding: 0.5rem 1.1rem;
+  border: 1.5px solid var(--border-mid);
+  background: var(--bg);
+  color: var(--text-strong);
+  font-family: 'EB Garamond', serif;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(107,66,38,0.1);
+}
+.admin-action-btn.principal { background: var(--brown-dark); color: #fff; border-color: transparent; }
+[data-theme="dark"] .admin-action-btn.principal { background: linear-gradient(135deg, #B8862E 0%, #DDB45E 100%); color: #2C1A0D; }
+
+/* ─── FORMULARIO (admin) ─── */
+.aviso-form {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+  padding: 0.9rem 1rem 1rem;
+  background: var(--bg);
+  border: 1.5px solid var(--border-mid);
+  border-radius: 14px;
+}
+.aviso-form label { display: grid; gap: 0.2rem; font-size: 0.95rem; color: var(--ink-soft); }
+.aviso-form .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.aviso-form input, .aviso-form select, .aviso-form textarea {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1.5px solid var(--border-mid);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'EB Garamond', serif;
+  font-size: 1.05rem;
+}
+.aviso-form textarea { resize: vertical; min-height: 4.5rem; }
+.aviso-form .botones { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* ─── LISTA ─── */
+.mes {
+  margin: 1.2rem 0 0.6rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.mes:first-child { margin-top: 0; }
+.aviso {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.6rem;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(107,66,38,0.08);
+}
+.aviso.liturgia { border-left: 4px solid var(--gold); }
+.aviso-dia {
+  flex-shrink: 0;
+  width: 3.2rem;
+  text-align: center;
+  line-height: 1.1;
+}
+.aviso-dia .num { font-family: 'Cinzel', serif; font-size: 1.5rem; font-weight: 700; color: var(--text-strong); }
+.aviso-dia .sem { font-size: 0.85rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+.aviso-cuerpo { flex: 1; min-width: 0; }
+.aviso-titulo { font-size: 1.1rem; font-weight: 500; color: var(--ink); overflow-wrap: break-word; }
+.aviso-datos { margin-top: 0.1rem; font-size: 0.95rem; color: var(--ink-soft); }
+.aviso-detalle { margin-top: 0.3rem; font-size: 1rem; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.aviso-botones { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.aviso-btn {
+  padding: 0.25rem 0.75rem;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--text-strong);
+  font-family: 'EB Garamond', serif;
+  font-size: 0.92rem;
+  border-radius: 50px;
+  cursor: pointer;
+}
+.sin-avisos { text-align: center; font-style: italic; color: var(--ink-soft); padding: 2rem 0.5rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-gold-bar"></div>
+  <div class="header-body subpagina">
+    <a href="index.html" class="back-link">
+      <span class="arrow">‹</span> Volver
+    </a>
+    <div class="header-center">
+      <div class="header-brand">Avisos</div>
+    </div>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"></button>
+    <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
+    <div class="header-logo">
+      <img src="assets/logo-medallon-color.png" alt="Virgen del Carmen" />
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="avisos-cabecera">
+    <h1>Avisos del coro</h1>
+    <p class="avisos-intro">Ensayos, celebraciones y fiestas de los próximos días</p>
+  </div>
+
+  <div class="avisos-acciones">
+    <button id="nuevoAviso" class="admin-action-btn" type="button" hidden>➕ Nuevo aviso</button>
+  </div>
+
+  <form id="formAviso" class="aviso-form" hidden>
+    <div class="fila">
+      <label>Fecha <input id="fFecha" type="date" required></label>
+      <label>Hora (opcional) <input id="fHora" type="time"></label>
+    </div>
+    <label>Tipo
+      <select id="fTipo">
+        <option value="ensayo">🎶 Ensayo</option>
+        <option value="celebracion">⛪ Celebración</option>
+        <option value="aviso">📢 Aviso</option>
+      </select>
+    </label>
+    <label>Título <input id="fTitulo" type="text" maxlength="80" required placeholder="Ej.: Ensayo general para la fiesta patronal"></label>
+    <label>Lugar (opcional) <input id="fLugar" type="text" maxlength="80" placeholder="Ej.: Salón parroquial"></label>
+    <label>Detalle (opcional) <textarea id="fDetalle" maxlength="300" placeholder="Ej.: Traer las carpetas. Se ensaya el Gloria nuevo."></textarea></label>
+    <div class="botones">
+      <button id="fCancelar" class="admin-action-btn" type="button">Cancelar</button>
+      <button id="fGuardar" class="admin-action-btn principal" type="submit">Guardar</button>
+    </div>
+  </form>
+
+  <div id="listaAvisos"></div>
+  <p id="sinAvisos" class="sin-avisos" hidden>No hay avisos para los próximos días.</p>
+</main>
+
+<script src="firebase-config.js"></script>
+<script src="songs.js"></script>
+<script src="comun.js"></script>
+<script src="liturgia.js"></script>
+<script src="offline.js"></script>
+<script src="sesion.js"></script>
+<script src="avisos.js"></script>
+</body>
+</html>

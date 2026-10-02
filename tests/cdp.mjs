@@ -12,14 +12,27 @@ export const wait = ms => new Promise(r => setTimeout(r, ms));
 export const FAKE_FIREBASE = (db = {}, auth = null) => `
 window.__db = ${JSON.stringify(db)}; window.__subs = {}; window.__writes = [];
 window.__auth = ${JSON.stringify(auth)}; window.__authSubs = [];
-const __emit = p => (__subs[p] || []).forEach(cb => cb({ val: () => __db[p] ?? null }));
+// Valor de una ruta: el guardado tal cual o, si no hay, el objeto armado con
+// sus hijos (avisos → { k1: {...}, k2: {...} })
+const __val = p => {
+  if (p in __db) return __db[p];
+  const pre = p + '/', hijos = {};
+  Object.keys(__db).filter(k => k.startsWith(pre)).forEach(k => { const h = k.slice(pre.length).split('/')[0]; hijos[h] = __val(pre + h); });
+  return Object.keys(hijos).length ? hijos : null;
+};
+// Avisa a la ruta y a sus padres (cambiar avisos/k1 avisa a avisos)
+const __emit = p => { const partes = p.split('/'); for (let i = partes.length; i > 0; i--) { const q = partes.slice(0, i).join('/'); (__subs[q] || []).forEach(cb => cb({ val: () => __val(q) })); } };
+window.__nPush = 0;
 window.firebase = {
   apps: [], initializeApp() { this.apps.push({}); },
   database() { return { ref(p) { return {
-    on(ev, cb) { (__subs[p] = __subs[p] || []).push(cb); setTimeout(() => cb({ val: () => __db[p] ?? null }), 0); },
-    once() { return Promise.resolve({ val: () => __db[p] ?? null }); },
+    key: p.split('/').pop(),
+    on(ev, cb) { (__subs[p] = __subs[p] || []).push(cb); setTimeout(() => cb({ val: () => __val(p) }), 0); },
+    once() { return Promise.resolve({ val: () => __val(p) }); },
+    child(h) { return window.firebase.database().ref(p + '/' + h); },
+    push() { return this.child('-k' + (++window.__nPush)); },
     set(v) { __writes.push(['set', p, v]); __db[p] = v; __emit(p); return Promise.resolve(); },
-    remove() { __writes.push(['remove', p]); delete __db[p]; __emit(p); return Promise.resolve(); },
+    remove() { __writes.push(['remove', p]); Object.keys(__db).filter(k => k === p || k.startsWith(p + '/')).forEach(k => delete __db[k]); __emit(p); return Promise.resolve(); },
     root: { update(cambios) {
       // Varias rutas juntas; la hora del servidor se resuelve a Date.now()
       const resolver = v => v && typeof v === 'object' && !Array.isArray(v)

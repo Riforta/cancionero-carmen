@@ -80,3 +80,42 @@ function guardarCopia(clave, valor) {
     else localStorage.setItem(clave, JSON.stringify(valor));
   } catch (e) {}
 }
+
+// ── Fechas y avisos del coro (index.html y avisos.html) ──
+// window.FECHA_PRUEBA ('AAAA-MM-DD') solo lo usan las pruebas, para fijar el día
+function fechaHoy() {
+  return window.FECHA_PRUEBA ? new Date(window.FECHA_PRUEBA + 'T12:00') : new Date();
+}
+function isoLocal(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
+  'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const TIPOS_AVISO = {
+  ensayo: { icono: '🎶', nombre: 'Ensayo' },
+  celebracion: { icono: '⛪', nombre: 'Celebración' },
+  aviso: { icono: '📢', nombre: 'Aviso' },
+  liturgia: { icono: '✝️', nombre: 'Fiesta litúrgica' }
+};
+
+// "jue 8/10" a partir de 'AAAA-MM-DD'
+function fechaCorta(iso) {
+  const [a, m, d] = iso.split('-').map(Number);
+  return `${DIAS_CORTOS[new Date(a, m - 1, d).getDay()]} ${d}/${m}`;
+}
+
+// Avisos cargados (avisos/<id> de Firebase) desde hoy, más las fiestas
+// litúrgicas de los próximos `diasFiestas` días (liturgia.js), ordenados por
+// fecha y hora. Lo que ya pasó no aparece
+function proximosEventos(avisos, diasFiestas) {
+  const hoy = fechaHoy();
+  const desde = isoLocal(hoy);
+  const propios = Object.entries(avisos || {})
+    .filter(([, a]) => a && typeof a.fecha === 'string' && a.fecha >= desde)
+    .map(([id, a]) => ({ id, fecha: a.fecha, hora: a.hora || '', titulo: a.titulo || '', tipo: TIPOS_AVISO[a.tipo] ? a.tipo : 'aviso', lugar: a.lugar || '', detalle: a.detalle || '' }));
+  const fiestas = typeof proximasFiestas === 'function'
+    ? proximasFiestas(hoy, diasFiestas).map(f => ({ id: null, fecha: f.fecha, hora: '', titulo: f.nombre, tipo: 'liturgia', lugar: '', detalle: '' }))
+    : [];
+  return [...propios, ...fiestas].sort((x, y) => (x.fecha + x.hora).localeCompare(y.fecha + y.hora));
+}
