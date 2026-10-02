@@ -5,6 +5,11 @@ description: Cómo verificar cambios de este sitio estático en un navegador rea
 
 # Verificar cambios del cancionero
 
+**Primero: usar `tests/`.** El repo trae el banco de pruebas armado
+(`tests/README.md`): `powershell -File tests/run.ps1` corre la regresión
+completa, y `tests/run.ps1 capturas.mjs [--referencia]` hace la comparación
+visual. Lo de abajo explica cómo está hecho, para escribir pruebas nuevas.
+
 Sitio estático sin build. Para ver un cambio funcionando hay que servirlo por HTTP
 (los `fetch()` a `letras/*.html` fallan con `file://`).
 

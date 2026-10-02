@@ -424,13 +424,18 @@ Ninguna aparece en modo banco.
 
 ## 5. Cómo trabajar en el repo
 
-- **Verificar en un navegador real** con la skill `.claude/skills/verify`
-  (`python -m http.server` + Chrome headless + CDP). Revisar al menos que la
-  letra cargue, que no haya acordes sin diagrama (`chordLookup`) y que la
-  canción aparezca en su categoría.
+- **Pruebas en `tests/`** (ver `tests/README.md`): Chrome headless manejado por
+  CDP desde Node, sin dependencias.
+  - `powershell -File tests/run.ps1` corre la regresión completa (`todo.mjs`).
+    Correrla antes de cada commit que toque código.
+  - Funcionalidad nueva: agregar su prueba en `tests/` y sumarla a `todo.mjs`.
+  - **Cambios visuales o refactor de CSS:** antes de empezar,
+    `tests/run.ps1 capturas.mjs --referencia`; al terminar, `capturas.mjs` sin
+    flag compara píxel por píxel.
+  - **Nunca escribir en la base real:** las escrituras se prueban con el
+    Firebase falso de `tests/cdp.mjs`.
 - **Node:** el `node` por defecto de esta máquina es v16 (no tiene `fetch` ni
-  `WebSocket`). Para los scripts de CDP usar
-  `%LOCALAPPDATA%\nvm\v22.14.0\node.exe`.
+  `WebSocket`). `run.ps1` usa `%LOCALAPPDATA%\nvm\v22.14.0\node.exe`.
 - **Commits:** solo cuando el usuario lo pide. Mensaje corto en español,
   describiendo el cambio (ej.: "Navegacion que conserva categoria activa y modo
   admin"). En PowerShell 5.1 usar `git commit -F <archivo>`.
