@@ -1,6 +1,7 @@
 // Funcionamiento sin internet (AGENTS.md D15), compartido por index.html y
-// cancion.html: registra el service worker (sw.js), muestra un aviso cuando no
-// hay conexión y guarda copias locales de los datos de Firebase.
+// cancion.html: registra el service worker (sw.js), muestra el aviso "Sin
+// conexión" y el de "Listo para usar sin internet". Las copias locales de los
+// datos (leerCopia/guardarCopia) están en comun.js.
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -22,18 +23,6 @@ if ('serviceWorker' in navigator) {
       estado.hidden = false;
     }
   }).catch(() => {});
-}
-
-// Copias locales en localStorage. Fallan en silencio (modo privado, sin
-// espacio): la página funciona igual, solo sin copia
-function leerCopia(clave) {
-  try { return JSON.parse(localStorage.getItem(clave)); } catch (e) { return null; }
-}
-function guardarCopia(clave, valor) {
-  try {
-    if (valor === null || valor === undefined) localStorage.removeItem(clave);
-    else localStorage.setItem(clave, JSON.stringify(valor));
-  } catch (e) {}
 }
 
 // Aviso dentro del encabezado (que es sticky), así se ve siempre

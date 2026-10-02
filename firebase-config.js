@@ -98,3 +98,56 @@ function leerFirebase(ruta) {
   return fetch(`${firebaseConfig.databaseURL}/${ruta}.json`)
     .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
 }
+
+// ── Leer y escribir datos (AGENTS.md D18) ──
+// Usan leerCopia/guardarCopia y MODO de comun.js.
+
+// Sigue un dato: cb(valor) primero con la copia local (si hay) y después con
+// cada valor publicado. En banco, una sola lectura por REST (D14); en el
+// resto, en vivo con el SDK. La copia se entrega en un microtask, así la
+// página termina de definir todo antes del primer cb. Devuelve una promesa
+// con la ref del SDK para escribir (null en banco o sin conexión).
+function seguirDato(ruta, claveCopia, cb) {
+  const copia = leerCopia(claveCopia);
+  if (copia !== null) Promise.resolve().then(() => cb(copia));
+  const recibir = val => { guardarCopia(claveCopia, val); cb(val); };
+  if (MODO.banco) {
+    leerFirebase(ruta).then(recibir).catch(() => {});
+    return Promise.resolve(null);
+  }
+  return cargarFirebase()
+    .then(fb => {
+      const ref = fb.database().ref(ruta);
+      ref.on('value', snap => recibir(snap.val()));
+      return ref;
+    })
+    .catch(() => null);
+}
+
+// Ids de la misa publicada que siguen existiendo en SONGS (Firebase puede
+// devolver el array como objeto)
+function normalizarMisa(val) {
+  const ids = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+  return ids.filter(id => SONGS.some(s => s.id === id));
+}
+
+// Misa de Hoy (misa_actual), ya normalizada. La usan las dos páginas
+function suscribirMisa(cb) {
+  return seguirDato('misa_actual', 'misa_cache', val => cb(normalizarMisa(val)));
+}
+
+// Escribe un dato desde la web (null o '' lo borra): sin conexión no lo
+// intenta (no quedaría encolado sin que nadie se entere), deshabilita el botón
+// mientras tanto y avisa si falla. La promesa se rechaza si no se escribió.
+// `accion`: "publicar la misa", "guardar la nota"… (para los avisos)
+function escribirDato(ref, valor, boton, accion) {
+  if (!ref || !navigator.onLine) {
+    alert(`❌ Sin conexión: no se puede ${accion} ahora.`);
+    return Promise.reject(new Error('sin conexión'));
+  }
+  if (boton) boton.disabled = true;
+  const borrar = valor === null || valor === '';
+  return (borrar ? ref.remove() : ref.set(valor))
+    .catch(err => { alert(`❌ No se pudo ${accion}: ${err.message}`); throw err; })
+    .finally(() => { if (boton) boton.disabled = false; });
+}

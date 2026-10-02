@@ -660,37 +660,26 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 
 <script src="firebase-config.js"></script>
 <script src="songs.js"></script>
+<script src="comun.js"></script>
 <script src="offline.js"></script>
 <script src="sesion.js"></script>
 
 <script>
 
-// ── URL params ──
-const params = new URLSearchParams(window.location.search);
-const isAdmin = params.get('admin') === 'true';
-const isBanco = params.get('modo') === 'banco';
+// MODO, linkCon, botonModo, normalize, escaparHtml y lineasDeLetra vienen de
+// comun.js; suscribirMisa y escribirDato, de firebase-config.js
 
-// ── Firebase: Misa de Hoy (misa_actual) ──
-// Músicos y admin la siguen en vivo con el SDK; el modo banco la lee una sola
-// vez por REST para no ocupar conexiones simultáneas (AGENTS.md D14)
-let db = null;
-// Arranca con la copia local (sin conexión se queda con esa)
-let misaIds = Array.isArray(leerCopia('misa_cache')) ? leerCopia('misa_cache') : [];
-
-// Ids publicados que siguen existiendo en SONGS (una canción borrada o
-// renombrada no cuenta en el chip, no se reordena ni se vuelve a publicar)
-function normalizarMisa(val) {
-  const ids = Array.isArray(val) ? val : (val ? Object.values(val) : []);
-  return ids.filter(id => SONGS.some(s => s.id === id));
-}
+// ── Misa de Hoy (misa_actual) ──
+// suscribirMisa entrega la copia local y después la publicada: en vivo para
+// músicos y admin, una sola lectura por REST en banco (AGENTS.md D14)
+let misaIds = [];
+let misaRef = null;                  // para publicar (null en banco o sin conexión)
+let misaSinPublicar = false;
 const mismaLista = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
 
 let misaPublicadaPendiente = null;   // otra versión que llegó mientras el admin editaba
 
-function recibirMisa(val) {
-  const ids = normalizarMisa(val);
-  // Copia local: la usan anterior/siguiente en cancion.html y el modo sin conexión
-  guardarCopia('misa_cache', ids);
+function recibirMisa(ids) {
   // Un admin con cambios sin publicar no pierde su lista: se le avisa. El eco
   // de su propia publicación llega igual a su lista y no dispara el aviso
   if (misaSinPublicar && !mismaLista(ids, misaIds)) {
@@ -717,25 +706,18 @@ function cargarMisaPublicada() {
   recibirMisa(misaPublicadaPendiente);
 }
 
-if (isBanco) {
-  leerFirebase('misa_actual').then(recibirMisa).catch(() => {});
-} else {
-  cargarFirebase().then(fb => {
-    db = fb.database();
-    db.ref('misa_actual').on('value', snap => recibirMisa(snap.val()));
-  }).catch(() => {});
-}
+suscribirMisa(recibirMisa).then(ref => { misaRef = ref; });
 
 // Categoría activa: se restaura desde ?cat= al volver de una canción
 // ('todas' = sin filtro). Sin parámetro, arranca en Misa de Hoy.
-const catParam = params.get('cat');
+const catParam = MODO.cat;
 let af;
 if (catParam === 'todas') af = null;
 else if (catParam && CATS.some(([id]) => id === catParam)) af = catParam;
 else af = 'misa';
 
 // ── Banco mode: hide UI and acordes ──
-if (isBanco) {
+if (MODO.banco) {
   document.getElementById('searchWrap').style.display = 'none';
   document.getElementById('cat-wrap').style.display = 'none';
   document.getElementById('cat-section').style.display = 'none';
@@ -743,7 +725,7 @@ if (isBanco) {
 
 // ── Admin: barra de sesión (Google) y botones de edición ──
 // Los botones aparecen solo con sesión de un admin autorizado (sesion.js)
-if (isAdmin) {
+if (MODO.admin) {
   const bar = document.createElement('div');
   bar.id = 'admin-bar';
   bar.hidden = true;
@@ -770,27 +752,8 @@ if (isAdmin) {
   });
 }
 
-// ── Botón para pasar entre vista de músicos y admin (no existe en modo banco) ──
-// Recarga la misma URL con o sin admin=true; conserva cat y el resto
-let misaSinPublicar = false;
-if (!isBanco) {
-  const btn = document.getElementById('modeToggle');
-  btn.textContent = isAdmin ? '🎵 Salir de admin' : '🔧 Modo admin';
-  btn.classList.toggle('is-admin', isAdmin);
-  btn.setAttribute('aria-label', isAdmin ? 'Cambiar a vista de músicos' : 'Cambiar a modo admin');
-  btn.hidden = false;
-  btn.addEventListener('click', () => {
-    if (misaSinPublicar && !confirm('Hay cambios en la Misa sin publicar. ¿Salir igual?')) return;
-    const url = new URL(window.location);
-    if (isAdmin) url.searchParams.delete('admin');
-    else url.searchParams.set('admin', 'true');
-    window.location.href = url;
-  });
-}
-
-function normalize(s) {
-  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-}
+// Botón "Modo admin" (comun.js): pide confirmación si hay cambios sin publicar
+botonModo(() => misaSinPublicar ? 'Hay cambios en la Misa sin publicar. ¿Salir igual?' : null);
 
 function getMisaSongs() {
   return misaIds.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
@@ -842,15 +805,14 @@ function renderList(songs) {
     return;
   }
   list.style.display = 'block';
-  document.getElementById('misa-share').hidden = !(af === 'misa' && !isBanco);
+  document.getElementById('misa-share').hidden = !(af === 'misa' && !MODO.banco);
   document.getElementById('nr').style.display = 'none';
   document.getElementById('misa-empty').style.display = 'none';
   // El link a la canción arrastra modo, admin y categoría activa para que
   // el "Volver" de cancion.html restaure exactamente este contexto
-  const songUrl = s => `cancion.html?id=${s.id}` +
-    `${isBanco ? '&modo=banco' : ''}${isAdmin ? '&admin=true' : ''}&cat=${af || 'todas'}`;
+  const songUrl = s => linkCon('cancion.html', { id: s.id, cat: af || 'todas' });
   list.innerHTML = songs.map(s => {
-    if (isAdmin && esAdminOk) {
+    if (MODO.admin && esAdminOk) {
       const adminBtn = af === 'misa'
         ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
            <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
@@ -928,14 +890,14 @@ function removeFromMisa(songId) {
   renderList(getMisaSongs());
 }
 
+// La marca de cambios se baja antes del set(): así el eco de la propia
+// publicación (igual a la lista local) no dispara el aviso de otra versión
 function publicarMisa() {
-  if (!db || !navigator.onLine) { alert('❌ Sin conexión: no se puede publicar ahora.'); return; }
+  const habiaCambios = misaSinPublicar;
   misaSinPublicar = false;
-  misaPublicadaPendiente = null;
-  mostrarAvisoMisa(false);
-  db.ref('misa_actual').set(misaIds)
+  escribirDato(misaRef, misaIds, null, 'publicar la misa')
     .then(() => alert('✅ Misa publicada correctamente'))
-    .catch(err => { misaSinPublicar = true; alert('❌ Error: ' + err.message); });
+    .catch(() => { misaSinPublicar = habiaCambios; });
 }
 
 function limpiarMisa() {
@@ -952,23 +914,15 @@ function limpiarMisa() {
 let indiceLetras = null;   // id → [{ texto, normal }] (líneas de letra, sin acordes)
 let cargandoLetras = null;
 
-function lineasDeLetra(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  div.querySelectorAll('c').forEach(el => el.remove());
-  return div.textContent.split('\n')
-    .map(l => l.replace(/\s+/g, ' ').trim())
-    .filter(l => l.length > 2 && !/^[\s\-–—|/.():,;×xX]*$/.test(l))
-    .map(texto => ({ texto, normal: normalize(texto) }));
-}
-
 function cargarIndiceLetras() {
   if (!cargandoLetras) {
     cargandoLetras = Promise.all(SONGS.map(s =>
       fetch(`letras/${s.id}.html`)
         .then(r => r.ok ? r.text() : '')
         .catch(() => '')
-        .then(html => [s.id, lineasDeLetra(html)])
+        .then(html => [s.id, lineasDeLetra(html)
+          .filter(texto => texto.length > 2)
+          .map(texto => ({ texto, normal: normalize(texto) }))])
     )).then(pares => { indiceLetras = Object.fromEntries(pares); });
   }
   return cargandoLetras;
@@ -989,10 +943,6 @@ function buscar(texto) {
     if (linea) porLetra.push({ ...s, fragmento: linea.texto, busqueda: q });
   });
   return porTitulo.concat(porLetra);
-}
-
-function escaparHtml(t) {
-  return t.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 }
 
 // Verso encontrado, con la coincidencia resaltada. normalize() conserva la

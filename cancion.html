@@ -662,52 +662,26 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
 
 <script src="firebase-config.js"></script>
 <script src="songs.js"></script>
+<script src="comun.js"></script>
 <script src="offline.js"></script>
 <script src="sesion.js"></script>
 
 <script>
-// ── Banco mode ──
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('modo') === 'banco') {
-  document.body.classList.add('banco-mode');
-}
+// MODO, urlParams, linkCon, botonModo y lineasDeLetra vienen de comun.js;
+// seguirDato, suscribirMisa y escribirDato, de firebase-config.js
+const esBanco = MODO.banco;
+const isAdmin = MODO.admin;
+if (esBanco) document.body.classList.add('banco-mode');
 
 // "Volver" conserva modo, admin y categoría activa del índice
-{
-  const backQuery = new URLSearchParams();
-  ['modo', 'admin', 'cat'].forEach(k => {
-    const v = urlParams.get(k);
-    if (v) backQuery.set(k, v);
-  });
-  const qs = backQuery.toString();
-  if (qs) document.querySelector('.back-link').href = 'index.html?' + qs;
-}
-
-const isAdmin = urlParams.get('admin') === 'true';
+document.querySelector('.back-link').href = linkCon('index.html');
 
 // Admin: barra de sesión con Google. Editar requiere un admin autorizado
 // (esAdminOk y el evento 'sesion-admin' vienen de sesion.js)
-if (isAdmin && urlParams.get('modo') !== 'banco') {
-  panelSesion(document.querySelector('main'));
-}
+if (isAdmin && !esBanco) panelSesion(document.querySelector('main'));
 
-// Botón para pasar entre vista de músicos y admin (no existe en modo banco).
-// Recarga la misma canción con o sin admin=true; conserva id, t y cat
-if (urlParams.get('modo') !== 'banco') {
-  const btn = document.getElementById('modeToggle');
-  btn.textContent = isAdmin ? '🎵 Salir de admin' : '🔧 Modo admin';
-  btn.classList.toggle('is-admin', isAdmin);
-  btn.setAttribute('aria-label', isAdmin ? 'Cambiar a vista de músicos' : 'Cambiar a modo admin');
-  btn.hidden = false;
-  btn.addEventListener('click', () => {
-    const editandoNota = !document.getElementById('notaForm').hidden;
-    if (editandoNota && !confirm('Hay una nota sin guardar. ¿Salir igual?')) return;
-    const url = new URL(window.location);
-    if (isAdmin) url.searchParams.delete('admin');
-    else url.searchParams.set('admin', 'true');
-    window.location.href = url;
-  });
-}
+// Botón "Modo admin" (comun.js): pide confirmación si hay una nota a medio escribir
+botonModo(() => document.getElementById('notaForm').hidden ? null : 'Hay una nota sin guardar. ¿Salir igual?');
 
 const SCALE = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
 
@@ -1016,17 +990,6 @@ if (!('speechSynthesis' in window)) {
 
   let leyendo = false;
 
-  // Devuelve solo las líneas de letra: sin <c>, sin líneas de acordes
-  // y sin renglones que quedan vacíos o con puro signo
-  function extraerLetra() {
-    const clon = letraBox.cloneNode(true);
-    clon.querySelectorAll('c, .chord-line, .error-msg').forEach(el => el.remove());
-    return clon.textContent
-      .split('\n')
-      .map(l => l.replace(/\s+/g, ' ').trim())
-      .filter(l => l && !/^[\s\-–—|/.():,;×xX]*$/.test(l));
-  }
-
   function detenerLectura() {
     speechSynthesis.cancel();
     leyendo = false;
@@ -1040,7 +1003,7 @@ if (!('speechSynthesis' in window)) {
       detenerLectura();
       return;
     }
-    const lineas = extraerLetra();
+    const lineas = lineasDeLetra(letraBox.innerHTML);   // solo la letra (comun.js)
     if (!lineas.length) return;
 
     speechSynthesis.cancel();
@@ -1071,7 +1034,7 @@ if (!('speechSynthesis' in window)) {
 // ─── LÓGICA 5: NOTA PARA MÚSICOS (Firebase notas/<id>) ───
 // Se ve en la vista de músicos y en admin; solo la edita un admin con sesión.
 // En modo banco ni se consulta. Si Firebase no cargó, la página sigue igual.
-if (urlParams.get('modo') !== 'banco' && idCancion) {
+if (!esBanco && idCancion) {
   let notaRef = null;
   const notaBox = document.getElementById('nota');
   const notaTexto = document.getElementById('notaTexto');
@@ -1095,19 +1058,11 @@ if (urlParams.get('modo') !== 'banco' && idCancion) {
     renderNota();
   });
 
-  // Primero la copia local (sin conexión se queda con esa), después la de Firebase
-  const copiaNota = leerCopia('nota_' + idCancion);
-  if (typeof copiaNota === 'string') { notaActual = copiaNota; renderNota(); }
-
-  cargarFirebase().then(fb => {
-    notaRef = fb.database().ref('notas/' + idCancion);
-    notaRef.on('value', snap => {
-      const val = snap.val();
-      notaActual = typeof val === 'string' ? val : '';
-      guardarCopia('nota_' + idCancion, notaActual || null);
-      renderNota();
-    });
-  }).catch(() => {});
+  // Copia local y después la nota publicada, en vivo
+  seguirDato('notas/' + idCancion, 'nota_' + idCancion, val => {
+    notaActual = typeof val === 'string' ? val : '';
+    renderNota();
+  }).then(ref => { notaRef = ref; });
 
   if (isAdmin) {
     notaEditBtn.addEventListener('click', () => {
@@ -1122,45 +1077,29 @@ if (urlParams.get('modo') !== 'banco' && idCancion) {
     });
     // Guardar vacío borra la nota
     notaSave.addEventListener('click', () => {
-      if (!notaRef || !navigator.onLine) { alert('❌ Sin conexión: no se puede guardar ahora.'); return; }
-      const texto = notaInput.value.trim();
-      notaSave.disabled = true;
-      (texto ? notaRef.set(texto) : notaRef.remove())
+      escribirDato(notaRef, notaInput.value.trim(), notaSave, 'guardar la nota')
         .then(() => { notaForm.hidden = true; renderNota(); })
-        .catch(err => alert('❌ No se pudo guardar la nota: ' + err.message))
-        .finally(() => { notaSave.disabled = false; });
+        .catch(() => {});
     });
   }
 }
-
-const esBanco = urlParams.get('modo') === 'banco';
 
 // ─── LÓGICA 6: ANTERIOR / SIGUIENTE DENTRO DE MISA DE HOY ───
 // Solo si se llegó desde Misa de Hoy (cat=misa). Todos los modos, banco
 // incluido. Muestra primero la copia local y después la lista publicada:
 // músicos y admin en vivo (SDK), banco por REST (AGENTS.md D14)
-if (urlParams.get('cat') === 'misa' && idCancion) {
+if (MODO.cat === 'misa' && idCancion) {
   const nav = document.getElementById('misa-nav');
-
-  function linkCancion(id) {
-    const q = new URLSearchParams({ id });
-    ['modo', 'admin', 'cat'].forEach(k => {
-      const v = urlParams.get(k);
-      if (v) q.set(k, v);
-    });
-    return 'cancion.html?' + q;
-  }
 
   function pintarLink(el, id) {
     const s = id && SONGS.find(x => x.id === id);
     el.classList.toggle('vacio', !s);
     el.querySelector('.mn-title').textContent = s ? s.title : '';
-    if (s) el.href = linkCancion(id);
+    if (s) el.href = linkCon('cancion.html', { id });
     else el.removeAttribute('href');
   }
 
-  function renderMisaNav(ids) {
-    const lista = ids.filter(id => SONGS.some(s => s.id === id));
+  function renderMisaNav(lista) {
     const i = lista.indexOf(idCancion);
     nav.hidden = i < 0;
     if (i < 0) return;
@@ -1169,22 +1108,7 @@ if (urlParams.get('cat') === 'misa' && idCancion) {
     pintarLink(document.getElementById('misaNext'), lista[i + 1]);
   }
 
-  function recibirMisa(val) {
-    const ids = Array.isArray(val) ? val : (val ? Object.values(val) : []);
-    guardarCopia('misa_cache', ids);
-    renderMisaNav(ids);
-  }
-
-  const copiaMisa = leerCopia('misa_cache');
-  if (Array.isArray(copiaMisa)) renderMisaNav(copiaMisa);
-
-  if (esBanco) {
-    leerFirebase('misa_actual').then(recibirMisa).catch(() => {});
-  } else {
-    cargarFirebase()
-      .then(fb => fb.database().ref('misa_actual').on('value', snap => recibirMisa(snap.val())))
-      .catch(() => {});
-  }
+  suscribirMisa(renderMisaNav);   // copia local, después la publicada
 }
 
 // ─── LÓGICA 7: PANTALLA SIEMPRE ENCENDIDA (músicos y admin) ───
@@ -1366,7 +1290,6 @@ if (!esBanco && idCancion) {
 
   function recibirTono(val) {
     tonoCoro = validarTono(val);
-    guardarCopia('tono_' + idCancion, tonoCoro);
     if (!tocadoAMano) aplicarTono(tonoCoro || ORIGINAL);
     else pintarTono();
   }
@@ -1378,27 +1301,18 @@ if (!esBanco && idCancion) {
   });
 
   tonoGuardar.addEventListener('click', () => {
-    if (!tonoRef || !navigator.onLine) { alert('❌ Sin conexión: no se puede guardar ahora.'); return; }
-    const nuevo = validarTono(tonoActual());
-    tonoGuardar.disabled = true;
-    (nuevo ? tonoRef.set(nuevo) : tonoRef.remove())
+    escribirDato(tonoRef, validarTono(tonoActual()), tonoGuardar, 'guardar el tono')
       .then(() => { tocadoAMano = false; })
-      .catch(err => alert('❌ No se pudo guardar el tono: ' + err.message))
-      .finally(() => { tonoGuardar.disabled = false; });
+      .catch(() => {});
   });
 
   document.addEventListener('tono-cambio', () => { tocadoAMano = true; pintarTono(); });
   document.addEventListener('letra-cargada', pintarTono);
   document.addEventListener('sesion-admin', pintarTono);
 
-  // Primero la copia local, después Firebase en vivo
-  const copiaTono = validarTono(leerCopia('tono_' + idCancion));
-  if (copiaTono) { tonoCoro = copiaTono; aplicarTono(copiaTono); }
-
-  cargarFirebase().then(fb => {
-    tonoRef = fb.database().ref('tonos/' + idCancion);
-    tonoRef.on('value', snap => recibirTono(snap.val()));
-  }).catch(() => {});
+  // Copia local y después el tono publicado, en vivo
+  seguirDato('tonos/' + idCancion, 'tono_' + idCancion, recibirTono)
+    .then(ref => { tonoRef = ref; });
 }
 // ─── LÓGICA 10: AUDIOS Y LINKS (campo `medios` de la canción en songs.js) ───
 // [{ url, etiqueta?, tipo? }]. El tipo se deduce de la URL: YouTube, Spotify,
