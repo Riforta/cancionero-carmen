@@ -90,7 +90,7 @@ const tono = `(() => { const q = id => document.getElementById(id); return { vis
   const texto = await p.ev('window.__compartido');
   check('texto: título y canciones por momento', texto.startsWith('🎶 *Misa de Hoy* — Coro Virgen del Carmen\n\n🚪 Entrada: Bendeciré\n✨ Gloria / Kyrie: Gloria (Congreso Eucarístico 2000)\n✝️ Comunión: Alma misionera'), JSON.stringify(texto));
   check('texto: links para músicos y fieles', texto.includes('http://127.0.0.1:8642/index.html?cat=misa') && texto.includes('http://127.0.0.1:8642/index.html?modo=banco'));
-  await p.ev(`fc('entrada')`);
+  await p.ev(`elegirCategoria('entrada')`);
   check('fuera de Misa de Hoy: botón oculto', await p.ev(`document.getElementById('misa-share').hidden`));
   await p.close();
 }

@@ -44,7 +44,7 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
 {
   const p = await c.newPage({ fake: FAKE_FIREBASE(DB({}), ADMIN) });
   await p.go('/index.html?admin=true&cat=varias');
-  await p.ev(`SONGS.push({ id: 'var_prueba-apostrofo', num: 0, title: "Canción d'ejemplo", category: 'varias' }); fc('entrada'); fc('varias')`);
+  await p.ev(`SONGS.push({ id: 'var_prueba-apostrofo', num: 0, title: "Canción d'ejemplo", category: 'varias' }); elegirCategoria('entrada'); elegirCategoria('varias')`);
   const fila = await p.ev(`(() => { const r = [...document.querySelectorAll('.admin-row')].find(r => r.textContent.includes("d'ejemplo")); return r ? { onclick: r.hasAttribute('onclick'), href: r.dataset.href } : null; })()`);
   check('A5: fila con data-href y sin onclick', fila && !fila.onclick && fila.href === 'cancion.html?id=var_prueba-apostrofo&admin=true&cat=varias', JSON.stringify(fila));
   await p.ev(`[...document.querySelectorAll('.admin-row')].find(r => r.textContent.includes("d'ejemplo")).querySelector('.song-name').click()`); await wait(1500);

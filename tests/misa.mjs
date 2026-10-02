@@ -9,7 +9,7 @@ const MISA = ['ent_bendecire', 'glo_gloria-congreso-2000', 'com_alma-misionera',
   await p.ev(`addToMisa('glo_gloria-congreso-2000'); addToMisa('mar_magnificat'); addToMisa('ent_ven-hermano'); addToMisa('ofert_toma')`);
   const orden = await p.ev('JSON.stringify(misaIds)');
   check('orden por momento al agregar', orden === JSON.stringify(['ent_bendecire', 'ent_ven-hermano', 'glo_gloria-congreso-2000', 'ofert_toma', 'com_alma-misionera', 'mar_magnificat']), orden);
-  await p.ev(`fc('misa')`);
+  await p.ev(`elegirCategoria('misa')`);
   await p.ev(`document.querySelector('.admin-btn[data-action=up][data-song-id="ofert_toma"]').click()`);
   const tras = await p.ev('JSON.stringify(misaIds)');
   check('↑ sube una posición', JSON.parse(tras)[2] === 'ofert_toma', tras);

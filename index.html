@@ -537,6 +537,9 @@ footer {
   flex-wrap: wrap;
 }
 #admin-bar[hidden] { display: none; }
+body.banco-mode #searchWrap,
+body.banco-mode #cat-wrap,
+body.banco-mode #cat-section { display: none; }
 .aviso-misa {
   display: flex;
   flex-wrap: wrap;
@@ -691,8 +694,7 @@ function recibirMisa(ids) {
   misaPublicadaPendiente = null;
   mostrarAvisoMisa(false);
   misaIds = ids;
-  renderCats();
-  if (af === 'misa') renderList(getMisaSongs());
+  render();
 }
 
 function mostrarAvisoMisa(visible) {
@@ -716,12 +718,8 @@ if (catParam === 'todas') af = null;
 else if (catParam && CATS.some(([id]) => id === catParam)) af = catParam;
 else af = 'misa';
 
-// ── Banco mode: hide UI and acordes ──
-if (MODO.banco) {
-  document.getElementById('searchWrap').style.display = 'none';
-  document.getElementById('cat-wrap').style.display = 'none';
-  document.getElementById('cat-section').style.display = 'none';
-}
+// Banco: sin buscador ni categorías (lo oculta el CSS de body.banco-mode)
+if (MODO.banco) document.body.classList.add('banco-mode');
 
 // ── Admin: barra de sesión (Google) y botones de edición ──
 // Los botones aparecen solo con sesión de un admin autorizado (sesion.js)
@@ -729,9 +727,14 @@ if (MODO.admin) {
   const bar = document.createElement('div');
   bar.id = 'admin-bar';
   bar.hidden = true;
-  bar.innerHTML = `<button class="admin-action-btn" onclick="publicarMisa()">💾 Publicar Misa</button>
-    <button class="admin-action-btn" onclick="limpiarMisa()">🗑️ Limpiar Misa</button>
+  bar.innerHTML = `<button class="admin-action-btn" type="button" data-action="publicar">💾 Publicar Misa</button>
+    <button class="admin-action-btn" type="button" data-action="limpiar">🗑️ Limpiar Misa</button>
     <a class="admin-action-btn" href="qr.html">🖨️ QR para fieles</a>`;
+  bar.addEventListener('click', e => {
+    const accion = e.target.closest('[data-action]')?.dataset.action;
+    if (accion === 'publicar') publicarMisa();
+    else if (accion === 'limpiar') limpiarMisa();
+  });
   document.querySelector('main').prepend(bar);
   // Aviso cuando otro admin publica mientras este tiene cambios sin publicar
   const aviso = document.createElement('div');
@@ -748,7 +751,7 @@ if (MODO.admin) {
   panelSesion(document.querySelector('main'));
   document.addEventListener('sesion-admin', e => {
     bar.hidden = !e.detail;
-    renderList(listaVisible());
+    render();
   });
 }
 
@@ -759,8 +762,18 @@ function getMisaSongs() {
   return misaIds.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
 }
 
-function songsForFilter() {
+// Lo que muestra la lista: el resultado de la búsqueda o la categoría activa
+function cancionesVisibles() {
+  const q = document.getElementById('si').value;
+  if (q.trim()) return buscar(q);
   return af === 'misa' ? getMisaSongs() : (af ? SONGS.filter(s => s.category === af) : SONGS);
+}
+
+// Único punto de dibujo: chips, lista, contador y botón compartir salen del
+// estado (af, búsqueda, misaIds y sesión de admin)
+function render() {
+  renderCats();
+  renderList(cancionesVisibles());
 }
 
 // Refleja la categoría activa en la URL sin recargar, para que al volver
@@ -780,7 +793,7 @@ function renderCats() {
       n = SONGS.filter(s => s.category === id).length;
       if (!n) return '';
     }
-    return `<button class="cat-chip${af === id ? ' active' : ''}" onclick="fc('${id}')">
+    return `<button class="cat-chip${af === id ? ' active' : ''}" type="button" data-cat="${id}">
       <span class="chip-icon">${icon}</span>
       <span class="chip-label">${label}</span>
       <span class="chip-count">${n}</span>
@@ -808,49 +821,36 @@ function renderList(songs) {
   document.getElementById('misa-share').hidden = !(af === 'misa' && !MODO.banco);
   document.getElementById('nr').style.display = 'none';
   document.getElementById('misa-empty').style.display = 'none';
-  // El link a la canción arrastra modo, admin y categoría activa para que
-  // el "Volver" de cancion.html restaure exactamente este contexto
-  const songUrl = s => linkCon('cancion.html', { id: s.id, cat: af || 'todas' });
-  list.innerHTML = songs.map(s => {
-    if (MODO.admin && esAdminOk) {
-      const adminBtn = af === 'misa'
-        ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
-           <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
-           <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">❌<span class="btn-txt"> Quitar</span></button>`
-        : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
-      return `<div class="song-row admin-row" data-href="${songUrl(s)}" style="cursor:pointer">
-        <span class="song-tag">${CMAP[s.category] || s.category}</span>
-        <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
-        ${adminBtn}
-        <span class="song-arrow">›</span>
-      </div>`;
-    }
-    return `<a class="song-row" href="${songUrl(s)}">
-      <span class="song-tag">${CMAP[s.category] || s.category}</span>
-      <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
-      <span class="song-arrow">›</span>
-    </a>`;
-  }).join('');
-
-  list.querySelectorAll('.admin-btn[data-song-id]').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      e.preventDefault();
-      const action = btn.dataset.action;
-      if (action === 'add') addToMisa(btn.dataset.songId);
-      else if (action === 'up') moverEnMisa(btn.dataset.songId, -1);
-      else if (action === 'down') moverEnMisa(btn.dataset.songId, 1);
-      else removeFromMisa(btn.dataset.songId);
-    });
-  });
+  list.innerHTML = songs.map(filaHtml).join('');
 }
 
-function fc(id) {
+// Fila de la lista. Para un admin con sesión es un <div> con botones (los
+// clics los atiende el listener de #list); si no, un link común. El link
+// arrastra modo, admin y categoría activa para que el "Volver" restaure esto
+function filaHtml(s) {
+  const href = linkCon('cancion.html', { id: s.id, cat: af || 'todas' });
+  const editable = MODO.admin && esAdminOk;
+  const botones = !editable ? '' : af === 'misa'
+    ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
+       <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
+       <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">❌<span class="btn-txt"> Quitar</span></button>`
+    : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
+  const contenido = `
+      <span class="song-tag">${CMAP[s.category] || s.category}</span>
+      <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
+      ${botones}
+      <span class="song-arrow">›</span>`;
+  return editable
+    ? `<div class="song-row admin-row" data-href="${href}" style="cursor:pointer">${contenido}\n    </div>`
+    : `<a class="song-row" href="${href}">${contenido}\n    </a>`;
+}
+
+// Tocar un chip elige esa categoría (o la saca si ya estaba) y limpia la búsqueda
+function elegirCategoria(id) {
   af = af === id ? null : id;
   document.getElementById('si').value = '';
   syncCatParam();
-  renderCats();
-  renderList(songsForFilter());
+  render();
   if (af) document.getElementById('list').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -869,8 +869,7 @@ function addToMisa(songId) {
     if (pos < 0) misaIds.push(songId);
     else misaIds.splice(pos, 0, songId);
     misaSinPublicar = true;
-    renderCats();
-    renderList(songsForFilter());
+    render();
   }
 }
 
@@ -880,14 +879,13 @@ function moverEnMisa(songId, delta) {
   if (i < 0 || j < 0 || j >= misaIds.length) return;
   [misaIds[i], misaIds[j]] = [misaIds[j], misaIds[i]];
   misaSinPublicar = true;
-  renderList(getMisaSongs());
+  render();
 }
 
 function removeFromMisa(songId) {
   misaIds = misaIds.filter(id => id !== songId);
   misaSinPublicar = true;
-  renderCats();
-  renderList(getMisaSongs());
+  render();
 }
 
 // La marca de cambios se baja antes del set(): así el eco de la propia
@@ -904,8 +902,7 @@ function limpiarMisa() {
   if (!confirm('¿Limpiar la lista local? (No afecta Firebase hasta que publiques)')) return;
   misaIds = [];
   misaSinPublicar = true;
-  renderCats();
-  if (af === 'misa') renderList(getMisaSongs());
+  render();
 }
 
 // ── Búsqueda por título y por letra ──
@@ -955,26 +952,35 @@ function fragmentoHtml(s) {
   return `<span class="song-snippet">«${escaparHtml(antes)}<mark>${escaparHtml(medio)}</mark>${escaparHtml(despues)}»</span>`;
 }
 
-// Lo que muestra la lista ahora: el resultado de la búsqueda o la categoría
-function listaVisible() {
-  const q = document.getElementById('si').value;
-  return q.trim() ? buscar(q) : songsForFilter();
-}
+// ── Eventos (delegados: un listener por contenedor, sirve tras cada render) ──
+document.getElementById('cg').addEventListener('click', e => {
+  const chip = e.target.closest('.cat-chip[data-cat]');
+  if (chip) elegirCategoria(chip.dataset.cat);
+});
 
-// Filas de admin: un solo listener para navegar a la canción (los botones de
-// la fila frenan la propagación)
+// Botones de admin de cada fila, o la fila entera para ir a la canción
 document.getElementById('list').addEventListener('click', e => {
+  const btn = e.target.closest('.admin-btn[data-action]');
+  if (btn) {
+    e.preventDefault();
+    const id = btn.dataset.songId;
+    const accion = btn.dataset.action;
+    if (accion === 'add') addToMisa(id);
+    else if (accion === 'up') moverEnMisa(id, -1);
+    else if (accion === 'down') moverEnMisa(id, 1);
+    else if (accion === 'remove') removeFromMisa(id);
+    return;
+  }
   const fila = e.target.closest('.admin-row[data-href]');
-  if (fila && !e.target.closest('.admin-btn')) window.location.href = fila.dataset.href;
+  if (fila) window.location.href = fila.dataset.href;
 });
 
 document.getElementById('si').addEventListener('input', function () {
-  af = null; syncCatParam(); renderCats();
-  renderList(buscar(this.value));
+  af = null;
+  syncCatParam();
+  render();
   if (normalize(this.value.trim()).length >= 3 && !indiceLetras) {
-    cargarIndiceLetras().then(() => {
-      if (this.value.trim()) renderList(buscar(this.value));
-    });
+    cargarIndiceLetras().then(() => { if (this.value.trim()) render(); });
   }
 });
 
@@ -1006,8 +1012,7 @@ document.getElementById('btnCompartir').addEventListener('click', () => {
   window.addEventListener('resize', pos);
 })();
 
-renderCats();
-renderList(songsForFilter());
+render();
 </script>
 </body>
 </html>

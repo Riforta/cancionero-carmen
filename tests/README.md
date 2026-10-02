@@ -11,6 +11,7 @@ powershell -File tests/run.ps1                 # regresión completa (todo.mjs)
 powershell -File tests/run.ps1 misa.mjs        # una sola prueba
 powershell -File tests/run.ps1 capturas.mjs --referencia   # capturas de referencia
 powershell -File tests/run.ps1 capturas.mjs    # comparar contra la referencia
+node tests/acordes.node.mjs                    # acordes.js en Node, sin navegador (Node 22+)
 ```
 
 `run.ps1` levanta `python -m http.server 8642` en la raíz, abre Chrome
@@ -55,3 +56,4 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `sin-internet.mjs` | Service worker, caché de letras, modo avión |
 | `iphone.mjs` | Pantalla encendida en iPhone, zoom, aviso "Listo sin internet" |
 | `capturas.mjs` | Comparación visual contra la referencia |
+| `acordes.node.mjs` | `acordes.js` en Node: transposición, bemoles, diagramas de todos los acordes de `letras/` en los 23 tonos |
