@@ -745,7 +745,10 @@ const tituloCancion = (cancionActual && cancionActual.title) || urlParams.get('t
   (idCancion || '').replace(/^[a-z]+_/, '').split('-')
     .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
 
-fetch(`letras/${idCancion}.html`)
+// Solo ids con forma de nombre de archivo (prefijo_slug): nada de rutas ni HTML
+const idValido = /^[a-z]+_[a-z0-9-]+$/.test(idCancion || '');
+
+(idValido ? fetch(`letras/${idCancion}.html`) : Promise.reject(new Error('id inválido')))
   .then(response => {
     if (!response.ok) throw new Error();
     return response.text();
@@ -770,7 +773,13 @@ fetch(`letras/${idCancion}.html`)
     document.dispatchEvent(new Event('letra-cargada'));
   })
   .catch(() => {
-    document.getElementById('letra-box').innerHTML = `<div class="error-msg">No se pudo cargar la letra.<br>Verificá el archivo: <b>letras/${idCancion}.html</b></div>`;
+    // El id viene de la URL: va con textContent, nunca como HTML (evita XSS)
+    const msg = document.createElement('div');
+    msg.className = 'error-msg';
+    const archivo = document.createElement('b');
+    archivo.textContent = `letras/${idCancion}.html`;
+    msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Verificá el archivo: ', archivo);
+    document.getElementById('letra-box').replaceChildren(msg);
     document.getElementById('song-title').textContent = tituloCancion || "Error";
   });
 
