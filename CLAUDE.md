@@ -8,7 +8,9 @@ Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENT
 
 - `songs.js` — la lista `SONGS` es la fuente de verdad del índice: cada entrada tiene `id`, `num`, `title`, `category`. El `id` debe coincidir con el nombre del archivo en `letras/`. También define `CATS` (categorías y su orden).
 - `index.html` — lista de canciones con búsqueda y categorías.
-- `cancion.html` — muestra una letra (`?id=<id>`), con transposición de acordes y popover con diagrama de guitarra (`CHORD_DICTIONARY`).
+- `cancion.html` + `cancion.js` — muestra una letra (`?id=<id>`), con transposición de acordes y popover con diagrama de guitarra. Los acordes (transposición, `CHORD_DICTIONARY`, dibujo del diagrama) están en `acordes.js`.
+- `comun.js` / `comun.css` — código y estilos compartidos por las dos páginas (ver D18 en AGENTS.md).
+- `tests/` — pruebas: `powershell -File tests/run.ps1` (regresión completa) y `node tests/acordes.node.mjs`. Ver `tests/README.md`.
 - `letras/*.html` — fragmentos HTML (sin `<html>`/`<head>`) con la letra y los acordes.
 - `assets/` — logos e imágenes.
 - La categoría "Misa de Hoy" se sincroniza vía Firebase Realtime Database (`misa_actual`). `?admin=true` muestra los botones de edición; `?modo=banco` oculta acordes y controles (vista para los fieles).

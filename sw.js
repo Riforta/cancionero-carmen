@@ -10,10 +10,13 @@
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = 'cancionero-' + VERSION;
 
-importScripts('songs.js');
+// songs.js: la lista de letras a guardar. firebase-config.js: FIREBASE_SDK
+// (la versión del SDK en un solo lugar; sus funciones solo se definen, acá no
+// se llaman)
+importScripts('songs.js', 'firebase-config.js');
 
 const PROPIOS = [
   './', 'index.html', 'cancion.html', 'songs.js', 'firebase-config.js',
@@ -26,8 +29,8 @@ const PROPIOS = [
 const LETRAS = SONGS.map(s => `letras/${s.id}.html`);
 const EXTERNOS = [
   'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap',
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js'
+  FIREBASE_SDK + 'firebase-app-compat.js',
+  FIREBASE_SDK + 'firebase-database-compat.js'
 ];
 
 self.addEventListener('install', event => {
@@ -58,8 +61,9 @@ function claveSinQuery(request) {
   return url.origin + url.pathname;
 }
 
-function primeroRed(request) {
-  const clave = claveSinQuery(request);
+// Pide a la red y, si salió bien, guarda una copia con la clave dada. El
+// rechazo queda manejado (sin conexión es lo esperable); quien la usa decide
+function traerYGuardar(request, clave) {
   const red = fetch(request).then(resp => {
     if (resp.ok) {
       const copia = resp.clone();   // clonar antes de devolver: después el cuerpo ya se leyó
@@ -68,6 +72,12 @@ function primeroRed(request) {
     return resp;
   });
   red.catch(() => {});
+  return red;
+}
+
+function primeroRed(request) {
+  const clave = claveSinQuery(request);
+  const red = traerYGuardar(request, clave);
   const copia = caches.match(clave);
   const plazo = new Promise(ok => setTimeout(ok, 3000));
   // Gana la red; si falla o tarda más de 3 s, la copia (si hay)
@@ -77,14 +87,7 @@ function primeroRed(request) {
 
 function copiaYActualiza(request) {
   const clave = claveSinQuery(request);
-  const red = fetch(request).then(resp => {
-    if (resp.ok) {
-      const copia = resp.clone();   // clonar antes de devolver: después el cuerpo ya se leyó
-      caches.open(CACHE).then(c => c.put(clave, copia));
-    }
-    return resp;
-  });
-  red.catch(() => {});
+  const red = traerYGuardar(request, clave);
   return caches.match(clave).then(c => c || red).catch(() => red);
 }
 

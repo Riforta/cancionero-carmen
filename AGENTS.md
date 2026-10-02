@@ -37,27 +37,35 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 
 - `songs.js`: la lista `SONGS`, fuente de verdad de qué canciones existen, y
   `CATS`, que define las categorías y su orden. La cargan las dos páginas.
-- `index.html`: índice con búsqueda y categorías.
-- `cancion.html`: muestra una letra (`?id=<id>`). Hace `fetch` de
-  `letras/<id>.html` y la renderiza dentro de un `<pre>`.
+- `index.html`: índice con búsqueda y categorías (CSS y script propios).
+- `cancion.html`: muestra una letra (`?id=<id>`): el HTML y su CSS. El
+  comportamiento está en `cancion.js`, que hace `fetch` de `letras/<id>.html` y
+  la renderiza dentro de un `<pre>`.
+- `acordes.js`: escala, transposición, diccionario de diagramas de guitarra y
+  su dibujo en SVG. Funciones puras, probadas en Node (D18).
+- `comun.js` y `comun.css`: lo compartido por las dos páginas (D18).
 - `letras/*.html`: un archivo por canción. Contiene solo un fragmento HTML (sin
   `<html>` ni `<head>`).
 - `assets/`: logos, imágenes e íconos de la app (`icon-192.png`, `icon-512.png`,
   `apple-touch-icon.png`, generados desde `virgen-icono-color.jpg`).
 - `sw.js`: service worker para funcionar sin internet (D15).
-- `offline.js`: registra el service worker, muestra el aviso "Sin conexión" y
-  trae `leerCopia()` y `guardarCopia()` para las copias locales.
+- `offline.js`: registra el service worker y muestra los avisos "Sin conexión"
+  y "Listo para usar sin internet".
 - `manifest.webmanifest`: permite instalar el sitio como app ("Agregar a
   pantalla de inicio").
-- `tema.js` y `tema.css`: modo oscuro (D17).
+- `tema.js`: decide el tema claro u oscuro (D17); los colores están en
+  `comun.css`.
 - `sesion.js`: barra de sesión del modo admin (login con Google) y la variable
   `esAdminOk` (D16).
 - `qr.html`: página para imprimir el QR de los fieles (§4e).
 - `database.rules.json`: reglas de la base. Son la referencia: se aplican a mano
   en la consola de Firebase (§7).
-- `firebase-config.js`: config de Firebase compartida por las dos páginas, más
-  `cargarFirebase()` (carga el SDK bajo demanda) y `leerFirebase(ruta)`
-  (lectura puntual por REST).
+- `firebase-config.js`: config de Firebase compartida, más:
+  - `cargarFirebase()`: carga el SDK bajo demanda.
+  - `leerFirebase(ruta)`: lectura puntual por REST.
+  - `seguirDato()`, `suscribirMisa()` y `escribirDato()` (D18).
+  - Lo de la sesión de admin (D16).
+- `tests/`: pruebas en Chrome headless y en Node (§5, `tests/README.md`).
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
@@ -79,16 +87,16 @@ canción es solo crear un archivo. Consecuencia: el sitio no funciona abriéndol
 con `file://`; para probarlo hay que servirlo por HTTP (ver §5).
 
 **D3. `SONGS` en `songs.js` es la fuente de verdad del índice** (archivo propio
-desde 2026-10-01). Lo cargan `index.html` y `cancion.html`, y también lo usará el
-service worker. `cancion.html` toma el título de `SONGS`. El parámetro `?t=`
+desde 2026-10-01). Lo cargan `index.html`, `cancion.html` y el service worker
+(para saber qué letras guardar). `cancion.html` toma el título de `SONGS`. El parámetro `?t=`
 queda solo como respaldo para links viejos.
 
 **D4. El contexto de navegación viaja por la URL.** `modo`, `admin` y `cat`
 (categoría activa, `todas` = sin filtro) pasan de `index.html` a `cancion.html` y
 vuelven con el botón "Volver". No usar `localStorage` para esto.
 
-**D5. Firebase solo para lo que se edita desde la web.** Hoy son "Misa de Hoy"
-y las notas de las canciones. Lo que se edita como código (letras, índice,
+**D5. Firebase solo para lo que se edita desde la web.** Hoy son "Misa de Hoy",
+las notas y el tono del coro de cada canción. Lo que se edita como código (letras, índice,
 links de audio) va en el repo. La config de Firebase (`firebase-config.js`) es
 pública por diseño (así funciona Firebase web); la seguridad depende de las
 reglas de la base (`database.rules.json`, D16).
@@ -167,7 +175,7 @@ más de 100 fieles a la vez.
   con un aviso, para que no queden encoladas sin que nadie lo sepa.
 - **Al cambiar `sw.js`, subir `VERSION`:** así se descarta la caché anterior.
   Las letras y canciones nuevas no requieren tocarlo, porque salen de
-  `songs.js`. Un archivo propio nuevo (otra página, otro script) sí hay que
+  `songs.js`. Un archivo propio nuevo (otra página, otro script o CSS) sí hay que
   agregarlo a `PROPIOS`.
 - **Aviso de que está listo:** en el pie del índice aparece "📥 Listo para usar
   sin internet" cuando la caché ya tiene todas las letras (`offline.js`). Para
@@ -191,8 +199,8 @@ más de 100 fieles a la vez.
 - **Agregar un admin:** en la consola de Firebase (§7), sin tocar el código.
 
 
-**D17. Modo oscuro** (2026-10-01). Lo manejan `tema.js` y `tema.css`, que
-cargan las dos páginas en el `<head>`.
+**D17. Modo oscuro** (2026-10-01). Lo manejan `tema.js` (qué tema se ve) y
+`comun.css` (los colores), que cargan las dos páginas en el `<head>`.
 - **Qué tema se ve:**
   - `tema.js` pone `data-theme="light"` o `"dark"` en `<html>` antes de pintar,
     así no hay destello claro.
@@ -201,7 +209,7 @@ cargan las dos páginas en el `<head>`.
   - Si la persona toca 🌙/☀️ en el encabezado, su elección queda en
     `localStorage.tema` y ya no sigue al sistema.
   - El botón está en todos los modos, banco incluido.
-- **Cómo está armado:** `tema.css` redefine las variables bajo
+- **Cómo está armado:** `comun.css` redefine las variables bajo
   `:root[data-theme="dark"]` (`--bg`, `--ink`, `--border`, `--brown-mid`…) y
   activa `color-scheme: dark`. También ajusta lo que no sale de variables:
   - activos y botones principales en dorado con texto oscuro;
@@ -212,8 +220,36 @@ cargan las dos páginas en el `<head>`.
   `--brown-dark` y `--brown` quedan para **fondos** (encabezado, banner, botones
   activos), que son oscuros en los dos temas.
 - **Color nuevo sobre una superficie clara:** tiene que funcionar en los dos
-  temas. Usar una variable, o agregar su ajuste en `tema.css`.
+  temas. Usar una variable, o agregar su ajuste en `comun.css`.
 - **Excepción:** `qr.html` queda siempre clara, porque es para imprimir.
+
+**D18. Código compartido** (2026-10-02). Lo que usan las dos páginas está una
+sola vez:
+- **`comun.js`:**
+  - `MODO` (banco, admin, cat, leídos de la URL).
+  - `linkCon(página, extra)`: links que conservan modo, admin y categoría (D4).
+  - `botonModo()`: el botón "Modo admin".
+  - `normalize`, `escaparHtml` y `lineasDeLetra` (la usan la búsqueda y el
+    lector de voz).
+  - `leerCopia` / `guardarCopia`.
+- **`firebase-config.js`:**
+  - `seguirDato(ruta, claveCopia, cb)`: entrega primero la copia local y
+    después el dato publicado. En banco lo lee una vez por REST (D14); en el
+    resto, en vivo.
+  - `suscribirMisa(cb)`: lo mismo para la misa, ya normalizada.
+  - `escribirDato(ref, valor, botón, acción)`: sin conexión no escribe,
+    deshabilita el botón y avisa errores.
+  - **Todo dato nuevo de Firebase tiene que usar estas funciones.**
+- **`acordes.js`:** funciones puras de acordes. Si se agrega un acorde a una
+  letra, `tests/acordes.node.mjs` avisa si le falta diagrama.
+- **`comun.css`:** paleta, base, encabezado, `[hidden]` global, la base de los
+  botones píldora, la barra de sesión y el aviso sin conexión.
+  - Las páginas no inyectan estilos desde JS.
+  - En `cancion.html`, todo lo que no ven los fieles lleva la clase
+    `.no-banco`.
+- **Eventos:** sin `onclick` en el HTML. El índice dibuja todo con un único
+  `render()` y usa listeners delegados (`data-action`, `data-cat`,
+  `data-href`).
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -241,7 +277,8 @@ cargan las dos páginas en el `<head>`.
          { "url": "https://drive.google.com/file/d/ID/view", "etiqueta": "Ensayo del coro" }
        ] },
      ```
-     El tipo se deduce de la URL:
+     El tipo se deduce de la URL. Si hace falta forzarlo, se agrega `tipo`
+     (`"youtube"` o `"audio"`):
      - YouTube: reproductor de `youtube-nocookie`.
      - Spotify: track, álbum o playlist.
      - Google Drive: el archivo tiene que estar compartido como "cualquiera con
@@ -456,7 +493,7 @@ Ninguna aparece en modo banco.
   para quien ve poco.
 - **Modo oscuro:** al agregar estilos, probar la pantalla en los dos temas
   (botón 🌙/☀️). Ningún color fijo pensado para fondo claro debe quedar sin su
-  ajuste en `tema.css` (D17).
+  ajuste en `comun.css` (D17).
 - **Diagramas de guitarra:** un acorde nuevo que no esté en `CHORD_DICTIONARY`
   muestra "Diagrama no disponible". Si aparece en una letra, agregar su voicing.
 
@@ -482,6 +519,20 @@ Ya decidido:
 - Los fieles (modo banco) tienen anterior/siguiente y funcionan sin internet.
   No tienen pantalla encendida, desplazamiento automático ni audios.
 - El login de admin es con cuenta de Google y una lista de emails autorizados.
+
+### Revisión del código (2026-10-02)
+
+Hecha en 7 commits, cada uno verificado con `tests/`:
+- arreglo de un XSS en `cancion.html`;
+- pruebas en el repo y capturas de referencia;
+- arreglos de la misa (ids borrados, otra versión publicada) y reglas más
+  estrictas;
+- código muerto;
+- `comun.js` y funciones de datos;
+- `acordes.js` / `cancion.js` y `render()` único;
+- `comun.css`.
+
+Sin cambios visuales: las capturas son idénticas al píxel.
 
 ### Otros pendientes
 
@@ -513,6 +564,11 @@ orden: los pasos 1 a 3 no rompen nada, y las reglas van al final.
 4. **Publicar el código** (push a `main`) y probar el login desde el celular.
 5. **Aplicar las reglas:** Realtime Database → Reglas → reemplazar todo por el
    contenido de `database.rules.json` → Publicar.
+
+**Cada vez que cambia `database.rules.json`**, hay que volver a pegarlo en la
+consola, después de publicar el código. Desde 2026-10-02 las reglas validan
+además los rangos del tono (transponer de −11 a 11, capo de 0 a 8, sin campos
+extra) y que la misa sea una lista de ids de texto.
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:
