@@ -96,7 +96,7 @@ function chordLookup(name) {
 }
 
 // SVG del diagrama (viewBox 0 0 100 120). Los colores también van por clase
-// (cd-*) para que el modo oscuro los cambie (tema.css)
+// (cd-*) para que el modo oscuro los cambie (comun.css)
 function drawChordSVG(positions) {
   if (!positions) return '';
   let frets = positions.filter(p => typeof p === 'number' && p > 0);

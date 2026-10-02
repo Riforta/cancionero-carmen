@@ -8,30 +8,6 @@
 let esAdminOk = false;
 
 function panelSesion(contenedor) {
-  const estilo = document.createElement('style');
-  estilo.textContent = `
-    .sesion-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 0.5rem;
-      margin-bottom: 1rem; padding: 0.6rem 0.9rem;
-      background: var(--bg); border: 1.5px solid var(--border-mid);
-      border-left: 4px solid var(--brown-mid); border-radius: 12px;
-      font-size: 1rem; color: var(--ink);
-      box-shadow: 0 2px 8px rgba(107,66,38,0.08);
-    }
-    .sesion-bar.admin { border-left-color: #4E7A3A; }
-    .sesion-bar.no-admin, .sesion-bar.sin-conexion { border-left-color: #A4452C; }
-    .sesion-texto { flex: 1; min-width: 12rem; overflow-wrap: anywhere; }
-    .sesion-btn {
-      padding: 0.45rem 1rem; border-radius: 50px; cursor: pointer;
-      border: 1.5px solid var(--border-mid); background: var(--bg);
-      color: var(--text-strong); font-family: 'EB Garamond', serif; font-size: 1rem;
-      white-space: nowrap;
-    }
-    .sesion-btn.principal { background: var(--brown-dark); color: #fff; border-color: transparent; }
-    .sesion-btn:disabled { opacity: 0.6; cursor: wait; }`;
-  document.head.appendChild(estilo);
-
   const barra = document.createElement('div');
   barra.className = 'sesion-bar';
   barra.setAttribute('role', 'status');

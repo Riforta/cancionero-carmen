@@ -27,16 +27,6 @@ if ('serviceWorker' in navigator) {
 
 // Aviso dentro del encabezado (que es sticky), así se ve siempre
 (function () {
-  const estilo = document.createElement('style');
-  estilo.textContent = `
-    .aviso-offline {
-      background: #DDB45E; color: #2C1A0D; text-align: center;
-      font-family: 'EB Garamond', Georgia, serif; font-size: 0.9rem;
-      padding: 0.3rem 0.8rem;
-    }
-    .aviso-offline[hidden] { display: none; }`;
-  document.head.appendChild(estilo);
-
   const aviso = document.createElement('div');
   aviso.className = 'aviso-offline';
   aviso.setAttribute('role', 'status');

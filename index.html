@@ -9,7 +9,7 @@
 
 <link rel="icon" type="image/png" href="assets/logo-medallon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="tema.css">
+<link rel="stylesheet" href="comun.css">
 <script src="tema.js"></script>
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,55 +19,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  /* Paleta Virgen del Carmen — ícono a color */
-  --peach:       #F9CD8E;   /* Fondo apricot del ícono */
-  --peach-soft:  #FCE2B4;   /* Apricot claro */
-  --brown:       #6B4226;   /* Marrón hábito carmelita */
-  --brown-dark:  #3E2415;   /* Marrón borde oscuro */
-  --brown-mid:   #8A5733;   /* Marrón cobrizo */
-  --brown-light: #FBE7CB;   /* Arena cálida */
-  --gold:        #B8862E;   /* Oro ocre */
-  --gold-light:  #DDB45E;   /* Miel dorada */
-  --gold-bright: #EBCB72;   /* Estrella dorada */
-  --ink:         #2C1A0D;   /* Tinta marrón oscuro */
-  --ink-soft:    #7A5638;   /* Marrón suave */
-  --border:      #E8CFA8;   /* Borde cálido */
-  --border-mid:  #D2AE7E;   /* Borde medio */
-  --bg:          #FFFDF7;   /* Superficie de tarjeta */
-  /* Semánticos: cambian con el tema (modo oscuro en tema.css) */
-  --text-strong: var(--brown-dark);   /* títulos y texto de botones */
-  --text-accent: var(--brown);        /* etiquetas de chips y controles */
-  --page-bg:     linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
-}
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-/* touch-action: sin zoom por doble toque (molesta al tocar rápido los
-   botones), pero se puede seguir agrandando con dos dedos */
-html { scroll-behavior: smooth; touch-action: manipulation; }
-body {
-  font-family: 'EB Garamond', Georgia, serif;
-  background: var(--page-bg);
-  background-repeat: no-repeat;
-  color: var(--ink);
-  min-height: 100vh;
-  -webkit-text-size-adjust: 100%;
-}
+html { scroll-behavior: smooth; }
 
 /* ─── HEADER ─── */
-header {
-  background: linear-gradient(160deg, var(--brown-dark) 0%, #5A3520 58%, var(--brown) 100%);
-  color: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 3px 28px rgba(62,36,21,0.5);
-}
 
-.header-gold-bar {
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--gold) 15%, var(--gold-bright) 50%, var(--gold) 85%, transparent);
-}
 
 .header-body {
   display: flex;
@@ -87,7 +43,6 @@ header {
   box-shadow: 0 0 0 4px rgba(196,154,42,0.14), 0 3px 12px rgba(0,0,0,0.38);
   overflow: hidden;
 }
-.header-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .header-title-group { flex: 1; min-width: 0; }
 
@@ -117,29 +72,6 @@ header {
   text-overflow: ellipsis;
 }
 
-/* ─── BOTÓN MODO MÚSICO / ADMIN ─── */
-.mode-toggle {
-  flex-shrink: 0;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(221,180,94,0.45);
-  color: var(--gold-light);
-  border-radius: 50px;
-  padding: 0.35rem 0.8rem;
-  min-height: 36px;
-  font-family: 'Cinzel', serif;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s, border-color 0.15s;
-}
-.mode-toggle:hover { background: rgba(255,255,255,0.14); border-color: var(--gold-light); }
-.mode-toggle.is-admin { background: var(--gold-light); color: var(--brown-dark); border-color: transparent; }
-.mode-toggle.is-admin:hover { background: var(--gold-bright); }
-.mode-toggle[hidden] { display: none; }
 
 /* ─── SEARCH ─── */
 .search-wrap {
@@ -463,7 +395,6 @@ main {
 
 /* Compartir la misa */
 .misa-share { display: flex; justify-content: flex-end; margin: -0.4rem 0 0.8rem; }
-.misa-share[hidden] { display: none; }
 
 /* ─── NO RESULTS ─── */
 .no-results {
@@ -497,7 +428,6 @@ footer {
   margin-bottom: 0.4rem;
 }
 .footer-text.estado-offline { margin-top: 0.4rem; opacity: 0.85; font-style: normal; }
-.footer-text.estado-offline[hidden] { display: none; }
 .footer-text {
   font-family: 'EB Garamond', serif;
   font-size: 0.8rem;
@@ -536,7 +466,6 @@ footer {
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
-#admin-bar[hidden] { display: none; }
 body.banco-mode #searchWrap,
 body.banco-mode #cat-wrap,
 body.banco-mode #cat-section { display: none; }
@@ -553,16 +482,13 @@ body.banco-mode #cat-section { display: none; }
   border-radius: 12px;
   color: var(--ink);
 }
-.aviso-misa[hidden] { display: none; }
 .admin-action-btn {
   padding: 0.5rem 1.1rem;
-  border-radius: 50px;
   border: 1.5px solid var(--border-mid);
   background: var(--bg);
   color: var(--text-strong);
   font-family: 'EB Garamond', serif;
   font-size: 1rem;
-  cursor: pointer;
   box-shadow: 0 2px 8px rgba(107,66,38,0.1);
   transition: background 0.15s;
 }
@@ -571,9 +497,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 .admin-btn {
   background: none;
   border: 1.5px solid var(--border);
-  border-radius: 50px;
   padding: 0.2rem 0.65rem;
-  cursor: pointer;
   font-size: 0.82rem;
   flex-shrink: 0;
   font-family: 'EB Garamond', serif;
