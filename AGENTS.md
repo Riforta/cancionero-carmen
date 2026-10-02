@@ -58,6 +58,9 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 - `sesion.js`: barra de sesión del modo admin (login con Google) y la variable
   `esAdminOk` (D16).
 - `qr.html`: página para imprimir el QR de los fieles (§4e).
+- `avisos.html` + `avisos.js`: avisos del coro (§4f).
+- `liturgia.js`: calendario litúrgico (tiempo, color, fiestas), calculado sin
+  internet (D19).
 - `database.rules.json`: reglas de la base. Son la referencia: se aplican a mano
   en la consola de Firebase (§7).
 - `firebase-config.js`: config de Firebase compartida, más:
@@ -69,6 +72,9 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
+  - `misa_meta`: `{ por, cuando }`, quién publicó la misa y cuándo (§4).
+  - `avisos/<id>`: `{ fecha, hora, tipo, titulo, lugar, detalle }`, los avisos
+    del coro (§4f).
   - `tonos/<id>`: `{ transponer, capo }`, el tono en que canta el coro cada
     canción (ver §4c).
   - `admins/<email>`: `true` para cada admin autorizado. El email va en
@@ -127,7 +133,9 @@ muestra como `LA#`, `SI`, etc.).
 
 **D10. Modo banco sin lector de voz** (2026-07-06). El lector de letra en voz
 alta está en `cancion.html` para personas invidentes, pero en `?modo=banco` se
-oculta junto con el resto de los controles.
+oculta junto con el resto de los controles. **Excepción** (2026-10-02): los
+botones A− / A+ del tamaño de letra sí se ven en banco, porque los usa gente
+mayor que lee desde el celular (§4c).
 
 **D11. Accesibilidad.** Los `<c>` y las `.chord-line` llevan `aria-hidden` para
 que los lectores de pantalla lean solo la letra.
@@ -250,6 +258,32 @@ sola vez:
 - **Eventos:** sin `onclick` en el HTML. El índice dibuja todo con un único
   `render()` y usa listeners delegados (`data-action`, `data-cat`,
   `data-href`).
+
+**D19. Calendario litúrgico calculado** (2026-10-02). `liturgia.js` calcula
+todo a partir de la fecha de Pascua (algoritmo de Meeus/Jones/Butcher), sin
+internet ni datos cargados a mano.
+- **Tiempos:**
+  - Adviento: 4 domingos antes de Navidad.
+  - Navidad: hasta el Bautismo del Señor.
+  - Tiempo Ordinario I.
+  - Cuaresma: desde Ceniza, Pascua − 46.
+  - Semana Santa y Triduo.
+  - Pascua: hasta Pentecostés.
+  - Tiempo Ordinario II, numerado hacia atrás desde Cristo Rey (semana 34).
+- **Colores:** verde, morado, blanco y rojo; rosa en Gaudete y Laetare.
+- **Calendario de Argentina:**
+  - Epifanía, Ascensión y Corpus, en domingo.
+  - Si la Epifanía cae el 7 o el 8, el Bautismo pasa al lunes.
+  - Traslados de la Inmaculada, San José y la Anunciación.
+  - Nuestra Señora de Luján (8/5) y la **Virgen del Carmen (16/7) como fiesta
+    patronal**.
+- **Uso en el sitio:** la franja del índice y las fiestas automáticas de los
+  avisos.
+- **Pruebas:** `tests/liturgia.node.mjs` cubre fechas de 2008 a 2038 y revisa
+  cada día de 2020 a 2035. Una fiesta nueva se agrega en `fiestas()` con su
+  prueba.
+- **`window.FECHA_PRUEBA`** (`'AAAA-MM-DD'`, en `fechaHoy()` de `comun.js`) fija
+  el día: solo lo usan las pruebas.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -372,6 +406,12 @@ sola vez:
   momento. El orden fino se ajusta con ↑ ↓ en la vista de la misa. El orden del
   array es el orden de la misa.
 - `🗑️ Limpiar Misa` vacía solo la lista local hasta que se publique.
+- **Quién publicó** (2026-10-02): al publicar se guardan en una sola operación
+  (`escribirVarios`) la misa y `misa_meta`.
+  - `por`: el nombre de Google del admin o, si no hay, su email.
+  - `cuando`: hora del servidor.
+  - En Misa de Hoy se ve "Publicada por Mateo · sáb 3/10, 19:40". Lo ven
+    músicos y admin; el modo banco no lo lee.
 - **Otra versión publicada mientras se edita** (2026-10-02): si un admin tiene
   cambios sin publicar y llega otra versión (otro admin publicó), su lista no
   se pisa. Aparece el aviso "Se publicó otra versión…" con "Cargar la
@@ -410,6 +450,11 @@ sola vez:
 
 Ninguna aparece en modo banco.
 
+- **Tamaño de letra** (2026-10-02, también en banco, excepción a D10):
+  - Botones A− / A+ arriba de la letra, con 6 tamaños (de 0,85 a 1,6 veces).
+  - Escala el `<pre>` con la variable CSS `--escala-letra`. Los acordes son
+    `em`, así que crecen con la letra y la alineación se mantiene.
+  - Se recuerda en el celular (`localStorage.tam_letra`).
 - **Pantalla encendida**, con dos mecanismos:
   - **Wake Lock API:** se pide al abrir la canción y se renueva al volver a la
     pestaña y con cada toque.
@@ -468,6 +513,30 @@ Ninguna aparece en modo banco.
 - **Antes de difundirlo:** tienen que estar publicadas las fases 0 (banco sin
   conexión en vivo, D14) y 3 (escrituras protegidas, §7).
 
+
+## 4f. Avisos del coro y tiempo litúrgico
+
+- **Tiempo litúrgico** (D19): en el índice, en todos los modos, una franja con
+  el nombre del día y el color litúrgico.
+  - Ejemplos: "Domingo XXVII del Tiempo Ordinario", o el nombre de la fiesta si
+    hay una.
+  - En Adviento, Navidad, Cuaresma y Pascua, esa categoría aparece justo después
+    de Misa de Hoy, si tiene canciones.
+- **Avisos** (`avisos.html`, 2026-10-02): **solo para el coro**. En modo banco
+  la página vuelve al índice y el índice no los muestra.
+  - **Qué hay:** ensayos 🎶, celebraciones ⛪ y avisos 📢, cargados de a uno
+    (sin repetición), más las fiestas litúrgicas ✝️ de los próximos 60 días,
+    que aparecen solas y no se editan.
+  - **Lista:** agrupada por mes. Lo que ya pasó no aparece.
+  - **"📅 Agregar a mi calendario":** baja un `.ics` con la hora local del
+    celular (1 h de duración), o de día completo si no tiene hora.
+  - **Edición:** un admin con sesión agrega, edita y borra (`escribirDato`;
+    `push` para los nuevos).
+  - **Sin conexión:** copia local en `localStorage.avisos_cache`.
+  - **En el índice:** "Próximos avisos", con los 3 más cercanos de los próximos
+    30 días y link a la página.
+- **Pendiente:** la vista de calendario (grilla del mes) queda para más
+  adelante (§6).
 ---
 
 ## 5. Cómo trabajar en el repo
@@ -536,6 +605,9 @@ Sin cambios visuales: las capturas son idénticas al píxel.
 
 ### Otros pendientes
 
+- Vista de calendario de los avisos (grilla del mes con puntos en los días con
+  eventos; al tocar un día, sus avisos). Decidido: después de la lista.
+
 - Cargar los links de audio (`medios` en `songs.js`). Al 2026-10-01 tienen 6
   canciones carmelitanas (La confianza, Porque te amo oh Madre, El abandono,
   Una lluvia de rosas, No conozco otro medio, Lo que agrada a Dios).
@@ -568,7 +640,10 @@ orden: los pasos 1 a 3 no rompen nada, y las reglas van al final.
 **Cada vez que cambia `database.rules.json`**, hay que volver a pegarlo en la
 consola, después de publicar el código. Desde 2026-10-02 las reglas validan
 además los rangos del tono (transponer de −11 a 11, capo de 0 a 8, sin campos
-extra) y que la misa sea una lista de ids de texto.
+extra) y que la misa sea una lista de ids de texto. Desde la misma fecha se
+suman `misa_meta` (quién y cuándo) y `avisos` (fecha, hora, tipo y largos
+validados); sin pegar las reglas nuevas, publicar la misa y guardar avisos da
+"Permission denied".
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:

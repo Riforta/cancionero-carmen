@@ -10,6 +10,8 @@ Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENT
 - `index.html` — lista de canciones con búsqueda y categorías.
 - `cancion.html` + `cancion.js` — muestra una letra (`?id=<id>`), con transposición de acordes y popover con diagrama de guitarra. Los acordes (transposición, `CHORD_DICTIONARY`, dibujo del diagrama) están en `acordes.js`.
 - `comun.js` / `comun.css` — código y estilos compartidos por las dos páginas (ver D18 en AGENTS.md).
+- `avisos.html` + `avisos.js` — avisos del coro (ensayos, celebraciones), solo para músicos y admin.
+- `liturgia.js` — calendario litúrgico (tiempo, color, fiestas) calculado sin internet; ver D19.
 - `tests/` — pruebas: `powershell -File tests/run.ps1` (regresión completa) y `node tests/acordes.node.mjs`. Ver `tests/README.md`.
 - `letras/*.html` — fragmentos HTML (sin `<html>`/`<head>`) con la letra y los acordes.
 - `assets/` — logos e imágenes.

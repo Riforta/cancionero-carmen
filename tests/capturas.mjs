@@ -18,7 +18,10 @@ const DB = {
   misa_actual: MISA,
   'notas/com_pescador-de-hombres': 'Tono DO, entra el coro en el estribillo',
   'tonos/com_pescador-de-hombres': { transponer: 2, capo: 0 },
-  'admins/test@gmail,com': true
+  'admins/test@gmail,com': true,
+  misa_meta: { por: 'Mateo', cuando: new Date(2026, 9, 3, 19, 40).getTime() },
+  'avisos/a1': { fecha: '2026-10-08', hora: '20:00', tipo: 'ensayo', titulo: 'Ensayo general', lugar: 'Salón parroquial', detalle: 'Traer las carpetas' },
+  'avisos/a2': { fecha: '2026-10-17', hora: '', tipo: 'celebracion', titulo: 'Misa con el coro de jóvenes', lugar: '', detalle: '' }
 };
 const ADMIN = { email: 'test@gmail.com' };
 const CANCION = '/cancion.html?id=com_pescador-de-hombres&cat=misa';
@@ -31,7 +34,9 @@ const PANTALLAS = [
   { nombre: 'cancion-musico', url: CANCION, fake: true },
   { nombre: 'cancion-admin', url: CANCION + '&admin=true', fake: true, admin: true },
   { nombre: 'cancion-banco', url: CANCION + '&modo=banco', rest: true },
-  { nombre: 'cancion-popover', url: CANCION, fake: true, popover: true }
+  { nombre: 'cancion-popover', url: CANCION, fake: true, popover: true },
+  { nombre: 'avisos-musico', url: '/avisos.html', fake: true },
+  { nombre: 'avisos-admin', url: '/avisos.html?admin=true', fake: true, admin: true }
 ];
 
 const c = await connect();
