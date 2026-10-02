@@ -53,6 +53,9 @@ const SONGS = [
   { "id": "snt_cordero-clasico", "num": 0, "title": "Cordero Clásico", "category": "santo" },
   { "id": "snt_cordero-lento", "num": 0, "title": "Cordero Lento", "category": "santo" },
   { "id": "snt_cordero-marcha-carnavalito", "num": 0, "title": "Cordero Marcha (Carnavalito)", "category": "santo" },
+  { "id": "snt_cordero-lento-sube", "num": 4, "title": "Cordero (Lento, sube de tono)", "category": "santo" },
+  { "id": "snt_este-es-el-cordero", "num": 6, "title": "Éste es el Cordero", "category": "santo" },
+  { "id": "snt_cordero-cueca", "num": 7, "title": "Cordero (Cueca)", "category": "santo" },
 
   // --- COMUNIÓN (com_) ---
   { "id": "com_alma-misionera", "num": 0, "title": "Alma misionera", "category": "comunion" },
