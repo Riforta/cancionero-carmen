@@ -8,7 +8,7 @@
 const SONGS = [
   // --- ENTRADA (ent_) ---
   { "id": "ent_bendecire", "num": 0, "title": "Bendeciré", "category": "entrada" },
-  { "id": "ent_aqui-estamos-senor", "num": 19, "title": "Aquí estamos Señor", "category": "entrada" },
+  { "id": "ent_aqui-estamos-senor", "num": 1, "title": "Aquí estamos Señor", "category": "entrada" },
   { "id": "ent_vienen-con-alegria", "num": 19, "title": "Vienen con alegría", "category": "entrada" },
   { "id": "ent_juntos-como-hermanos", "num": 9, "title": "Juntos como hermanos", "category": "entrada" },
   { "id": "ent_que-lindo-es-llegar-cantando", "num": 15, "title": "Qué lindo es llegar cantando", "category": "entrada" },
@@ -130,7 +130,7 @@ const SONGS = [
   { "id": "mar_madre-hoy-quiero-hablarte", "num": 164, "title": "Madre hoy quiero hablarte", "category": "marianos" },
   { "id": "mar_maria-mirame", "num": 169, "title": "María mírame", "category": "marianos" },
   { "id": "mar_ven-con-nosotros-a-caminar", "num": 182, "title": "Ven con nosotros a caminar", "category": "marianos" },
-  { "id": "mar_dios-te-salve-maria", "num": 182, "title": "Dios te salve María", "category": "marianos" },
+  { "id": "mar_dios-te-salve-maria", "num": 0, "title": "Dios te salve María", "category": "marianos" },
 
 
   // --- OTRAS / VARIAS (var_) ---

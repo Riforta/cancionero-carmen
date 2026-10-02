@@ -3,6 +3,7 @@
 // letra de la caché.
 await import('./_instalar-sw.mjs');
 await import('./seguridad.mjs');
+await import('./revision.mjs');
 await import('./base.mjs');
 await import('./misa.mjs');
 await import('./login.mjs');

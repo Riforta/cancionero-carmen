@@ -43,6 +43,7 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `todo.mjs` | Regresión completa (todas las de abajo) |
 | `_instalar-sw.mjs` | Deja instalado el service worker antes del resto |
 | `seguridad.mjs` | El `?id=` de la URL no se ejecuta como HTML |
+| `revision.mjs` | Arreglos de la revisión: misa con ids borrados, aviso de otra versión publicada, singular, filas de admin, sin `?id=`, reglas, números |
 | `base.mjs` | Índice, categorías, búsqueda, banco por REST, sin SDK |
 | `misa.mjs` | Orden de la misa, ↑ ↓, anterior/siguiente, pantalla encendida, autoscroll |
 | `login.mjs` | Login de admin con Google (simulado) y permisos |

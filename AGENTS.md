@@ -112,6 +112,10 @@ puntos, paréntesis o un prefijo `Intro:`.
 traste del capo. Con capo, los acordes se muestran en la posición en que se
 tocan. La transposición siempre devuelve sostenidos (un `SIb` transpuesto se
 muestra como `LA#`, `SI`, etc.).
+- Solo entiende notación latina: la americana se convierte al cargar la letra
+  (§3).
+- La transposición se mantiene entre −11 y +11 (12 semitonos = una octava), que
+  es lo que aceptan las reglas al guardar el tono del coro.
 
 **D10. Modo banco sin lector de voz** (2026-07-06). El lector de letra en voz
 alta está en `cancion.html` para personas invidentes, pero en `?modo=banco` se
@@ -331,6 +335,14 @@ cargan las dos páginas en el `<head>`.
   momento. El orden fino se ajusta con ↑ ↓ en la vista de la misa. El orden del
   array es el orden de la misa.
 - `🗑️ Limpiar Misa` vacía solo la lista local hasta que se publique.
+- **Otra versión publicada mientras se edita** (2026-10-02): si un admin tiene
+  cambios sin publicar y llega otra versión (otro admin publicó), su lista no
+  se pisa. Aparece el aviso "Se publicó otra versión…" con "Cargar la
+  publicada", que pide confirmación porque descarta los cambios. El eco de su
+  propia publicación no dispara el aviso: la marca de cambios se baja antes del
+  `set()`.
+- **Ids que ya no existen** en `SONGS` se descartan al recibir la misa: no
+  cuentan en el chip, no se reordenan y no se vuelven a publicar.
 - **Anterior / siguiente:** en `cancion.html`, si se llegó desde Misa de Hoy
   (`cat=misa`), abajo de la letra aparecen la canción anterior y la siguiente,
   y la posición ("2 / 6"). Está en todos los modos, incluido banco.
@@ -339,8 +351,7 @@ cargan las dos páginas en el `<head>`.
   versión publicada.
 - Al entrar sin `?cat=`, el índice arranca en "Misa de Hoy". Si no hay
   canciones, muestra "Aún no se han seleccionado las canciones…".
-- Los ids de `misa_actual` que ya no existan en `SONGS` se ignoran. **Renombrar
-  un `id` rompe la misa publicada que lo contenga.**
+- **Renombrar un `id`** saca esa canción de la misa publicada que la contenga.
 
 ## 4b. Reglas de negocio: notas de las canciones
 

@@ -43,11 +43,17 @@ for (const tema of ['claro', 'oscuro']) {
       fake: pant.fake ? FAKE_FIREBASE(DB, pant.admin ? ADMIN : null) : null,
       rest: pant.rest ? { misa_actual: MISA } : null
     });
-    // Tema fijo y sin service worker (el aviso "Listo sin internet" dependería
-    // de si ya se instaló)
+    // Tema fijo, sin service worker (el aviso "Listo sin internet" dependería
+    // de si ya se instaló) y sin animaciones (una captura a mitad del fadeUp
+    // corre medio píxel algunas líneas)
     await p.s('Page.addScriptToEvaluateOnNewDocument', { source: `
       try { localStorage.setItem('tema', '${tema === 'oscuro' ? 'dark' : 'light'}'); } catch (e) {}
-      delete Navigator.prototype.serviceWorker;` });
+      delete Navigator.prototype.serviceWorker;
+      document.addEventListener('DOMContentLoaded', () => {
+        const st = document.createElement('style');
+        st.textContent = '*, *::before, *::after { animation: none !important; transition: none !important; }';
+        document.head.appendChild(st);
+      });` });
     await p.go(pant.url, 2000);
     if (pant.buscar) {
       await p.ev(`{ const i = document.getElementById('si'); i.value = '${pant.buscar}'; i.dispatchEvent(new Event('input')); }`);

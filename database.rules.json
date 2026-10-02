@@ -2,7 +2,10 @@
   "rules": {
     "misa_actual": {
       ".read": true,
-      ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true"
+      ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+      "$i": {
+        ".validate": "newData.isString() && newData.val().length <= 80"
+      }
     },
     "notas": {
       ".read": true,
@@ -15,7 +18,16 @@
       ".read": true,
       "$id": {
         ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
-        ".validate": "newData.child('transponer').isNumber() && newData.child('capo').isNumber()"
+        ".validate": "newData.hasChildren(['transponer', 'capo'])",
+        "transponer": {
+          ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= -11 && newData.val() <= 11"
+        },
+        "capo": {
+          ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() <= 8"
+        },
+        "$otro": {
+          ".validate": false
+        }
       }
     },
     "admins": {

@@ -21,7 +21,6 @@
   /* Paleta Virgen del Carmen — ícono a color */
   --peach:       #F9CD8E;
   --peach-soft:  #FCE2B4;
-  --peach-deep:  #F1B96A;
   --brown:       #6B4226;
   --brown-dark:  #3E2415;
   --brown-mid:   #8A5733;
@@ -29,7 +28,6 @@
   --gold:        #B8862E;
   --gold-light:  #DDB45E;
   --gold-bright: #EBCB72;
-  --cream:       #FFFDF7;
   --ink:         #2C1A0D;
   --ink-soft:    #7A5638;
   --border:      #E8CFA8;
@@ -617,7 +615,7 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
     </span>
   </div>
 
-  <div class="toolbar toolbar-lectura">
+  <div class="toolbar">
     <button id="btnSpeak" class="btn-toggle" aria-pressed="false" aria-label="Escuchar la letra en voz alta">🔊 Escuchar letra</button>
   </div>
 
@@ -713,9 +711,8 @@ if (urlParams.get('modo') !== 'banco') {
 
 const SCALE = ['DO', 'DO#', 'RE', 'RE#', 'MI', 'FA', 'FA#', 'SOL', 'SOL#', 'LA', 'LA#', 'SI'];
 
+// Bemoles → sostenidos (las letras usan notación latina; ver AGENTS.md §3)
 const NOTE_MAP = {
-  'C': 'DO', 'C#': 'DO#', 'D': 'RE', 'D#': 'RE#', 'E': 'MI', 'F': 'FA', 
-  'F#': 'FA#', 'G': 'SOL', 'G#': 'SOL#', 'A': 'LA', 'A#': 'LA#', 'B': 'SI',
   'REb': 'DO#', 'MIb': 'RE#', 'SOLb': 'FA#', 'LAb': 'SOL#', 'SIb': 'LA#'
 };
 
@@ -735,7 +732,8 @@ function wrapChordLines(html) {
 const idCancion = urlParams.get('id');
 
 if (!idCancion) {
-  window.location.href = 'index.html';
+  window.location.replace('index.html');
+  throw new Error('Sin ?id=: se vuelve al índice');   // corta el resto del script
 }
 
 // Título: de SONGS (songs.js); si la canción no está, el de ?t= o uno armado
@@ -804,10 +802,10 @@ let capoFret = 0;
 
 function transposeNote(noteText, semitones) {
   if (semitones === 0) return noteText;
-  const regex = /^(DO#|RE#|FA#|SOL#|LA#|DO|RE|MI|FA|SOL|LA|SI|[CDEFGAB]#?)(b?)(.*)$/i;
+  const regex = /^(DO#|RE#|FA#|SOL#|LA#|DO|RE|MI|FA|SOL|LA|SI)(b?)(.*)$/;
   const parts = noteText.match(regex);
   if (!parts) return noteText;
-  let baseNote = parts[1].toUpperCase() + parts[2].toLowerCase();
+  let baseNote = parts[1] + parts[2];
   const suffix = parts[3];
   if (NOTE_MAP[baseNote]) baseNote = NOTE_MAP[baseNote];
   let index = SCALE.indexOf(baseNote);
@@ -835,6 +833,10 @@ function renderChords() {
 // para que el bloque del tono del coro sepa que el músico se apartó de él
 function applyTransposition(semitones) {
   currentTranspose += semitones;
+  // 12 semitonos = una octava: suena igual y queda dentro de lo que aceptan
+  // las reglas de la base al guardar el tono del coro (−11 a 11)
+  if (currentTranspose > 11) currentTranspose -= 12;
+  if (currentTranspose < -11) currentTranspose += 12;
   renderChords();
   document.dispatchEvent(new Event('tono-cambio'));
 }

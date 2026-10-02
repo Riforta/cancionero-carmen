@@ -23,7 +23,6 @@
   /* Paleta Virgen del Carmen — ícono a color */
   --peach:       #F9CD8E;   /* Fondo apricot del ícono */
   --peach-soft:  #FCE2B4;   /* Apricot claro */
-  --peach-deep:  #F1B96A;   /* Apricot intenso */
   --brown:       #6B4226;   /* Marrón hábito carmelita */
   --brown-dark:  #3E2415;   /* Marrón borde oscuro */
   --brown-mid:   #8A5733;   /* Marrón cobrizo */
@@ -31,7 +30,6 @@
   --gold:        #B8862E;   /* Oro ocre */
   --gold-light:  #DDB45E;   /* Miel dorada */
   --gold-bright: #EBCB72;   /* Estrella dorada */
-  --cream:       #FFFDF7;   /* Crema cálida (superficie) */
   --ink:         #2C1A0D;   /* Tinta marrón oscuro */
   --ink-soft:    #7A5638;   /* Marrón suave */
   --border:      #E8CFA8;   /* Borde cálido */
@@ -539,6 +537,20 @@ footer {
   flex-wrap: wrap;
 }
 #admin-bar[hidden] { display: none; }
+.aviso-misa {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+  margin-bottom: 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg);
+  border: 1.5px solid var(--border-mid);
+  border-left: 4px solid #C9822C;
+  border-radius: 12px;
+  color: var(--ink);
+}
+.aviso-misa[hidden] { display: none; }
 .admin-action-btn {
   padding: 0.5rem 1.1rem;
   border-radius: 50px;
@@ -665,12 +677,44 @@ let db = null;
 // Arranca con la copia local (sin conexión se queda con esa)
 let misaIds = Array.isArray(leerCopia('misa_cache')) ? leerCopia('misa_cache') : [];
 
+// Ids publicados que siguen existiendo en SONGS (una canción borrada o
+// renombrada no cuenta en el chip, no se reordena ni se vuelve a publicar)
+function normalizarMisa(val) {
+  const ids = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+  return ids.filter(id => SONGS.some(s => s.id === id));
+}
+const mismaLista = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
+
+let misaPublicadaPendiente = null;   // otra versión que llegó mientras el admin editaba
+
 function recibirMisa(val) {
-  misaIds = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+  const ids = normalizarMisa(val);
   // Copia local: la usan anterior/siguiente en cancion.html y el modo sin conexión
-  guardarCopia('misa_cache', misaIds);
+  guardarCopia('misa_cache', ids);
+  // Un admin con cambios sin publicar no pierde su lista: se le avisa. El eco
+  // de su propia publicación llega igual a su lista y no dispara el aviso
+  if (misaSinPublicar && !mismaLista(ids, misaIds)) {
+    misaPublicadaPendiente = ids;
+    mostrarAvisoMisa(true);
+    return;
+  }
+  if (misaSinPublicar) misaSinPublicar = false;
+  misaPublicadaPendiente = null;
+  mostrarAvisoMisa(false);
+  misaIds = ids;
   renderCats();
   if (af === 'misa') renderList(getMisaSongs());
+}
+
+function mostrarAvisoMisa(visible) {
+  const aviso = document.getElementById('aviso-misa');
+  if (aviso) aviso.hidden = !visible;
+}
+
+function cargarMisaPublicada() {
+  if (!misaPublicadaPendiente) return;
+  misaSinPublicar = false;
+  recibirMisa(misaPublicadaPendiente);
 }
 
 if (isBanco) {
@@ -695,9 +739,6 @@ if (isBanco) {
   document.getElementById('searchWrap').style.display = 'none';
   document.getElementById('cat-wrap').style.display = 'none';
   document.getElementById('cat-section').style.display = 'none';
-  const st = document.createElement('style');
-  st.textContent = 'c { display: none !important; } .songs-list pre { line-height: 1.65; }';
-  document.head.appendChild(st);
 }
 
 // ── Admin: barra de sesión (Google) y botones de edición ──
@@ -710,6 +751,18 @@ if (isAdmin) {
     <button class="admin-action-btn" onclick="limpiarMisa()">🗑️ Limpiar Misa</button>
     <a class="admin-action-btn" href="qr.html">🖨️ QR para fieles</a>`;
   document.querySelector('main').prepend(bar);
+  // Aviso cuando otro admin publica mientras este tiene cambios sin publicar
+  const aviso = document.createElement('div');
+  aviso.id = 'aviso-misa';
+  aviso.className = 'aviso-misa';
+  aviso.hidden = true;
+  aviso.setAttribute('role', 'status');
+  aviso.innerHTML = `<span>⚠️ Se publicó otra versión de la Misa de Hoy mientras editabas.</span>
+    <button class="admin-action-btn" type="button">Cargar la publicada</button>`;
+  aviso.querySelector('button').addEventListener('click', () => {
+    if (confirm('Se descartan tus cambios sin publicar. ¿Cargar la versión publicada?')) cargarMisaPublicada();
+  });
+  bar.after(aviso);
   panelSesion(document.querySelector('main'));
   document.addEventListener('sesion-admin', e => {
     bar.hidden = !e.detail;
@@ -774,7 +827,7 @@ function renderCats() {
 
 function renderList(songs) {
   const list = document.getElementById('list');
-  document.getElementById('cnt').textContent = songs.length + ' canciones';
+  document.getElementById('cnt').textContent = songs.length === 1 ? '1 canción' : songs.length + ' canciones';
   if (!songs.length) {
     list.style.display = 'none';
     document.getElementById('misa-share').hidden = true;
@@ -794,7 +847,7 @@ function renderList(songs) {
   document.getElementById('misa-empty').style.display = 'none';
   // El link a la canción arrastra modo, admin y categoría activa para que
   // el "Volver" de cancion.html restaure exactamente este contexto
-  const songUrl = s => `cancion.html?id=${s.id}&t=${encodeURIComponent(s.title)}` +
+  const songUrl = s => `cancion.html?id=${s.id}` +
     `${isBanco ? '&modo=banco' : ''}${isAdmin ? '&admin=true' : ''}&cat=${af || 'todas'}`;
   list.innerHTML = songs.map(s => {
     if (isAdmin && esAdminOk) {
@@ -803,7 +856,7 @@ function renderList(songs) {
            <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
            <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">❌<span class="btn-txt"> Quitar</span></button>`
         : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
-      return `<div class="song-row admin-row" onclick="location.href='${songUrl(s)}'" style="cursor:pointer">
+      return `<div class="song-row admin-row" data-href="${songUrl(s)}" style="cursor:pointer">
         <span class="song-tag">${CMAP[s.category] || s.category}</span>
         <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
         ${adminBtn}
@@ -877,9 +930,12 @@ function removeFromMisa(songId) {
 
 function publicarMisa() {
   if (!db || !navigator.onLine) { alert('❌ Sin conexión: no se puede publicar ahora.'); return; }
+  misaSinPublicar = false;
+  misaPublicadaPendiente = null;
+  mostrarAvisoMisa(false);
   db.ref('misa_actual').set(misaIds)
-    .then(() => { misaSinPublicar = false; alert('✅ Misa publicada correctamente'); })
-    .catch(err => alert('❌ Error: ' + err.message));
+    .then(() => alert('✅ Misa publicada correctamente'))
+    .catch(err => { misaSinPublicar = true; alert('❌ Error: ' + err.message); });
 }
 
 function limpiarMisa() {
@@ -954,6 +1010,13 @@ function listaVisible() {
   const q = document.getElementById('si').value;
   return q.trim() ? buscar(q) : songsForFilter();
 }
+
+// Filas de admin: un solo listener para navegar a la canción (los botones de
+// la fila frenan la propagación)
+document.getElementById('list').addEventListener('click', e => {
+  const fila = e.target.closest('.admin-row[data-href]');
+  if (fila && !e.target.closest('.admin-btn')) window.location.href = fila.dataset.href;
+});
 
 document.getElementById('si').addEventListener('input', function () {
   af = null; syncCatParam(); renderCats();
