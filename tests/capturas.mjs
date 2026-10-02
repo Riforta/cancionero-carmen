@@ -47,6 +47,7 @@ for (const tema of ['claro', 'oscuro']) {
     // de si ya se instaló) y sin animaciones (una captura a mitad del fadeUp
     // corre medio píxel algunas líneas)
     await p.s('Page.addScriptToEvaluateOnNewDocument', { source: `
+      window.FECHA_PRUEBA = '2026-10-04';   // la franja litúrgica no cambia con el día
       try { localStorage.setItem('tema', '${tema === 'oscuro' ? 'dark' : 'light'}'); } catch (e) {}
       delete Navigator.prototype.serviceWorker;
       document.addEventListener('DOMContentLoaded', () => {

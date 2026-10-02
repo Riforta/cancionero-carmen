@@ -12,5 +12,6 @@ await import('./qr.mjs');
 await import('./tema.mjs');
 await import('./audios.mjs');
 await import('./corderos.mjs');
+await import('./liturgia.mjs');
 await import('./sin-internet.mjs');
 await import('./iphone.mjs');

@@ -12,6 +12,7 @@ powershell -File tests/run.ps1 misa.mjs        # una sola prueba
 powershell -File tests/run.ps1 capturas.mjs --referencia   # capturas de referencia
 powershell -File tests/run.ps1 capturas.mjs    # comparar contra la referencia
 node tests/acordes.node.mjs                    # acordes.js en Node, sin navegador (Node 22+)
+node tests/liturgia.node.mjs                   # calendario litúrgico en Node
 ```
 
 `run.ps1` levanta `python -m http.server 8642` en la raíz, abre Chrome
@@ -53,7 +54,9 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `tema.mjs` | Modo oscuro: sistema, botón y contraste |
 | `audios.mjs` | Reproductores de las canciones con `medios` |
 | `corderos.mjs` | Las canciones de Santo / Cordero cargan con diagramas |
+| `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
 | `sin-internet.mjs` | Service worker, caché de letras, modo avión |
 | `iphone.mjs` | Pantalla encendida en iPhone, zoom, aviso "Listo sin internet" |
 | `capturas.mjs` | Comparación visual contra la referencia |
+| `liturgia.node.mjs` | `liturgia.js` en Node: Pascua, tiempos, numeración, colores, fiestas y traslados argentinos |
 | `acordes.node.mjs` | `acordes.js` en Node: transposición, bemoles, diagramas de todos los acordes de `letras/` en los 23 tonos |
