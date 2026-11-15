@@ -16,10 +16,10 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
   await p.ev(`localStorage.removeItem('misa_borrador')`);
 
   await p.go('/cancion.html?id=ofert_toma&admin=true&cat=todas');
-  const antes = await p.ev(`({ visible: !document.getElementById('misa-agregar').hidden, texto: misaAgregarBtn.textContent, pendiente: !misaPendiente.hidden })`);
+  const antes = await p.ev(`({ visible: !document.getElementById('misa-agregar').hidden, texto: misaAgregarBtn.textContent, pendiente: !misaPendiente.classList.contains('oculta') })`);
   check('canción: botón "Agregar a la Misa de Hoy"', antes.visible && antes.texto.startsWith('➕') && !antes.pendiente, JSON.stringify(antes));
   await p.ev(`misaAgregarBtn.click()`); await wait(200);
-  const despues = await p.ev(`({ texto: misaAgregarBtn.textContent, activo: misaAgregarBtn.classList.contains('active'), pressed: misaAgregarBtn.getAttribute('aria-pressed'), pendiente: !misaPendiente.hidden, link: misaIrPublicar.getAttribute('href') })`);
+  const despues = await p.ev(`({ texto: misaAgregarBtn.textContent, activo: misaAgregarBtn.classList.contains('active'), pressed: misaAgregarBtn.getAttribute('aria-pressed'), pendiente: !misaPendiente.classList.contains('oculta'), link: misaIrPublicar.getAttribute('href') })`);
   check('canción: al tocar pasa a "✓ En la Misa de Hoy"', despues.texto.startsWith('✓') && despues.activo && despues.pressed === 'true', JSON.stringify(despues));
   check('canción: "Falta publicar" con link a Misa de Hoy', despues.pendiente && despues.link === 'index.html?admin=true&cat=misa', despues.link);
   check('canción: aviso flotante con "Ir a publicar"', ((await flotante(p)) || '').includes('Agregada a la Misa de Hoy (3)') && ((await flotante(p)) || '').includes('Ir a publicar'), String(await flotante(p)));
@@ -65,7 +65,7 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
   await p.ev(`misaAgregarBtn.click()`); await wait(100);
   check('agregar: queda borrador', (await borrador(p)) !== null);
   await p.ev(`misaAgregarBtn.click()`); await wait(100);
-  check('quitar enseguida: sin borrador ni "Falta publicar"', (await borrador(p)) === null && (await p.ev('misaPendiente.hidden')));
+  check('quitar enseguida: sin borrador ni "Falta publicar"', (await borrador(p)) === null && (await p.ev("misaPendiente.classList.contains('oculta')")));
   check('sin errores', p.errors.length === 0, p.errors.join(' | '));
   await p.close();
 }

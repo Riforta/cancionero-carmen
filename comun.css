@@ -230,7 +230,17 @@ header {
 }
 .sesion-bar.admin { border-left-color: #4E7A3A; }
 .sesion-bar.no-admin, .sesion-bar.sin-conexion { border-left-color: #A4452C; }
-.sesion-texto { flex: 1; min-width: 12rem; overflow-wrap: anywhere; }
+.sesion-texto { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+/* Lugar de la barra, reservado desde antes de pintar (tema.js marca
+   data-admin): así la página no se corre cuando la barra aparece. En los
+   estados habituales el texto va en una línea, para que el alto no cambie */
+.sesion-slot { display: none; }
+:root[data-admin] .sesion-slot { display: block; min-height: 3.85rem; margin-bottom: 1rem; }
+.sesion-slot .sesion-bar { margin-bottom: 0; min-height: 3.85rem; flex-wrap: nowrap; }
+.sesion-slot .sesion-bar:is(.no-admin, .sin-conexion) { flex-wrap: wrap; }
+.sesion-slot .sesion-bar:not(.no-admin, .sin-conexion) .sesion-texto {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .sesion-btn {
   padding: 0.45rem 1rem;
   border: 1.5px solid var(--border-mid); background: var(--bg);

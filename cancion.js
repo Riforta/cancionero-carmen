@@ -707,7 +707,7 @@ if (isAdmin && !esBanco && cancionActual) {
     btn.textContent = esta ? '✓ En la Misa de Hoy · Quitar' : '➕ Agregar a la Misa de Hoy';
     btn.classList.toggle('active', esta);
     btn.setAttribute('aria-pressed', String(esta));
-    pendiente.hidden = !leerBorradorMisa();
+    pendiente.classList.toggle('oculta', !leerBorradorMisa());
     caja.hidden = !esAdminOk;
   }
 
@@ -730,6 +730,7 @@ if (isAdmin && !esBanco && cancionActual) {
     pintarMisaAgregar();
   });
   document.addEventListener('sesion-admin', pintarMisaAgregar);
+  pintarMisaAgregar();   // ya, con el borrador y la sesión recordada
   window.addEventListener('storage', e => { if (e.key === 'misa_borrador') pintarMisaAgregar(); });
   window.addEventListener('pageshow', e => { if (e.persisted) pintarMisaAgregar(); });
 }

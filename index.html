@@ -541,6 +541,9 @@ footer {
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
+/* Sesión de admin recordada (tema.js): el lugar de los botones queda
+   reservado mientras carga, así la página no se corre al aparecer */
+:root[data-admin="ok"] #admin-bar[hidden] { display: flex !important; visibility: hidden; }
 body.banco-mode #searchWrap,
 body.banco-mode #cat-wrap,
 body.banco-mode #cat-section { display: none; }
@@ -639,6 +642,13 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 </div>
 
 <main>
+
+  <div id="sesion-slot" class="sesion-slot"></div>
+  <div id="admin-bar" hidden>
+    <button class="admin-action-btn" type="button" data-action="publicar">💾 Publicar Misa</button>
+    <button class="admin-action-btn" type="button" data-action="limpiar">🗑️ Limpiar Misa</button>
+    <a class="admin-action-btn" href="qr.html">🖨️ QR para fieles</a>
+  </div>
 
   <div class="carmel-banner">
     <div class="banner-medallion">
@@ -842,19 +852,17 @@ if (MODO.banco) document.body.classList.add('banco-mode');
 
 // ── Admin: barra de sesión (Google) y botones de edición ──
 // Los botones aparecen solo con sesión de un admin autorizado (sesion.js)
+// La barra de botones está en el HTML: con una sesión recordada, su lugar ya
+// queda reservado antes de pintar (comun.css, data-admin="ok")
 if (MODO.admin) {
-  const bar = document.createElement('div');
-  bar.id = 'admin-bar';
-  bar.hidden = true;
-  bar.innerHTML = `<button class="admin-action-btn" type="button" data-action="publicar">💾 Publicar Misa</button>
-    <button class="admin-action-btn" type="button" data-action="limpiar">🗑️ Limpiar Misa</button>
-    <a class="admin-action-btn" href="qr.html">🖨️ QR para fieles</a>`;
+  panelSesion(document.querySelector('main'));   // primero: deja listo esAdminOk
+  const bar = document.getElementById('admin-bar');
+  bar.hidden = !esAdminOk;
   bar.addEventListener('click', e => {
     const accion = e.target.closest('[data-action]')?.dataset.action;
     if (accion === 'publicar') publicarMisa();
     else if (accion === 'limpiar') limpiarMisa();
   });
-  document.querySelector('main').prepend(bar);
   // Aviso cuando otro admin publica mientras este tiene cambios sin publicar
   const aviso = document.createElement('div');
   aviso.id = 'aviso-misa';
@@ -867,7 +875,6 @@ if (MODO.admin) {
     if (confirm('Se descartan tus cambios sin publicar. ¿Cargar la versión publicada?')) cargarMisaPublicada();
   });
   bar.after(aviso);
-  panelSesion(document.querySelector('main'));
   document.addEventListener('sesion-admin', e => {
     bar.hidden = !e.detail;
     render();

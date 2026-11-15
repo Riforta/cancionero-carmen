@@ -1,6 +1,7 @@
-// Tema claro / oscuro (AGENTS.md D17), compartido por index.html y
-// cancion.html. Va en el <head>, antes de pintar, para que al abrir en modo
-// oscuro no haya un destello claro.
+// Tema claro / oscuro (AGENTS.md D17), compartido por index.html,
+// cancion.html y avisos.html. Va en el <head>, antes de pintar, para que al
+// abrir en modo oscuro no haya un destello claro. También marca el modo admin
+// (más abajo), por la misma razón: decidir antes de pintar.
 //
 // Arranca con el tema del celular (prefers-color-scheme). Si la persona toca
 // el botón 🌙/☀️, su elección queda guardada en este celular (localStorage).
@@ -33,6 +34,17 @@
   if (sistema && sistema.addEventListener) {
     sistema.addEventListener('change', e => { if (!elegido()) aplicar(e.matches ? 'dark' : 'light'); });
   }
+
+  // Modo admin (sesion.js): se marca <html> antes de pintar para reservar el
+  // lugar de la barra de sesión y, si la última sesión de este celular fue de
+  // un admin (data-admin="ok"), también el de los botones de edición. Así la
+  // página no se corre hacia abajo cuando terminan de aparecer (AGENTS.md D16)
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('admin') === 'true' && q.get('modo') !== 'banco') {
+      raiz.setAttribute('data-admin', localStorage.getItem('sesion_admin') ? 'ok' : 'si');
+    }
+  } catch (e) {}
 
   document.addEventListener('DOMContentLoaded', () => {
     pintarBotones();

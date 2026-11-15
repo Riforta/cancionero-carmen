@@ -36,10 +36,14 @@ check('vuelve con el verso encontrado', (await p.ev(`document.getElementById('si
 // 3. Una categoría, más abajo en la lista
 await p.go('/index.html?cat=comunion');
 await bajarA(700); await wait(100);
+// Lo que importa es dónde queda en pantalla la canción que se tocó: si algo de
+// arriba crece después de volver, el navegador ajusta el desplazamiento
+const filaEnPantalla = () => p.ev(`document.querySelectorAll('.song-row')[8].getBoundingClientRect().top`);
 const y2 = await p.ev('scrollY');
+const fila2 = await filaEnPantalla();
 await p.ev(`document.querySelectorAll('.song-row')[8].click()`); await wait(1500);
 await volver();
-check('categoría: misma posición', y2 > 600 && Math.abs((await p.ev('scrollY')) - y2) <= 4, `antes ${y2}, ahora ${await p.ev('scrollY')}`);
+check('categoría: la canción tocada queda en el mismo lugar de la pantalla', y2 > 600 && Math.abs((await filaEnPantalla()) - fila2) <= 4, `antes ${fila2.toFixed(0)}, ahora ${(await filaEnPantalla()).toFixed(0)}`);
 
 // 4. Si se entra al índice por otro lado, no se restaura nada
 await p.ev(`document.querySelectorAll('.song-row')[8].click()`); await wait(1500);

@@ -19,5 +19,6 @@ await import('./avisos.mjs');
 await import('./borrador.mjs');
 await import('./medios-admin.mjs');
 await import('./volver.mjs');
+await import('./saltos.mjs');
 await import('./sin-internet.mjs');
 await import('./iphone.mjs');

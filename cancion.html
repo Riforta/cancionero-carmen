@@ -179,6 +179,7 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  min-height: 1.95rem;   /* el alto del botón Editar: no cambia al aparecer */
 }
 .nota-label {
   font-family: 'Cinzel', serif;
@@ -359,7 +360,14 @@ h1 {
   gap: 0.4rem;
   margin: -0.3rem 0 1.2rem;
 }
-.misa-pendiente { font-size: 0.98rem; font-style: italic; color: var(--ink-soft); }
+.misa-pendiente { font-size: 0.98rem; line-height: 1.4rem; font-style: italic; color: var(--ink-soft); }
+/* Sin nada por publicar, la línea queda invisible pero ocupa su lugar: tocar
+   el botón no corre la página */
+.misa-pendiente.oculta { visibility: hidden; }
+/* Sesión de admin recordada (tema.js): el botón de la misa y la nota
+   aparecen al instante; su lugar queda reservado desde antes de pintar */
+:root[data-admin="ok"] #misa-agregar[hidden] { display: flex !important; visibility: hidden; }
+:root[data-admin="ok"] #nota[hidden] { display: block !important; visibility: hidden; }
 .misa-pendiente a { color: var(--brown-mid); font-style: normal; font-weight: 500; }
 
 /* ─── TAMAÑO DE LETRA (todos los modos, también banco) ─── */
@@ -514,6 +522,7 @@ pre b { color: var(--brown-mid); font-weight: bold; }
 </header>
 
 <main>
+  <div id="sesion-slot" class="sesion-slot"></div>
   <div class="song-header">
     <h1 id="song-title">Cargando...</h1>
     <div class="song-ornament">✦ ✝ ✦</div>
@@ -521,7 +530,7 @@ pre b { color: var(--brown-mid); font-weight: bold; }
 
   <div id="misa-agregar" class="misa-agregar no-banco" hidden>
     <button id="misaAgregarBtn" class="btn-toggle" type="button" aria-pressed="false">➕ Agregar a la Misa de Hoy</button>
-    <span id="misaPendiente" class="misa-pendiente" hidden>Falta publicar · <a id="misaIrPublicar" href="index.html">Ir a Misa de Hoy ›</a></span>
+    <span id="misaPendiente" class="misa-pendiente oculta">Falta publicar · <a id="misaIrPublicar" href="index.html">Ir a Misa de Hoy ›</a></span>
   </div>
 
   <div class="toolbar no-banco">
@@ -560,7 +569,7 @@ pre b { color: var(--brown-mid); font-weight: bold; }
       <span class="nota-label">📝 Nota</span>
       <button id="notaEditBtn" class="nota-edit" type="button" hidden>✏️ Editar</button>
     </div>
-    <div id="notaTexto" class="nota-texto"></div>
+    <div id="notaTexto" class="nota-texto" hidden></div>
     <div id="notaForm" class="nota-form" hidden>
       <textarea id="notaInput" rows="3" maxlength="500" placeholder="Ej.: La cantamos en RE, capo 2. Entra el coro en el estribillo."></textarea>
       <div class="nota-actions">

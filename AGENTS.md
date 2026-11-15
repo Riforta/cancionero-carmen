@@ -219,6 +219,25 @@ más de 100 fieles a la vez.
   porque el navegador bloquea el almacenamiento de terceros de
   `firebaseapp.com`. Si el popup está bloqueado, se intenta con redirect.
 - **Cuándo se carga Auth:** solo en modo admin. Músicos y banco no lo cargan.
+- **Sesión recordada y sin saltos** (2026-11-15). Confirmar la sesión tarda,
+  porque carga el login y consulta `admins/`. Mientras tanto, la barra
+  aparecía tarde y empujaba la página hacia abajo. Ahora:
+  - La última sesión de admin del celular queda en `localStorage.sesion_admin`
+    (`{ email, nombre }`) y se muestra al instante, con `esAdminOk` listo.
+    Firebase la confirma después; si ya no es admin, la corrige y la olvida.
+    Es solo vista: lo que se puede escribir lo deciden las reglas.
+  - Sin conexión se mantiene la sesión recordada: el borrador de la misa se
+    arma igual, y escribir ya avisa que no hay red.
+  - `tema.js`, en el `<head>`, marca `data-admin` en `<html>` antes de pintar
+    (`"ok"` si hay sesión recordada, `"si"` si no). Con eso el CSS reserva:
+    - siempre en modo admin: el lugar de la barra (`#sesion-slot`, de alto
+      fijo);
+    - con `"ok"`: el de los botones que solo ve un admin (`#admin-bar`,
+      `#misa-agregar`, `#nota`, `#nuevoAviso`).
+  - **Regla:** un bloque nuevo que aparezca solo para admins en la parte de
+    arriba de una página va en el HTML con `hidden`, y lleva su reserva
+    `:root[data-admin="ok"] #id[hidden] { display: … !important; visibility: hidden; }`.
+    Lo prueba `tests/saltos.mjs`.
 - **Agregar un admin:** en la consola de Firebase (§7), sin tocar el código.
 
 
@@ -438,7 +457,8 @@ internet ni datos cargados a mano.
   sesión ve "➕ Agregar a la Misa de Hoy" bajo el título.
   - Suma la canción al borrador, en su momento litúrgico. **No publica.**
   - Después muestra "✓ En la Misa de Hoy · Quitar" y "Falta publicar · Ir a
-    Misa de Hoy".
+    Misa de Hoy". El renglón de "Falta publicar" queda reservado aunque no se
+    vea, así tocar el botón no corre la letra.
 - **El `+` del índice** pasa a `✓` dorado cuando la canción ya está en la
   misa, y tocarlo otra vez la quita. Cada toque muestra un aviso flotante con
   la cantidad de canciones.

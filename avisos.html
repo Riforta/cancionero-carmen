@@ -35,6 +35,8 @@ main {
 .avisos-intro { margin-top: 0.3rem; font-style: italic; color: var(--ink-soft); }
 
 .avisos-acciones { display: flex; justify-content: flex-end; margin-bottom: 0.9rem; }
+/* Sesión de admin recordada (tema.js): lugar del botón reservado mientras carga */
+:root[data-admin="ok"] #nuevoAviso[hidden] { display: inline-block !important; visibility: hidden; }
 .admin-action-btn {
   padding: 0.5rem 1.1rem;
   border: 1.5px solid var(--border-mid);
@@ -140,6 +142,7 @@ main {
 </header>
 
 <main>
+  <div id="sesion-slot" class="sesion-slot"></div>
   <div class="avisos-cabecera">
     <h1>Avisos del coro</h1>
     <p class="avisos-intro">Ensayos, celebraciones y fiestas de los próximos días</p>
