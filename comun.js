@@ -46,6 +46,9 @@ function botonModo(avisoAlSalir) {
   });
 }
 
+// iPhone: sin un listener de toque, Safari no aplica :active a los botones
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 // ── Texto ──
 // Minúsculas y sin tildes. Conserva la longitud (solo saca las marcas), así
 // que las posiciones sirven sobre el texto original
@@ -79,6 +82,73 @@ function guardarCopia(clave, valor) {
     if (valor === null || valor === undefined) localStorage.removeItem(clave);
     else localStorage.setItem(clave, JSON.stringify(valor));
   } catch (e) {}
+}
+
+// ── Misa de Hoy: orden y borrador (index.html y cancion.html) ──
+const mismaLista = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
+
+// Posición del momento litúrgico de una canción según el orden de CATS
+function momentoDe(songId) {
+  const s = SONGS.find(x => x.id === songId);
+  const i = s ? CATS.findIndex(([id]) => id === s.category) : -1;
+  return i < 0 ? CATS.length : i;
+}
+
+// Lista nueva con la canción en su momento (entrada → gloria → … → marianos),
+// después de las que ya estén en ese momento
+function insertarEnMisa(ids, songId) {
+  if (ids.includes(songId)) return ids;
+  const nueva = ids.slice();
+  const pos = nueva.findIndex(id => momentoDe(id) > momentoDe(songId));
+  if (pos < 0) nueva.push(songId);
+  else nueva.splice(pos, 0, songId);
+  return nueva;
+}
+
+// Borrador de la misa (localStorage.misa_borrador): lo que el admin armó y
+// todavía no publicó. `base` es la misa publicada sobre la que empezó; sirve
+// para saber si después alguien publicó otra. Se guarda en el celular para
+// que no se pierda al entrar a ver una canción
+function leerBorradorMisa() {
+  const b = leerCopia('misa_borrador');
+  if (!b || !Array.isArray(b.ids) || !Array.isArray(b.base)) return null;
+  return { ids: normalizarMisa(b.ids), base: normalizarMisa(b.base) };
+}
+// Devuelve true si quedó un borrador. Si la lista volvió a ser igual a la
+// publicada, no hay nada que publicar y el borrador se borra
+function guardarBorradorMisa(ids, base) {
+  const hayCambios = !mismaLista(ids, base);
+  guardarCopia('misa_borrador', hayCambios ? { ids, base } : null);
+  return hayCambios;
+}
+function borrarBorradorMisa() {
+  guardarCopia('misa_borrador', null);
+}
+
+// ── Aviso flotante: confirma una acción sin frenar (a diferencia de alert) ──
+// `link` opcional: { texto, href }
+let avisoFlotanteReloj = null;
+function avisar(texto, link) {
+  let caja = document.getElementById('aviso-flotante');
+  if (!caja) {
+    caja = document.createElement('div');
+    caja.id = 'aviso-flotante';
+    caja.className = 'aviso-flotante';
+    caja.setAttribute('role', 'status');
+    document.body.appendChild(caja);
+  }
+  caja.textContent = texto;
+  if (link) {
+    const a = document.createElement('a');
+    a.href = link.href;
+    a.textContent = link.texto;
+    caja.append(' ', a);
+  }
+  caja.classList.remove('visible');
+  void caja.offsetWidth;            // reinicia la animación si ya estaba a la vista
+  caja.classList.add('visible');
+  clearTimeout(avisoFlotanteReloj);
+  avisoFlotanteReloj = setTimeout(() => caja.classList.remove('visible'), link ? 4500 : 2500);
 }
 
 // ── Fechas y avisos del coro (index.html y avisos.html) ──

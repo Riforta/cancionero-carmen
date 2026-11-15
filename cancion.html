@@ -84,7 +84,6 @@ h1 {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(107,66,38,0.18);
 }
-.btn-toggle:active { transform: none; transition-duration: 0.06s; }
 .btn-toggle.active {
   background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 100%);
   color: #fff;
@@ -336,6 +335,32 @@ h1 {
 .medio iframe.drive { height: 120px; }
 .medio audio { display: block; width: 100%; }
 .medio a { color: var(--brown-mid); }
+/* Audios cargados desde la app (Firebase medios/<id>): solo un admin los edita */
+.medio-btn { margin-top: 0.45rem; }
+.medio-agregar { display: block; margin-top: 0.8rem; }
+.medio-form input {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid var(--border-mid);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'EB Garamond', serif;
+  font-size: 1.05rem;
+}
+
+/* ─── AGREGAR A LA MISA DE HOY (admin con sesión) ─── */
+.misa-agregar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.3rem 0 1.2rem;
+}
+.misa-pendiente { font-size: 0.98rem; font-style: italic; color: var(--ink-soft); }
+.misa-pendiente a { color: var(--brown-mid); font-style: normal; font-weight: 500; }
 
 /* ─── TAMAÑO DE LETRA (todos los modos, también banco) ─── */
 .tam-letra {
@@ -466,9 +491,7 @@ pre b { color: var(--brown-mid); font-weight: bold; }
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.song-header { animation: fadeUp 0.25s ease both; }
-.toolbar     { animation: fadeUp 0.27s ease 0.05s both; }
-pre          { animation: fadeUp 0.3s ease 0.1s both; }
+.song-header, .toolbar, pre { animation: fadeUp 0.2s ease both; }
 </style>
 </head>
 <body>
@@ -494,6 +517,11 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
   <div class="song-header">
     <h1 id="song-title">Cargando...</h1>
     <div class="song-ornament">✦ ✝ ✦</div>
+  </div>
+
+  <div id="misa-agregar" class="misa-agregar no-banco" hidden>
+    <button id="misaAgregarBtn" class="btn-toggle" type="button" aria-pressed="false">➕ Agregar a la Misa de Hoy</button>
+    <span id="misaPendiente" class="misa-pendiente" hidden>Falta publicar · <a id="misaIrPublicar" href="index.html">Ir a Misa de Hoy ›</a></span>
   </div>
 
   <div class="toolbar no-banco">
@@ -552,6 +580,15 @@ pre          { animation: fadeUp 0.3s ease 0.1s both; }
   <section id="medios" class="medios no-banco" hidden aria-label="Escuchar la canción">
     <div class="medios-titulo">🎧 Escuchar</div>
     <div id="mediosLista"></div>
+    <button id="medioAgregar" class="nota-edit medio-btn medio-agregar" type="button" hidden>➕ Agregar audio o link</button>
+    <div id="medioForm" class="medio-form" hidden>
+      <input id="medioUrl" type="url" inputmode="url" maxlength="300" autocomplete="off" aria-label="Link del audio" placeholder="Link de YouTube, Spotify o Drive (https://…)">
+      <input id="medioEtiqueta" type="text" maxlength="60" autocomplete="off" aria-label="Etiqueta" placeholder="Etiqueta (opcional). Ej.: Ensayo del coro">
+      <div class="nota-actions">
+        <button id="medioCancel" class="btn-toggle" type="button">Cancelar</button>
+        <button id="medioSave" class="btn-toggle active" type="button">Guardar</button>
+      </div>
+    </div>
   </section>
 
   <nav id="misa-nav" class="misa-nav" hidden aria-label="Canciones de la Misa de Hoy">

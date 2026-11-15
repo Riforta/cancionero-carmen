@@ -17,6 +17,6 @@ for (const [id, titulo] of Object.entries(canciones)) {
 }
 await p.go('/index.html?cat=santo', 2000);
 const lista = await p.ev(`[...document.querySelectorAll('.song-name')].map(e => e.textContent)`);
-check('categoría Santo / Cordero: 8 canciones con las nuevas', lista.length === 8 && Object.values(canciones).every(t => lista.includes(t)), lista.join(' | '));
+check('categoría Santo / Cordero: 9 canciones con las nuevas', lista.length === 9&& Object.values(canciones).every(t => lista.includes(t)), lista.join(' | '));
 check('sin errores', p.errors.length === 0, p.errors.join(' | '));
 done(); c.close();

@@ -345,7 +345,6 @@ main {
   box-shadow: 0 5px 16px rgba(107,66,38,0.2), inset 0 1px 0 rgba(255,255,255,0.7);
   transform: translateY(-2px);
 }
-.cat-chip:active { transform: translateY(0); transition-duration: 0.06s; }
 
 .cat-chip.active {
   background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown) 100%);
@@ -531,9 +530,9 @@ footer {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.carmel-banner  { animation: fadeUp 0.28s ease both; }
-.cat-scroll-wrap{ animation: fadeUp 0.3s ease 0.05s both; }
-.songs-list     { animation: fadeUp 0.32s ease 0.1s both; }
+.carmel-banner, .cat-scroll-wrap, .songs-list { animation: fadeUp 0.2s ease both; }
+/* Al volver de una canción (restaurarVuelta) no se anima la entrada */
+.sin-entrada .carmel-banner, .sin-entrada .cat-scroll-wrap, .sin-entrada .songs-list { animation: none; }
 
 /* ─── ADMIN BAR ─── */
 #admin-bar {
@@ -582,10 +581,34 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
   white-space: nowrap;
 }
 .admin-btn:hover { background: var(--brown-light); }
+/* + / ✓ de cada fila: cómodo para el dedo, y dorado si ya está en la misa */
+.admin-btn.btn-mas {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-family: system-ui, sans-serif;
+  border-color: var(--border-mid);
+  color: var(--text-strong);
+}
+.admin-btn.btn-mas.en-misa,
+.admin-btn.btn-mas.en-misa:hover {
+  background: var(--gold-light);
+  border-color: var(--gold);
+  color: #2C1A0D;
+  font-weight: 700;
+}
+@keyframes pulso {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.5); background: var(--gold-light); color: #2C1A0D; }
+  100% { transform: scale(1); }
+}
+.chip-count.pulso { animation: pulso 0.45s ease; }
 /* Celulares: filas de admin compactas para que el título no quede tapado */
 @media (max-width: 480px) {
   .admin-row { gap: 0.4rem; padding-left: 0.75rem; padding-right: 0.75rem; }
-  .admin-row .admin-btn { padding: 0.2rem 0.5rem; }
+  .admin-row .admin-btn:not(.btn-mas) { padding: 0.2rem 0.5rem; }
   .admin-row .btn-txt,
   .admin-row .song-arrow { display: none; }
 }
@@ -656,6 +679,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     <div class="sec-label-rule"></div>
     <span class="sec-label-count" id="cnt"></span>
   </div>
+  <div class="aviso-misa" id="misa-pendiente" role="status" hidden>● Hay cambios en la Misa de Hoy sin publicar</div>
   <div class="misa-meta" id="misa-meta" hidden></div>
   <div class="misa-share" id="misa-share" hidden>
     <button id="btnCompartir" class="admin-action-btn" type="button">📤 Compartir la misa</button>
@@ -696,22 +720,48 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 let misaIds = [];
 let misaRef = null;                  // para publicar (null en banco o sin conexión)
 let misaSinPublicar = false;
-const mismaLista = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
-
+let misaBase = [];                   // la misa publicada sobre la que se edita
 let misaPublicadaPendiente = null;   // otra versión que llegó mientras el admin editaba
 
+// Borrador guardado en el celular (comun.js): sigue ahí al volver de una
+// canción o al recargar. Solo en modo admin
+function tomarBorrador() {
+  if (!MODO.admin) return;
+  const b = leerBorradorMisa();
+  if (b) {
+    misaIds = b.ids;
+    misaBase = b.base;
+    misaSinPublicar = true;
+  } else if (misaSinPublicar) {      // se publicó o descartó desde otra pestaña
+    misaIds = misaBase;
+    misaSinPublicar = false;
+  }
+}
+tomarBorrador();
+
+// Después de cada cambio del admin: guarda el borrador y redibuja. Si la
+// lista volvió a ser la publicada, ya no hay nada sin publicar
+function cambioEnMisa() {
+  misaSinPublicar = guardarBorradorMisa(misaIds, misaBase);
+  render();
+}
+
 function recibirMisa(ids) {
-  // Un admin con cambios sin publicar no pierde su lista: se le avisa. El eco
-  // de su propia publicación llega igual a su lista y no dispara el aviso
+  // Un admin con cambios sin publicar no pierde su lista. Si llega la misma
+  // misa sobre la que empezó a editar, no pasa nada; si llega otra (otro admin
+  // publicó), se le avisa. El eco de su propia publicación llega igual a su
+  // lista y no dispara el aviso
   if (misaSinPublicar && !mismaLista(ids, misaIds)) {
-    misaPublicadaPendiente = ids;
-    mostrarAvisoMisa(true);
+    const hayOtra = !mismaLista(ids, misaBase);
+    misaPublicadaPendiente = hayOtra ? ids : null;
+    mostrarAvisoMisa(hayOtra);
     return;
   }
-  if (misaSinPublicar) misaSinPublicar = false;
+  if (misaSinPublicar) { misaSinPublicar = false; borrarBorradorMisa(); }
   misaPublicadaPendiente = null;
   mostrarAvisoMisa(false);
   misaIds = ids;
+  misaBase = ids;
   render();
 }
 
@@ -723,6 +773,7 @@ function mostrarAvisoMisa(visible) {
 function cargarMisaPublicada() {
   if (!misaPublicadaPendiente) return;
   misaSinPublicar = false;
+  borrarBorradorMisa();
   recibirMisa(misaPublicadaPendiente);
 }
 
@@ -842,6 +893,7 @@ function cancionesVisibles() {
 function render() {
   renderCats();
   renderList(cancionesVisibles());
+  document.getElementById('misa-pendiente').hidden = !(MODO.admin && misaSinPublicar);
   const meta = document.getElementById('misa-meta');
   meta.textContent = textoPublicada(misaMeta);
   meta.hidden = !(af === 'misa' && meta.textContent && !document.getElementById('si').value.trim());
@@ -905,7 +957,9 @@ function filaHtml(s) {
     ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
        <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
        <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">❌<span class="btn-txt"> Quitar</span></button>`
-    : `<button class="admin-btn" data-action="add" data-song-id="${s.id}">+</button>`;
+    : misaIds.includes(s.id)
+      ? `<button class="admin-btn btn-mas en-misa" data-action="remove" data-song-id="${s.id}" aria-label="En la Misa de Hoy. Tocar para quitar">✓</button>`
+      : `<button class="admin-btn btn-mas" data-action="add" data-song-id="${s.id}" aria-label="Agregar a la Misa de Hoy">+</button>`;
   const contenido = `
       <span class="song-tag">${CMAP[s.category] || s.category}</span>
       <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
@@ -925,38 +979,26 @@ function elegirCategoria(id) {
   if (af) document.getElementById('list').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// Posición del momento litúrgico de una canción según el orden de CATS
-function momentoDe(songId) {
-  const s = SONGS.find(x => x.id === songId);
-  const i = s ? CATS.findIndex(([id]) => id === s.category) : -1;
-  return i < 0 ? CATS.length : i;
-}
-
-// Agrega la canción en su momento (entrada → gloria → … → marianos), después
-// de las que ya estén en ese momento; el orden fino se ajusta con ↑ ↓
+// Agrega la canción en su momento litúrgico (insertarEnMisa, en comun.js); el
+// orden fino se ajusta con ↑ ↓
 function addToMisa(songId) {
-  if (!misaIds.includes(songId)) {
-    const pos = misaIds.findIndex(id => momentoDe(id) > momentoDe(songId));
-    if (pos < 0) misaIds.push(songId);
-    else misaIds.splice(pos, 0, songId);
-    misaSinPublicar = true;
-    render();
-  }
+  if (misaIds.includes(songId)) return;
+  misaIds = insertarEnMisa(misaIds, songId);
+  cambioEnMisa();
 }
 
 function moverEnMisa(songId, delta) {
   const i = misaIds.indexOf(songId);
   const j = i + delta;
   if (i < 0 || j < 0 || j >= misaIds.length) return;
+  misaIds = misaIds.slice();   // copia: misaBase puede ser la misma lista
   [misaIds[i], misaIds[j]] = [misaIds[j], misaIds[i]];
-  misaSinPublicar = true;
-  render();
+  cambioEnMisa();
 }
 
 function removeFromMisa(songId) {
   misaIds = misaIds.filter(id => id !== songId);
-  misaSinPublicar = true;
-  render();
+  cambioEnMisa();
 }
 
 // La marca de cambios se baja antes del set(): así el eco de la propia
@@ -970,15 +1012,14 @@ function publicarMisa() {
     misa_actual: misaIds,
     misa_meta: { por: por.slice(0, 80), cuando: horaServidor() }
   }, null, 'publicar la misa')
-    .then(() => alert('✅ Misa publicada correctamente'))
-    .catch(() => { misaSinPublicar = habiaCambios; });
+    .then(() => { borrarBorradorMisa(); render(); avisar('✅ Misa publicada'); })
+    .catch(() => { misaSinPublicar = habiaCambios; render(); });
 }
 
 function limpiarMisa() {
   if (!confirm('¿Limpiar la lista local? (No afecta Firebase hasta que publiques)')) return;
   misaIds = [];
-  misaSinPublicar = true;
-  render();
+  cambioEnMisa();
 }
 
 // ── Búsqueda por título y por letra ──
@@ -1045,10 +1086,62 @@ document.getElementById('list').addEventListener('click', e => {
     else if (accion === 'up') moverEnMisa(id, -1);
     else if (accion === 'down') moverEnMisa(id, 1);
     else if (accion === 'remove') removeFromMisa(id);
+    // Que se note: aviso, salto del contador de Misa de Hoy y vibración corta
+    if (accion === 'add' || (accion === 'remove' && af !== 'misa')) {
+      avisar(accion === 'add' ? `✓ Agregada a la Misa de Hoy (${misaIds.length})` : `Quitada de la Misa de Hoy (${misaIds.length})`);
+      const contador = document.querySelector('.cat-chip[data-cat="misa"] .chip-count');
+      if (contador) contador.classList.add('pulso');
+    }
+    if (navigator.vibrate) navigator.vibrate(10);
     return;
   }
+  // Va a una canción: se anota dónde estaba para restaurarlo al volver
+  if (e.target.closest('.song-row')) guardarVuelta();
   const fila = e.target.closest('.admin-row[data-href]');
   if (fila) window.location.href = fila.dataset.href;
+});
+
+// ── Volver de una canción al mismo lugar: búsqueda y posición de la lista ──
+// Estado efímero de pantalla (sessionStorage), no contexto de navegación (D4)
+function guardarVuelta() {
+  try {
+    sessionStorage.setItem('indice_vuelta', JSON.stringify({
+      cat: af || 'todas', q: document.getElementById('si').value, y: window.scrollY
+    }));
+  } catch (e) {}
+}
+
+function restaurarVuelta() {
+  let v = null;
+  try {
+    v = JSON.parse(sessionStorage.getItem('indice_vuelta'));
+    sessionStorage.removeItem('indice_vuelta');
+  } catch (e) {}
+  if (!v || v.cat !== (af || 'todas')) return;
+  document.body.classList.add('sin-entrada');   // sin animación de entrada
+  const bajar = () => window.scrollTo({ top: v.y || 0, behavior: 'instant' });
+  const si = document.getElementById('si');
+  if (v.q && !MODO.banco) {
+    si.value = v.q;
+    if (normalize(v.q.trim()).length >= 3) {
+      cargarIndiceLetras().then(() => { if (si.value === v.q) { render(); bajar(); } });
+    }
+  }
+  render();
+  bajar();
+  setTimeout(bajar, 0);   // después de que llegue la copia local de la misa
+}
+
+// Página devuelta por el botón atrás sin recargar: el borrador pudo cambiar
+// desde la canción, y lo anotado para "volver" ya no hace falta
+window.addEventListener('pageshow', e => {
+  if (!e.persisted) return;
+  try { sessionStorage.removeItem('indice_vuelta'); } catch (err) {}
+  tomarBorrador();
+  render();
+});
+window.addEventListener('storage', e => {
+  if (e.key === 'misa_borrador') { tomarBorrador(); render(); }
 });
 
 document.getElementById('si').addEventListener('input', function () {
@@ -1089,6 +1182,7 @@ document.getElementById('btnCompartir').addEventListener('click', () => {
 })();
 
 render();
+restaurarVuelta();
 </script>
 </body>
 </html>

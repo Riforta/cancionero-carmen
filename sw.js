@@ -2,15 +2,16 @@
 // (AGENTS.md D15). Al instalarse guarda las páginas y TODAS las letras.
 //
 // Estrategias:
-// - Páginas, JS y manifest propios: primero la red (si tarda más de 3 s o no
-//   hay conexión, la copia guardada). Así nadie queda con una versión vieja.
-// - Letras: la copia guardada al instante y se actualiza en segundo plano.
+// - Páginas, JS, CSS y letras propios: la copia guardada al instante, y en
+//   segundo plano se pide a la red y se actualiza la copia. Así cambiar de
+//   página no depende de la señal. Si cambió un archivo que no es una letra,
+//   se avisa a las páginas abiertas ('version-nueva', lo atiende offline.js).
 // - Imágenes, Google Fonts y SDK de Firebase: la copia guardada si existe.
 // - La base de Firebase (firebaseio.com) no se toca: cada página guarda su
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v10';
+const VERSION = 'v11';
 const CACHE = 'cancionero-' + VERSION;
 
 // songs.js: la lista de letras a guardar. firebase-config.js: FIREBASE_SDK
@@ -27,8 +28,9 @@ const PROPIOS = [
   'assets/pantalla-encendida.mp4', 'assets/pantalla-encendida.webm'
 ];
 const LETRAS = SONGS.map(s => `letras/${s.id}.html`);
+const FUENTES_CSS = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap';
 const EXTERNOS = [
-  'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap',
+  FUENTES_CSS,
   FIREBASE_SDK + 'firebase-app-compat.js',
   FIREBASE_SDK + 'firebase-database-compat.js'
 ];
@@ -39,10 +41,22 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE)
       .then(cache => Promise.all([...PROPIOS, ...LETRAS, ...EXTERNOS]
-        .map(url => cache.add(url).catch(() => {}))))
+        .map(url => cache.add(url).catch(() => {})))
+        .then(() => guardarFuentes(cache)))
       .then(() => self.skipWaiting())
   );
 });
+
+// Los archivos de las fuentes (.woff2) que nombra el CSS de Google Fonts.
+// Solo el bloque "latin": alcanza para el castellano
+async function guardarFuentes(cache) {
+  try {
+    const css = await cache.match(FUENTES_CSS);
+    if (!css) return;
+    const urls = [...(await css.text()).matchAll(/\/\* latin \*\/[^}]*?url\((https:\/\/[^)]+)\)/g)].map(m => m[1]);
+    await Promise.all(urls.map(url => cache.add(url).catch(() => {})));
+  } catch (e) {}
+}
 
 self.addEventListener('activate', event => {
   event.waitUntil(
@@ -61,34 +75,45 @@ function claveSinQuery(request) {
   return url.origin + url.pathname;
 }
 
-// Pide a la red y, si salió bien, guarda una copia con la clave dada. El
-// rechazo queda manejado (sin conexión es lo esperable); quien la usa decide
-function traerYGuardar(request, clave) {
-  const red = fetch(request).then(resp => {
-    if (resp.ok) {
-      const copia = resp.clone();   // clonar antes de devolver: después el cuerpo ya se leyó
-      caches.open(CACHE).then(c => c.put(clave, copia));
-    }
-    return resp;
-  });
-  red.catch(() => {});
-  return red;
+// ETag o fecha de modificación: para saber si un archivo cambió
+const firma = resp => resp.headers.get('etag') || resp.headers.get('last-modified');
+
+// Avisa a las páginas abiertas que hay archivos nuevos. Espera 1,5 s: la
+// página que se está abriendo todavía no figura entre los clientes cuando la
+// red contesta rápido, y además suelen cambiar varios archivos juntos (un
+// solo aviso para todos)
+let avisoPendiente = null;
+function avisarVersionNueva() {
+  if (!avisoPendiente) {
+    avisoPendiente = new Promise(ok => setTimeout(ok, 1500))
+      .then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true }))
+      .then(paginas => paginas.forEach(p => p.postMessage({ tipo: 'version-nueva' })))
+      .catch(() => {})
+      .then(() => { avisoPendiente = null; });
+  }
+  return avisoPendiente;
 }
 
-function primeroRed(request) {
-  const clave = claveSinQuery(request);
-  const red = traerYGuardar(request, clave);
-  const copia = caches.match(clave);
-  const plazo = new Promise(ok => setTimeout(ok, 3000));
-  // Gana la red; si falla o tarda más de 3 s, la copia (si hay)
-  return Promise.race([red, plazo.then(() => copia.then(c => c || red))])
-    .catch(() => copia.then(c => c || Response.error()));
-}
-
-function copiaYActualiza(request) {
-  const clave = claveSinQuery(request);
-  const red = traerYGuardar(request, clave);
-  return caches.match(clave).then(c => c || red).catch(() => red);
+// La copia guardada al instante (si no hay, la red). En segundo plano pide a
+// la red y actualiza la copia; sin conexión ese pedido falla y no pasa nada.
+// Con `avisarCambio`, si la copia nueva es distinta avisa a las páginas
+function copiaYActualiza(event, avisarCambio) {
+  const clave = claveSinQuery(event.request);
+  // Páginas y código: se revalida siempre con el servidor (no-cache), así una
+  // versión nueva se detecta en la primera visita. Se pide por URL porque un
+  // pedido de navegación no admite opciones
+  const red = avisarCambio ? fetch(event.request.url, { cache: 'no-cache' }) : fetch(event.request);
+  const guardado = red.then(resp => {
+    if (!resp.ok) return;
+    const copia = resp.clone();   // clonar ya: después el cuerpo se lee
+    return caches.open(CACHE).then(async cache => {
+      const vieja = avisarCambio ? await cache.match(clave) : null;
+      await cache.put(clave, copia);
+      if (vieja && firma(vieja) && firma(resp) && firma(vieja) !== firma(resp)) await avisarVersionNueva();
+    });
+  }).catch(() => {});
+  event.waitUntil(guardado);
+  return caches.match(clave).then(c => c || red);
 }
 
 function primeroCopia(request) {
@@ -108,9 +133,10 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
 
   if (url.origin === self.location.origin) {
-    if (url.pathname.includes('/letras/')) event.respondWith(copiaYActualiza(request));
-    else if (url.pathname.includes('/assets/')) event.respondWith(primeroCopia(request));
-    else event.respondWith(primeroRed(request));
+    // Las pruebas (capturas, etc.) no pasan por la caché
+    if (url.pathname.includes('/tests/')) return;
+    if (url.pathname.includes('/assets/')) event.respondWith(primeroCopia(request));
+    else event.respondWith(copiaYActualiza(event, !url.pathname.includes('/letras/')));
     return;
   }
   if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com' ||

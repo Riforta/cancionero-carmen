@@ -77,6 +77,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
     del coro (§4f).
   - `tonos/<id>`: `{ transponer, capo }`, el tono en que canta el coro cada
     canción (ver §4c).
+  - `medios/<id>`: lista de hasta 5 `{ url, etiqueta }`, los audios y links
+    cargados desde la app (D12).
   - `admins/<email>`: `true` para cada admin autorizado. El email va en
     minúsculas y con los puntos cambiados por comas (`claveAdmin()`).
 - Hosting: GitHub Pages.
@@ -140,9 +142,14 @@ mayor que lee desde el celular (§4c).
 **D11. Accesibilidad.** Los `<c>` y las `.chord-line` llevan `aria-hidden` para
 que los lectores de pantalla lean solo la letra.
 
-**D12. Audios por canción: solo links, en `songs.js`** (2026-10-01). Van en el
-campo opcional `medios` de cada canción (§3); el reproductor lo arma
-`cancion.html`. No guardar audio en GitHub ni en Firebase:
+**D12. Audios por canción: solo links** (2026-10-01). Se cargan de dos maneras
+y el reproductor lo arma `cancion.html`:
+- En `songs.js`, en el campo opcional `medios` de cada canción (§3).
+- Desde la app (2026-11-15): un admin con sesión pega el link en la página de
+  la canción y se guarda en Firebase, en `medios/<id>` (§4c). Se muestran
+  después de los de `songs.js`.
+
+No guardar el audio en sí en GitHub ni en Firebase:
 - Firebase Storage exige el plan Blaze (con tarjeta) desde febrero de 2026.
 - Firebase Realtime Database no sirve para archivos.
 - Subir MP3 al repo infla para siempre el historial de git (GitHub recomienda
@@ -170,12 +177,20 @@ más de 100 fieles a la vez.
 - **Qué guarda al instalarse** (en la primera visita con conexión): las
   páginas, **todas** las letras (la lista sale de `songs.js` con
   `importScripts`), los íconos, el CSS de Google Fonts y el SDK de Firebase.
-- **Estrategias:**
-  - Páginas y JS propios: primero la red (3 s de espera) y, si falla, la copia.
-    Por eso con conexión nunca se ve una versión vieja.
-  - Letras: la copia al instante y se actualiza en segundo plano.
-  - Imágenes, fuentes y SDK: primero la copia.
+- **Estrategias** (2026-11-15):
+  - Páginas, JS, CSS y letras propios: la copia al instante, y en segundo
+    plano se pide a la red y se actualiza la copia. Así cambiar de página no
+    depende de la señal (antes se esperaba a la red hasta 3 s por archivo).
+  - Imágenes, fuentes y SDK: primero la copia. Los archivos de las fuentes se
+    guardan al instalar.
   - `firebaseio.com` no pasa por el service worker.
+- **Versión nueva del sitio:** si la actualización en segundo plano trae un
+  archivo distinto (por `ETag` o `Last-Modified`; las letras no cuentan), el
+  service worker avisa a las páginas abiertas y `offline.js` decide:
+  - página recién abierta y sin tocar: se recarga sola, una vez;
+  - si no: aviso "🔄 Hay una versión nueva" con el botón "Actualizar".
+  - **Consecuencia:** un cambio de código se ve en la segunda carga o al
+    tocar "Actualizar", no en la primera.
 - **Datos de Firebase:** cada página guarda su copia en `localStorage`
   (`misa_cache`, `nota_<id>`) y la muestra mientras llega la versión en vivo.
   Sin conexión se queda con la copia y aparece el aviso "📴 Sin conexión".
@@ -240,6 +255,10 @@ sola vez:
   - `normalize`, `escaparHtml` y `lineasDeLetra` (la usan la búsqueda y el
     lector de voz).
   - `leerCopia` / `guardarCopia`.
+  - Misa de Hoy: `insertarEnMisa` (orden por momento) y el borrador
+    (`leerBorradorMisa`, `guardarBorradorMisa`, `borrarBorradorMisa`; §4).
+  - `avisar(texto, link)`: aviso flotante que confirma una acción. Para lo que
+    salió bien se usa esto y no `alert`; los errores siguen con `alert`.
 - **`firebase-config.js`:**
   - `seguirDato(ruta, claveCopia, cb)`: entrega primero la copia local y
     después el dato publicado. En banco lo lee una vez por REST (D14); en el
@@ -319,7 +338,8 @@ internet ni datos cargados a mano.
        el link".
      - `.mp3`, `.m4a`, etc.: reproductor de audio.
      - Cualquier otra URL `https://`: un link común.
-     Solo músicos y admin. No aparece en banco ni sin conexión.
+     Solo músicos y admin. No aparece en banco ni sin conexión. También se
+     pueden cargar desde la app, sin tocar el repo (§4c).
 3. Antes de crear una canción, **verificar que no exista ya** (buscar por título
    y por número). Si existe y la letra coincide, no tocarla.
 
@@ -406,6 +426,22 @@ internet ni datos cargados a mano.
   momento. El orden fino se ajusta con ↑ ↓ en la vista de la misa. El orden del
   array es el orden de la misa.
 - `🗑️ Limpiar Misa` vacía solo la lista local hasta que se publique.
+- **Borrador** (2026-11-15): lo armado y todavía no publicado se guarda en el
+  celular (`localStorage.misa_borrador` = `{ ids, base }`), así no se pierde al
+  entrar a ver una canción ni al recargar.
+  - `base` es la misa publicada sobre la que se empezó a editar.
+  - Solo se usa en modo admin. Aparece "● Hay cambios en la Misa de Hoy sin
+    publicar".
+  - Se borra al publicar, al cargar la versión publicada o si la lista vuelve
+    a quedar igual a la publicada.
+- **Agregar desde la canción** (2026-11-15): en `cancion.html`, un admin con
+  sesión ve "➕ Agregar a la Misa de Hoy" bajo el título.
+  - Suma la canción al borrador, en su momento litúrgico. **No publica.**
+  - Después muestra "✓ En la Misa de Hoy · Quitar" y "Falta publicar · Ir a
+    Misa de Hoy".
+- **El `+` del índice** pasa a `✓` dorado cuando la canción ya está en la
+  misa, y tocarlo otra vez la quita. Cada toque muestra un aviso flotante con
+  la cantidad de canciones.
 - **Quién publicó** (2026-10-02): al publicar se guardan en una sola operación
   (`escribirVarios`) la misa y `misa_meta`.
   - `por`: el nombre de Google del admin o, si no hay, su email.
@@ -417,7 +453,8 @@ internet ni datos cargados a mano.
   se pisa. Aparece el aviso "Se publicó otra versión…" con "Cargar la
   publicada", que pide confirmación porque descarta los cambios. El eco de su
   propia publicación no dispara el aviso: la marca de cambios se baja antes del
-  `set()`.
+  `set()`. Con un borrador guardado, "otra versión" es una distinta de su
+  `base`.
 - **Ids que ya no existen** en `SONGS` se descartan al recibir la misa: no
   cuentan en el chip, no se reordenan y no se vuelven a publicar.
 - **Anterior / siguiente:** en `cancion.html`, si se llegó desde Misa de Hoy
@@ -485,7 +522,16 @@ Ninguna aparece en modo banco.
     tiene en pantalla es distinto del guardado. Guardar el original sin capo
     borra el tono del coro.
   - Copia local en `localStorage.tono_<id>`.
-- **Audios y links:** debajo de la letra, desde el campo `medios` (§3).
+- **Audios y links:** debajo de la letra. Salen del campo `medios` de
+  `songs.js` (§3) y de Firebase (`medios/<id>`, 2026-11-15):
+  - Un admin con sesión ve "➕ Agregar audio o link": pega el link (tiene que
+    empezar con `https://`) y una etiqueta opcional de hasta 60 caracteres.
+  - Hasta 5 por canción. Cada uno tiene "🗑 Quitar", con confirmación.
+  - Los de `songs.js` no se editan desde la web. Si un link está en los dos
+    lados, se muestra una sola vez.
+  - Copia local en `localStorage.medios_<id>`.
+  - **Renombrar el `id` de una canción deja sus audios huérfanos**, igual que
+    la nota y el tono.
 
 ## 4d. Índice: búsqueda y compartir
 
@@ -495,6 +541,10 @@ Ninguna aparece en modo banco.
   - La primera búsqueda descarga todas las letras (sin conexión salen de la
     caché del service worker) y arma un índice en memoria.
   - Las líneas de solo acordes no cuentan.
+- **Volver al mismo lugar** (2026-11-15): al entrar a una canción, el índice
+  anota la categoría, la búsqueda y la posición (`sessionStorage.indice_vuelta`).
+  Al volver las restaura, una sola vez. Es estado efímero de pantalla, no
+  contexto de navegación: D4 no cambia.
 - **Compartir la misa:** en Misa de Hoy (músicos y admin), "📤 Compartir la misa"
   arma un texto con las canciones por momento, un link para músicos
   (`?cat=misa`) y otro para fieles (`?modo=banco`).
@@ -560,6 +610,13 @@ Ninguna aparece en modo banco.
   saca el zoom por doble toque (molesta al tocar rápido los botones). No usar
   `user-scalable=no`: el pellizco para agrandar tiene que seguir funcionando,
   para quien ve poco.
+- **Respuesta al tocar** (2026-11-15): todos los botones se achican y cambian
+  de brillo al apretarlos (`:active` en `comun.css`). Una clase de botón nueva
+  se agrega a esa lista. Lo que cambia un estado tiene que notarse: color del
+  botón o `avisar()`.
+- **Pruebas que cortan la salida:** no usar `Select-Object -First` sobre
+  `run.ps1`. Corta el script antes de que cierre Chrome, y las corridas
+  siguientes se conectan a ese Chrome viejo.
 - **Modo oscuro:** al agregar estilos, probar la pantalla en los dos temas
   (botón 🌙/☀️). Ningún color fijo pensado para fondo claro debe quedar sin su
   ajuste en `comun.css` (D17).
@@ -605,6 +662,15 @@ Sin cambios visuales: las capturas son idénticas al píxel.
 
 ### Otros pendientes
 
+- **Cargar canciones nuevas desde la web** (pedido el 2026-11-15, para más
+  adelante). Hoy una canción nueva necesita el repo, porque cada letra es un
+  archivo y el índice es `songs.js`. Mientras tanto se puede hacer sin VSCode,
+  editando desde github.com en el celular. Diseño propuesto:
+  - formulario de admin que guarda letra y acordes en Firebase;
+  - el índice y la búsqueda mezclan esas canciones con las de `songs.js`;
+  - falta resolver cómo quedan guardadas para usar sin internet (D15) y la
+    conversión de acordes al formato de §3.
+
 - Vista de calendario de los avisos (grilla del mes con puntos en los días con
   eventos; al tocar un día, sus avisos). Decidido: después de la lista.
 
@@ -643,7 +709,9 @@ además los rangos del tono (transponer de −11 a 11, capo de 0 a 8, sin campos
 extra) y que la misa sea una lista de ids de texto. Desde la misma fecha se
 suman `misa_meta` (quién y cuándo) y `avisos` (fecha, hora, tipo y largos
 validados); sin pegar las reglas nuevas, publicar la misa y guardar avisos da
-"Permission denied".
+"Permission denied". Desde 2026-11-15 se suma `medios` (hasta 5 links `https`
+por canción); sin pegarlas, agregar un audio desde la app da "Permission
+denied".
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:

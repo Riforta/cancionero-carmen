@@ -25,6 +25,43 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
 }
 
+// ── Versión nueva del sitio ──
+// El service worker muestra la copia guardada al instante y la actualiza en
+// segundo plano. Si encontró un archivo cambiado, avisa ('version-nueva'):
+// - recién abierta y sin tocar nada: la página se recarga sola (una vez);
+// - si no: aviso en el encabezado con el botón "Actualizar".
+if ('serviceWorker' in navigator) {
+  let tocada = false;
+  ['pointerdown', 'keydown'].forEach(ev =>
+    window.addEventListener(ev, () => { tocada = true; }, { capture: true, passive: true }));
+
+  function versionNueva() {
+    let recargadaHace = Infinity;
+    try { recargadaHace = Date.now() - (Number(sessionStorage.getItem('recarga_version')) || 0); } catch (e) {}
+    if (!tocada && performance.now() < 4000 && recargadaHace > 30000) {
+      try { sessionStorage.setItem('recarga_version', String(Date.now())); } catch (e) {}
+      location.reload();
+      return;
+    }
+    const header = document.querySelector('header');
+    if (!header || header.querySelector('.aviso-version')) return;
+    const aviso = document.createElement('div');
+    aviso.className = 'aviso-version';
+    aviso.setAttribute('role', 'status');
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.textContent = 'Actualizar';
+    boton.addEventListener('click', () => location.reload());
+    aviso.append('🔄 Hay una versión nueva', boton);
+    header.appendChild(aviso);
+    window.dispatchEvent(new Event('resize'));   // el buscador del índice se reacomoda
+  }
+
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.tipo === 'version-nueva') versionNueva();
+  });
+}
+
 // Aviso dentro del encabezado (que es sticky), así se ve siempre
 (function () {
   const aviso = document.createElement('div');

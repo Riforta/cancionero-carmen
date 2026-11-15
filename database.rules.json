@@ -44,6 +44,24 @@
         }
       }
     },
+    "medios": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+        "$i": {
+          ".validate": "$i.matches(/^[0-4]$/) && newData.hasChildren(['url'])",
+          "url": {
+            ".validate": "newData.isString() && newData.val().beginsWith('https://') && newData.val().length <= 300"
+          },
+          "etiqueta": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "$otro": {
+            ".validate": false
+          }
+        }
+      }
+    },
     "avisos": {
       ".read": true,
       "$id": {

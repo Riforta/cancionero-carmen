@@ -32,6 +32,13 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 - **Con service worker:** las páginas con Firebase falso saltean el service
   worker (`Network.setBypassServiceWorker`); si no, servirían el SDK real desde
   la caché.
+- **No cortar la salida de `run.ps1`** con `Select-Object -First`: frena el
+  script antes de que cierre Chrome, y las corridas siguientes se conectan a
+  ese Chrome viejo (resultados raros). Si pasa, cerrar los `chrome.exe` cuyo
+  comando tenga `cancionero-tests`.
+- **Datos que quedan entre pruebas:** todas comparten el `localStorage` del
+  perfil. Una prueba que deja un borrador de la misa (`misa_borrador`) o una
+  copia de datos tiene que borrarlos al terminar.
 - **Capturas:** se comparan píxel por píxel. Generar la referencia antes de un
   refactor visual y comparar al terminar; las diferencias quedan pintadas de
   rojo en `salida/diferencias/`.
@@ -58,7 +65,10 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `letra.mjs` | Tamaño de letra A− / A+: escala, topes, se recuerda, acordes alineados, visible en banco |
 | `avisos.mjs` | Avisos del coro: lista por mes con fiestas, sin lo pasado, `.ics`, alta/edición/baja de admin, sin conexión, banco, "Próximos avisos" del índice |
 | `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
-| `sin-internet.mjs` | Service worker, caché de letras, modo avión |
+| `borrador.mjs` | Borrador de la misa guardado en el celular, botón "Agregar a la Misa de Hoy" de la canción, `+` / `✓` del índice y aviso flotante |
+| `medios-admin.mjs` | Audios cargados desde la app: alta, baja, mezcla con `songs.js`, permisos, banco y reglas |
+| `volver.mjs` | Volver de una canción al índice con la misma búsqueda y posición |
+| `sin-internet.mjs` | Service worker, caché de letras y fuentes, modo avión, red lenta y aviso de versión nueva |
 | `iphone.mjs` | Pantalla encendida en iPhone, zoom, aviso "Listo sin internet" |
 | `capturas.mjs` | Comparación visual contra la referencia |
 | `liturgia.node.mjs` | `liturgia.js` en Node: Pascua, tiempos, numeración, colores, fiestas y traslados argentinos |

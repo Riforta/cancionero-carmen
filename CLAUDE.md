@@ -15,7 +15,8 @@ Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENT
 - `tests/` — pruebas: `powershell -File tests/run.ps1` (regresión completa) y `node tests/acordes.node.mjs`. Ver `tests/README.md`.
 - `letras/*.html` — fragmentos HTML (sin `<html>`/`<head>`) con la letra y los acordes.
 - `assets/` — logos e imágenes.
-- La categoría "Misa de Hoy" se sincroniza vía Firebase Realtime Database (`misa_actual`). `?admin=true` muestra los botones de edición; `?modo=banco` oculta acordes y controles (vista para los fieles).
+- `sw.js` + `offline.js` — funcionamiento sin internet: muestra la copia guardada al instante y la actualiza en segundo plano (D15). Un cambio de código se ve en la segunda carga o con el aviso "Actualizar".
+- La categoría "Misa de Hoy" se sincroniza vía Firebase Realtime Database (`misa_actual`). Lo armado sin publicar queda como borrador en el celular (§4 de AGENTS.md). `?admin=true` muestra los botones de edición; `?modo=banco` oculta acordes y controles (vista para los fieles).
 
 ## Formato de letras
 

@@ -167,6 +167,57 @@ header {
   cursor: pointer;
 }
 
+/* ─── RESPUESTA AL TOCAR (todos los botones) ───
+   Al apretar, el botón se achica un poco y se oscurece: se nota que el toque
+   entró aunque la acción tarde. En modo oscuro se aclara en vez de oscurecer */
+:is(.btn-toggle, .capo-select, .tono-btn, .nota-edit, .admin-action-btn, .admin-btn,
+    .sesion-btn, .tam-btn, .as-btn, .cat-chip, .mode-toggle, .theme-toggle,
+    .misa-nav-link, .medio-btn):active:not(:disabled) {
+  transform: scale(0.94);
+  filter: brightness(0.88);
+  transition-duration: 0.06s;
+}
+[data-theme="dark"] :is(.btn-toggle, .capo-select, .tono-btn, .nota-edit, .admin-action-btn,
+    .admin-btn, .sesion-btn, .tam-btn, .cat-chip, .misa-nav-link, .medio-btn):active:not(:disabled) {
+  filter: brightness(1.35);
+}
+.song-row:active { background: var(--brown-light); border-left-color: var(--gold); }
+:is(button, select, a.song-row, a.misa-nav-link):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ─── AVISO FLOTANTE (avisar() en comun.js) ─── */
+.aviso-flotante {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  z-index: 1100;
+  max-width: calc(100vw - 32px);
+  padding: 0.6rem 1.15rem;
+  border-radius: 50px;
+  background: var(--brown-dark);
+  border: 1.5px solid var(--gold-light);
+  color: #fff;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.02rem;
+  text-align: center;
+  box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+  opacity: 0;
+  transform: translate(-50%, 12px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.aviso-flotante.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+.aviso-flotante a { color: var(--gold-bright); font-weight: 500; white-space: nowrap; }
+
+/* ─── CAMBIO DE PÁGINA: fundido corto (navegadores que lo soportan) ─── */
+@view-transition { navigation: auto; }
+::view-transition-group(root) { animation-duration: 0.14s; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
 /* ─── BARRA DE SESIÓN DEL ADMIN (sesion.js) ─── */
 .sesion-bar {
   display: flex; align-items: center; justify-content: space-between;
@@ -194,6 +245,18 @@ header {
   background: #DDB45E; color: #2C1A0D; text-align: center;
   font-family: 'EB Garamond', Georgia, serif; font-size: 0.9rem;
   padding: 0.3rem 0.8rem;
+}
+
+/* ─── AVISO "HAY UNA VERSIÓN NUEVA" (offline.js) ─── */
+.aviso-version {
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  background: #DDB45E; color: #2C1A0D;
+  font-family: 'EB Garamond', Georgia, serif; font-size: 0.95rem;
+  padding: 0.3rem 0.8rem;
+}
+.aviso-version button {
+  border: 1.5px solid #2C1A0D; border-radius: 50px; background: #2C1A0D; color: #fff;
+  font-family: inherit; font-size: 0.9rem; padding: 0.15rem 0.8rem; cursor: pointer;
 }
 
 /* ─── AJUSTES DEL MODO OSCURO ─── */

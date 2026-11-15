@@ -531,6 +531,7 @@ if (!esBanco && idCancion) {
 // [{ url, etiqueta?, tipo? }]. El tipo se deduce de la URL: YouTube, Spotify,
 // Google Drive, archivo de audio (mp3, m4a…) o, si no, un link común.
 // Solo músicos y admin; sin conexión se ocultan (los reproductores necesitan red)
+// (La sección sigue más abajo, después de crearMedio)
 function crearMedio(m) {
   const url = String(m.url || '');
   const cont = document.createElement('div');
@@ -579,20 +580,158 @@ function crearMedio(m) {
   return cont;
 }
 
-function renderMedios(lista) {
+//
+// Además de los de songs.js, un admin con sesión puede agregar links desde la
+// página: se guardan en Firebase (medios/<id>, lista de hasta 5
+// { url, etiqueta }) y se muestran después de los de songs.js. Los de
+// songs.js no se editan desde la web
+const MAX_MEDIOS = 5;
+let mediosFijos = [];       // de songs.js
+let mediosAgregados = [];   // de Firebase
+let mediosRef = null;
+const puedeEditarMedios = () => isAdmin && esAdminOk && !esBanco;
+
+// Lo que llega de Firebase: solo links https, sin campos de más
+function validarMedios(val) {
+  const lista = Array.isArray(val) ? val : (val ? Object.values(val) : []);
+  return lista
+    .filter(m => m && typeof m.url === 'string' && /^https:\/\//.test(m.url))
+    .slice(0, MAX_MEDIOS)
+    .map(m => (typeof m.etiqueta === 'string' && m.etiqueta ? { url: m.url, etiqueta: m.etiqueta } : { url: m.url }));
+}
+
+function guardarMedios(lista, boton, accion) {
+  return escribirDato(mediosRef, lista.length ? lista : null, boton, accion);
+}
+
+// `fijos` reemplaza la lista de songs.js; sin argumento, solo redibuja
+function renderMedios(fijos) {
+  if (fijos) mediosFijos = fijos;
   const box = document.getElementById('medios');
   const cont = document.getElementById('mediosLista');
   cont.textContent = '';
-  (lista || []).map(crearMedio).filter(Boolean).forEach(el => cont.appendChild(el));
-  const hay = cont.children.length > 0;
-  const mostrar = () => { box.hidden = !hay || !navigator.onLine; };
-  mostrar();
-  window.addEventListener('online', mostrar);
-  window.addEventListener('offline', mostrar);
+  mediosFijos.map(crearMedio).filter(Boolean).forEach(el => cont.appendChild(el));
+  const yaEstan = new Set(mediosFijos.map(m => m.url));
+  mediosAgregados.forEach(m => {
+    if (yaEstan.has(m.url)) return;
+    const el = crearMedio(m);
+    if (!el) return;
+    if (puedeEditarMedios()) {
+      const quitar = document.createElement('button');
+      quitar.type = 'button';
+      quitar.className = 'nota-edit medio-btn';
+      quitar.textContent = '🗑 Quitar';
+      quitar.addEventListener('click', () => {
+        if (!confirm('¿Quitar este audio o link?')) return;
+        guardarMedios(mediosAgregados.filter(x => x !== m), quitar, 'quitar el audio').catch(() => {});
+      });
+      el.appendChild(quitar);
+    }
+    cont.appendChild(el);
+  });
+  const form = document.getElementById('medioForm');
+  if (!puedeEditarMedios()) form.hidden = true;
+  document.getElementById('medioAgregar').hidden = !puedeEditarMedios() || !form.hidden;
+  // Sin conexión se oculta todo: los reproductores necesitan red
+  box.hidden = !(cont.children.length > 0 || puedeEditarMedios()) || !navigator.onLine;
 }
 
-if (!esBanco && cancionActual && Array.isArray(cancionActual.medios)) {
-  renderMedios(cancionActual.medios);
+if (!esBanco && cancionActual) {
+  const form = document.getElementById('medioForm');
+  const inputUrl = document.getElementById('medioUrl');
+  const inputEtiqueta = document.getElementById('medioEtiqueta');
+  const btnGuardar = document.getElementById('medioSave');
+
+  renderMedios(Array.isArray(cancionActual.medios) ? cancionActual.medios : []);
+  window.addEventListener('online', () => renderMedios());
+  window.addEventListener('offline', () => renderMedios());
+  document.addEventListener('sesion-admin', () => renderMedios());
+
+  // Copia local y después lo publicado, en vivo. Solo se redibuja si cambió
+  // (redibujar recarga los reproductores)
+  seguirDato('medios/' + idCancion, 'medios_' + idCancion, val => {
+    const nuevos = validarMedios(val);
+    if (JSON.stringify(nuevos) === JSON.stringify(mediosAgregados)) return;
+    mediosAgregados = nuevos;
+    renderMedios();
+  }).then(ref => { mediosRef = ref; });
+
+  document.getElementById('medioAgregar').addEventListener('click', () => {
+    inputUrl.value = '';
+    inputEtiqueta.value = '';
+    form.hidden = false;
+    renderMedios();
+    inputUrl.focus();
+  });
+  document.getElementById('medioCancel').addEventListener('click', () => {
+    form.hidden = true;
+    renderMedios();
+  });
+  btnGuardar.addEventListener('click', () => {
+    const url = inputUrl.value.trim();
+    const etiqueta = inputEtiqueta.value.trim().slice(0, 60);
+    if (!/^https:\/\/\S+$/.test(url) || url.length > 300) {
+      alert('Pegá el link completo: tiene que empezar con https://');
+      return;
+    }
+    if (mediosFijos.concat(mediosAgregados).some(m => m.url === url)) {
+      alert('Ese link ya está cargado en esta canción.');
+      return;
+    }
+    if (mediosAgregados.length >= MAX_MEDIOS) {
+      alert(`Se pueden agregar hasta ${MAX_MEDIOS} links por canción. Quitá uno primero.`);
+      return;
+    }
+    guardarMedios(mediosAgregados.concat(etiqueta ? { url, etiqueta } : { url }), btnGuardar, 'guardar el audio')
+      .then(() => { form.hidden = true; renderMedios(); avisar('✓ Audio agregado'); })
+      .catch(() => {});
+  });
+}
+
+// ─── LÓGICA 12: AGREGAR A LA MISA DE HOY (admin con sesión) ───
+// Suma o quita la canción del borrador de la misa (comun.js), igual que el +
+// del índice: no publica. Se publica desde Misa de Hoy, en el índice
+if (isAdmin && !esBanco && cancionActual) {
+  const caja = document.getElementById('misa-agregar');
+  const btn = document.getElementById('misaAgregarBtn');
+  const pendiente = document.getElementById('misaPendiente');
+  const irAPublicar = linkCon('index.html', { cat: 'misa' });
+  let publicada = [];
+  document.getElementById('misaIrPublicar').href = irAPublicar;
+
+  // La lista sobre la que se trabaja: el borrador o, si no hay, la publicada
+  const listaDeTrabajo = () => leerBorradorMisa() || { ids: publicada, base: publicada };
+
+  function pintarMisaAgregar() {
+    const esta = listaDeTrabajo().ids.includes(idCancion);
+    btn.textContent = esta ? '✓ En la Misa de Hoy · Quitar' : '➕ Agregar a la Misa de Hoy';
+    btn.classList.toggle('active', esta);
+    btn.setAttribute('aria-pressed', String(esta));
+    pendiente.hidden = !leerBorradorMisa();
+    caja.hidden = !esAdminOk;
+  }
+
+  btn.addEventListener('click', () => {
+    const { ids, base } = listaDeTrabajo();
+    const esta = ids.includes(idCancion);
+    const nueva = esta ? ids.filter(id => id !== idCancion) : insertarEnMisa(ids, idCancion);
+    const faltaPublicar = guardarBorradorMisa(nueva, base);
+    pintarMisaAgregar();
+    avisar(esta ? `Quitada de la Misa de Hoy (${nueva.length})` : `✓ Agregada a la Misa de Hoy (${nueva.length})`,
+      faltaPublicar ? { texto: 'Ir a publicar ›', href: irAPublicar } : null);
+    if (navigator.vibrate) navigator.vibrate(10);
+  });
+
+  // Si la misa publicada ya es igual al borrador, no queda nada por publicar
+  suscribirMisa(ids => {
+    publicada = ids;
+    const b = leerBorradorMisa();
+    if (b && mismaLista(ids, b.ids)) borrarBorradorMisa();
+    pintarMisaAgregar();
+  });
+  document.addEventListener('sesion-admin', pintarMisaAgregar);
+  window.addEventListener('storage', e => { if (e.key === 'misa_borrador') pintarMisaAgregar(); });
+  window.addEventListener('pageshow', e => { if (e.persisted) pintarMisaAgregar(); });
 }
 
 // ─── LÓGICA 11: TAMAÑO DE LETRA (todos los modos, también banco) ───

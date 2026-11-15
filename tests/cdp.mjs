@@ -106,17 +106,25 @@ export async function connect() {
   }
   // Corta o devuelve la red a todos los service workers (la emulación de la
   // página no alcanza a las peticiones que hace el propio service worker)
-  async function swOffline(offline) {
+  // `latency` (ms) simula una red lenta. Se reutiliza una sesión por service
+  // worker: las condiciones de red son de cada sesión, y con una sesión nueva
+  // por llamada las anteriores (sin conexión, red lenta) quedarían activas
+  const sesionesSw = new Map();
+  async function swOffline(offline, latency = 0) {
     const { result: { targetInfos } } = await send('Target.getTargets');
     const sws = targetInfos.filter(t => t.type === 'service_worker' && t.url.startsWith('http'));
     if (process.env.DEBUG_SW) console.log('  targets:', JSON.stringify(targetInfos.map(t => [t.type, t.url, t.attached])));
     const reqs = [];
     for (const t of sws) {
-      const r = await send('Target.attachToTarget', { targetId: t.targetId, flatten: true });
-      if (!r.result) { console.log('  (no se pudo adjuntar al SW', t.url, JSON.stringify(r.error), ')'); continue; }
-      const { sessionId } = r.result;
-      await send('Network.enable', {}, sessionId);
-      await send('Network.emulateNetworkConditions', { offline, latency: 0, downloadThroughput: -1, uploadThroughput: -1 }, sessionId);
+      let sessionId = sesionesSw.get(t.targetId);
+      if (!sessionId) {
+        const r = await send('Target.attachToTarget', { targetId: t.targetId, flatten: true });
+        if (!r.result) { console.log('  (no se pudo adjuntar al SW', t.url, JSON.stringify(r.error), ')'); continue; }
+        sessionId = r.result.sessionId;
+        sesionesSw.set(t.targetId, sessionId);
+        await send('Network.enable', {}, sessionId);
+      }
+      await send('Network.emulateNetworkConditions', { offline, latency, downloadThroughput: -1, uploadThroughput: -1 }, sessionId);
       handlers.push(m => { if (m.sessionId === sessionId && m.method === 'Network.requestWillBeSent') reqs.push(m.params.request.url); });
     }
     return { count: sws.length, reqs };

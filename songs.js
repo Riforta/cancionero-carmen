@@ -50,6 +50,7 @@ const SONGS = [
   // --- SANTO / CORDERO (snt_) ---
   { "id": "snt_santo-clasico", "num": 0, "title": "Santo Clásico (Santo es el Señor)", "category": "santo" },
   { "id": "snt_santo-congreso-eucaristico", "num": 6, "title": "Santo (Congreso Eucarístico)", "category": "santo" },
+  { "id": "snt_santo-es-el-senor", "num": 14, "title": "Santo es el Señor", "category": "santo" },
   { "id": "snt_cordero-clasico", "num": 0, "title": "Cordero Clásico", "category": "santo" },
   { "id": "snt_cordero-lento", "num": 0, "title": "Cordero Lento", "category": "santo" },
   { "id": "snt_cordero-marcha-carnavalito", "num": 0, "title": "Cordero Marcha (Carnavalito)", "category": "santo" },
