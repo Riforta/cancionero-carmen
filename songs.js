@@ -19,6 +19,7 @@ const SONGS = [
 
   // --- GLORIA / KYRIE (glo_) ---
   { "id": "glo_senor-ten-piedad-kyrie", "num": 0, "title": "Señor ten piedad (Kyrie)", "category": "gloria" },
+  { "id": "glo_gloria-osvaldo-catena", "num": 1, "title": "Gloria (Osvaldo Catena)", "category": "gloria" },
   { "id": "glo_gloria-congreso-2000", "num": 4, "title": "Gloria (Congreso Eucarístico 2000)", "category": "gloria" },
   { "id": "glo_gloria-a-dios-gloria-a-dios", "num": 5, "title": "Gloria a Dios, Gloria a Dios", "category": "gloria" },
 
