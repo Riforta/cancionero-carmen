@@ -6,6 +6,9 @@ const MISA = ['ent_bendecire', 'glo_gloria-congreso-2000', 'com_alma-misionera',
 {
   const p = await c.newPage({ fake: FAKE_FIREBASE({ misa_actual: ['ent_bendecire', 'com_alma-misionera'], 'admins/test@gmail,com': true }, { email: 'test@gmail.com' }), width: 360, height: 740 });
   await p.go('/index.html?admin=true&cat=todas');
+  // Esperar la misa del Firebase falso: si no, puede llegar antes la copia local
+  // que dejó otra prueba, y se agrega sobre esa
+  for (let i = 0; i < 40 && !(await p.ev(`JSON.stringify(misaIds) === JSON.stringify(['ent_bendecire', 'com_alma-misionera'])`)); i++) await wait(100);
   await p.ev(`addToMisa('glo_gloria-congreso-2000'); addToMisa('mar_magnificat'); addToMisa('ent_ven-hermano'); addToMisa('ofert_toma')`);
   const orden = await p.ev('JSON.stringify(misaIds)');
   check('orden por momento al agregar', orden === JSON.stringify(['ent_bendecire', 'ent_ven-hermano', 'glo_gloria-congreso-2000', 'ofert_toma', 'com_alma-misionera', 'mar_magnificat']), orden);
