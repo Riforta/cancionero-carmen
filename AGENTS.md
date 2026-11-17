@@ -721,7 +721,7 @@ fase:
 | 0 | `songs.js` compartido; modo banco por REST (D14) | Hecha |
 | 1 | Pantalla encendida, desplazamiento automático, orden de la misa, anterior/siguiente | Hecha |
 | 2 | Sin internet: service worker, manifest (instalable), copia local de datos | Hecha |
-| 3 | Login de admin con Google + reglas de Firebase | Código hecho; falta la configuración en la consola (§7) |
+| 3 | Login de admin con Google + reglas de Firebase | Hecha (reglas aplicadas en la consola; verificado el 2026-11-17) |
 | 4 | Tono del coro por canción, compartir por WhatsApp, buscar por letra, audios y links | Hecha |
 | 5 | QR para fieles (requiere las fases 0 y 3 publicadas) | Hecha |
 
@@ -744,16 +744,174 @@ Hecha en 7 commits, cada uno verificado con `tests/`:
 
 Sin cambios visuales: las capturas son idénticas al píxel.
 
+### Plan: canciones editables desde la web (propuesto 2026-11-17, falta aprobar)
+
+**Objetivo:** que un admin pueda, desde el celular, corregir una canción (mover
+un acorde a la sílaba justa, cambiarlo, agregarlo o borrarlo, corregir el
+texto) y cargar canciones nuevas, sin pasar por el repo ni por un chat.
+
+**Ya decidido con el usuario:**
+- Los acordes se mueven **tocando**, no arrastrando: en el celular el dedo tapa
+  la sílaba. Se toca el acorde y después ◀ ▶ (una letra por toque) o la sílaba
+  de destino.
+- Se pueden corregir también las canciones que ya están en el repo.
+- Edita solo quien tiene sesión de admin (D16).
+- No hay modo proyector.
+
+#### Formato nuevo: el acorde anclado a su sílaba
+
+Hoy la posición de un acorde depende de los espacios, y con la fuente
+proporcional nunca cae exacta (D7). Medido el 2026-11-17: en 1347 de las 1807
+líneas de acordes, los acordes pasan del final del verso si se cuentan letras.
+Por eso los espacios no sirven para editar.
+
+Formato nuevo (un ChordPro reducido), texto plano:
+```
+{titulo: Antífona 1}
+Intro: [DO] [FA] [SOL]
+
+[SOL]Toma, Señor, y re[MIm]cibe toda mi [DO]libertad,
+{estribillo}
+[RE]Señor, me has mi[LA]rado a los ojos,
+{/estribillo}
+[(MI)]  [LA] [RE]
+{nota: Se repite dos veces}
+```
+- `[ACORDE]` va justo antes de la letra sobre la que cae. Los opcionales van
+  entre paréntesis adentro: `[(MI)]`.
+- **Renglón de solo acordes** (intro, interludio, final): un renglón que no
+  tiene más que acordes.
+- `{estribillo}` … `{/estribillo}` reemplaza `<b>`; `{titulo: …}` reemplaza
+  `<h3>`; `{nota: …}` reemplaza `<i>`.
+- `(bis)`, `/…/` y la letra pendiente se escriben igual que hoy.
+- Las reglas de nombres de acordes de §3 no cambian (latina, `FA#m`, `RE/FA#`).
+
+**Dónde vive:** el mismo texto sirve para el repo y para Firebase.
+- **Repo:** `letras/<id>.txt` reemplaza a `letras/<id>.html`.
+- **Firebase:** `canciones/<id>/letra`.
+
+Una sola función pura lo interpreta: `letra.js`, probada en Node como
+`acordes.js`. La usan la página de la canción, la búsqueda, el editor y el
+service worker.
+
+**Cómo se dibuja:** cada tramo de letra con su acorde arriba
+(`<span class="tramo"><c data-original="SOL">SOL</c>Toma, Señor, y re</span>`).
+- El acorde cae exacto sobre su sílaba, con cualquier fuente y tamaño (A− / A+).
+- Si el acorde es más ancho que su tramo, el tramo se estira y, si es en medio
+  de una palabra, se marca con un guion.
+- Sin acordes (botón o modo banco), los tramos vuelven a ser texto corrido.
+- Las líneas largas pueden pasar al renglón siguiente en vez de desplazarse de
+  costado, porque los acordes viajan con su tramo.
+- Siguen igual: transponer, capo, diagramas (`<c data-original>`), tono del
+  coro, A− / A+, desplazamiento automático y `aria-hidden` en los acordes (D11).
+
+#### Etapa 1 — Nuevo dibujo y conversión de todas las letras (la base)
+
+1. `letra.js`: interpreta el formato y devuelve renglones con sus tramos, más
+   las líneas de texto para la búsqueda (reemplaza a `lineasDeLetra`). Lleva
+   pruebas en Node: casos de §3, acordes al final, renglones de solo acordes,
+   opcionales, estribillo y títulos.
+2. Nuevo dibujo en `cancion.js`, con `wrapChordLines` (D8) quitado.
+3. **Conversión midiendo la pantalla**, con un script en `tests/` (Chrome
+   headless). Para cada letra actual:
+   - la dibuja como hoy;
+   - mide la posición de cada `<c>` y busca qué letra del verso de abajo queda
+     debajo (`caretPositionFromPoint` o un `Range`);
+   - escribe el `.txt`.
+   Un acorde que cae más allá del final del verso se ancla al final. Así cada
+   canción queda como la ven hoy los músicos.
+4. **Verificación de las 106 canciones:**
+   - Automática: mismos acordes en el mismo orden por renglón, mismo texto y
+     ningún acorde perdido.
+   - Capturas de antes y después lado a lado, para revisar a ojo.
+   - Ya detectado: `com_alma-misionera.html`, renglones 48 y 49, tiene acordes
+     mezclados con letra y se arregla a mano.
+5. Actualizar:
+   - `sw.js`: `LETRAS` pasa a `.txt` y se sube `VERSION`.
+   - La búsqueda.
+   - Las pruebas que miran `pre c`.
+   - AGENTS.md (D2, D7, D8 y §3) y CLAUDE.md (formato de letras).
+
+Se puede publicar sola: mejora la alineación de todas las canciones.
+
+#### Etapa 2 — Editor de acordes (admin)
+
+- **Entrada:** botón "Editar acordes" en la canción, que solo ve un admin con
+  sesión. Se reserva su lugar como manda D16.
+- **Acorde tocado:** queda marcado y aparece una barra con ◀ ▶, "Cambiar",
+  "Borrar" y "Listo". Tocar otra sílaba lleva el acorde ahí.
+- **Sílaba sin acorde:** "+ Acorde acá", con un campo para escribirlo. Avisa si
+  no tiene diagrama en `CHORD_DICTIONARY`.
+- **Edición:** se ve igual a como va a quedar. "Guardar" y "Descartar"; nada
+  cambia hasta guardar.
+- **Datos (Firebase):**
+  - `canciones/<id>`: `{ letra, por, cuando, anterior }`. Si existe, **pisa** a
+    `letras/<id>.txt`.
+  - `anterior` guarda la versión previa, para un "Deshacer el último cambio".
+  - "Volver a la versión original" borra la corrección y vuelve a la del repo.
+- **Quién y cuándo:** "Corregida por Mateo · 17/11", visible para músicos y
+  admin, como "Publicada por…".
+- **Lectura:**
+  - Músicos y admin: `seguirDato('canciones/<id>', …)` (D18), con copia local.
+  - Banco: una lectura por REST al abrir la canción (D14).
+
+#### Etapa 3 — Texto y canciones nuevas
+
+- **Pestaña "Texto"** en el editor: la letra en el formato de corchetes, para
+  corregir palabras o estrofas, con vista previa en vivo.
+- **"Pegar con acordes arriba":** convierte el formato habitual de internet y
+  WhatsApp:
+  - pasa de notación americana a latina y aplica las conversiones de §3;
+  - ancla cada acorde por columna;
+  - marca lo dudoso para revisarlo.
+- **"Nueva canción"** (índice, admin):
+  - Pide título, categoría y número del cancionero (opcional).
+  - El `id` se arma con el prefijo y el slug de §3.
+  - Antes de crear, revisa que no exista una canción con el mismo título o
+    número (§3, regla 3).
+- **Índice liviano:** `canciones_indice/<id>`: `{ titulo, categoria, num }`.
+  - El índice y la búsqueda mezclan esto con `SONGS`.
+  - Las letras se bajan aparte, para no cargar todos los textos al abrir el
+    índice.
+  - Una misa con una canción nueva funciona en todos los modos, banco incluido.
+- **Sin internet (D15):** las canciones de la web quedan en `localStorage` al
+  abrirlas. Con conexión, el índice las baja todas en segundo plano (son
+  pocas).
+
+#### Etapa 4 — Respaldo en el repo
+
+- **Por qué:** el plan gratuito de Firebase no hace copias de seguridad.
+- **Cómo:** un script (Node, leyendo por REST) baja `canciones/` y
+  `canciones_indice/` y escribe `letras/<id>.txt` y las entradas de `SONGS`.
+- **Después:** se borran de Firebase las ya pasadas.
+- **Cuándo:** el usuario lo pide cada tanto ("pasá las canciones de la web al
+  repo").
+
+#### Reglas de la base (§7), para pegar en la consola con cada etapa
+
+- `canciones/<id>`:
+  - escribe solo un admin;
+  - `letra` es texto de hasta 20 000 caracteres;
+  - `por` es texto, y `cuando` es la hora del servidor.
+- `canciones_indice/<id>`: la `categoria` tiene que ser una clave de `CATS` y
+  el `titulo` tiene hasta 120 caracteres.
+- Lectura pública de las dos (la necesita el banco).
+
+#### Riesgos y cómo se cubren
+
+- **Cambia el aspecto de todas las letras:** capturas de las 106 antes y
+  después, y prueba en iPhone (Safari) antes de publicar la etapa 1.
+- **Dos admins corrigen la misma canción:** gana el último que guarda, y el
+  aviso "Corregida por…" muestra quién fue.
+- **Renombrar el `id` de una canción:** su corrección queda huérfana, igual
+  que la nota y el tono (§4b).
+- **Pruebas:** cada etapa suma las suyas a `tests/` y a `todo.mjs`. Las
+  escrituras van siempre contra el Firebase falso.
+
 ### Otros pendientes
 
-- **Cargar canciones nuevas desde la web** (pedido el 2026-11-15, para más
-  adelante). Hoy una canción nueva necesita el repo, porque cada letra es un
-  archivo y el índice es `songs.js`. Mientras tanto se puede hacer sin VSCode,
-  editando desde github.com en el celular. Diseño propuesto:
-  - formulario de admin que guarda letra y acordes en Firebase;
-  - el índice y la búsqueda mezclan esas canciones con las de `songs.js`;
-  - falta resolver cómo quedan guardadas para usar sin internet (D15) y la
-    conversión de acordes al formato de §3.
+- **Editar y cargar canciones desde la web:** ver "Plan: canciones editables
+  desde la web", arriba.
 
 - Vista de calendario de los avisos (grilla del mes con puntos en los días con
   eventos; al tocar un día, sus avisos). Decidido: después de la lista.
