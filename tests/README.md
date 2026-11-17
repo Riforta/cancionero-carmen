@@ -68,6 +68,7 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `borrador.mjs` | Borrador de la misa guardado en el celular, botón "Agregar a la Misa de Hoy" de la canción, `+` / `✓` del índice y aviso flotante |
 | `medios-admin.mjs` | Audios cargados desde la app: alta, baja, mezcla con `songs.js`, permisos, banco y reglas |
 | `saltos.mjs` | La página no se corre cuando aparecen la barra de sesión, los botones de admin o el de la misa (sesión recordada) |
+| `buscador.mjs` | El buscador del índice se esconde al bajar y vuelve al subir o al tocarlo |
 | `volver.mjs` | Volver de una canción al índice con la misma búsqueda y posición |
 | `sin-internet.mjs` | Service worker, caché de letras y fuentes, modo avión, red lenta y aviso de versión nueva |
 | `iphone.mjs` | Pantalla encendida en iPhone, zoom, aviso "Listo sin internet" |

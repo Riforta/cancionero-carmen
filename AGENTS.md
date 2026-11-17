@@ -21,7 +21,7 @@ Tiene tres públicos:
 | Fieles en el banco | `?modo=banco` | Solo la letra: sin acordes, sin controles, sin búsqueda ni categorías |
 | Quien arma la misa | `?admin=true` | Botones para elegir las canciones de "Misa de Hoy" y publicarlas, y para editar las notas |
 
-En las vistas de músicos y admin, el botón "🔧 Modo admin" / "🎵 Salir de
+En las vistas de músicos y admin, el botón "Modo admin" / "Salir de
 admin" del encabezado pasa de una a otra (2026-10-01):
 - **Qué hace:** recarga la misma página con o sin `admin=true` y conserva el
   resto de los parámetros.
@@ -47,7 +47,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 - `letras/*.html`: un archivo por canción. Contiene solo un fragmento HTML (sin
   `<html>` ni `<head>`).
 - `assets/`: logos, imágenes e íconos de la app (`icon-192.png`, `icon-512.png`,
-  `apple-touch-icon.png`, generados desde `virgen-icono-color.jpg`).
+  `apple-touch-icon.png`, generados desde `virgen-icono-color.jpg`), y los
+  íconos de la interfaz (`iconos.svg`, D21).
 - `sw.js`: service worker para funcionar sin internet (D15).
 - `offline.js`: registra el service worker y muestra los avisos "Sin conexión"
   y "Listo para usar sin internet".
@@ -133,11 +134,13 @@ muestra como `LA#`, `SI`, etc.).
 - La transposición se mantiene entre −11 y +11 (12 semitonos = una octava), que
   es lo que aceptan las reglas al guardar el tono del coro.
 
-**D10. Modo banco sin lector de voz** (2026-07-06). El lector de letra en voz
-alta está en `cancion.html` para personas invidentes, pero en `?modo=banco` se
-oculta junto con el resto de los controles. **Excepción** (2026-10-02): los
+**D10. Modo banco sin controles** (2026-07-06). En `?modo=banco` se ocultan
+todos los controles de `cancion.html`. **Excepción** (2026-10-02): los
 botones A− / A+ del tamaño de letra sí se ven en banco, porque los usa gente
 mayor que lee desde el celular (§4c).
+- **Lector de voz quitado** (2026-11-17): el botón "Escuchar letra" (lectura
+  en voz alta) se sacó porque nadie lo usaba. Para leer la letra en voz alta
+  queda el lector de pantalla del celular (D11).
 
 **D11. Accesibilidad.** Los `<c>` y las `.chord-line` llevan `aria-hidden` para
 que los lectores de pantalla lean solo la letra.
@@ -188,19 +191,19 @@ más de 100 fieles a la vez.
   archivo distinto (por `ETag` o `Last-Modified`; las letras no cuentan), el
   service worker avisa a las páginas abiertas y `offline.js` decide:
   - página recién abierta y sin tocar: se recarga sola, una vez;
-  - si no: aviso "🔄 Hay una versión nueva" con el botón "Actualizar".
+  - si no: aviso "Hay una versión nueva" con el botón "Actualizar".
   - **Consecuencia:** un cambio de código se ve en la segunda carga o al
     tocar "Actualizar", no en la primera.
 - **Datos de Firebase:** cada página guarda su copia en `localStorage`
   (`misa_cache`, `nota_<id>`) y la muestra mientras llega la versión en vivo.
-  Sin conexión se queda con la copia y aparece el aviso "📴 Sin conexión".
+  Sin conexión se queda con la copia y aparece el aviso "Sin conexión".
 - **Escrituras sin conexión:** publicar la misa o guardar una nota se bloquea
   con un aviso, para que no queden encoladas sin que nadie lo sepa.
 - **Al cambiar `sw.js`, subir `VERSION`:** así se descarta la caché anterior.
   Las letras y canciones nuevas no requieren tocarlo, porque salen de
   `songs.js`. Un archivo propio nuevo (otra página, otro script o CSS) sí hay que
   agregarlo a `PROPIOS`.
-- **Aviso de que está listo:** en el pie del índice aparece "📥 Listo para usar
+- **Aviso de que está listo:** en el pie del índice aparece "Listo para usar
   sin internet" cuando la caché ya tiene todas las letras (`offline.js`). Para
   probarlo: abrir el sitio con conexión, esperar el aviso y poner modo avión.
 - **iPhone:** Safari borra los datos de un sitio que no se abre en 7 días. Para
@@ -208,7 +211,7 @@ más de 100 fieles a la vez.
 
 **D16. Login de admin con Google** (2026-10-01).
 - **En la página:** en modo admin, `sesion.js` muestra una barra con "Entrar con
-  Google". Los botones de edición (publicar, ↑ ↓, ❌, `+`, editar nota)
+  Google". Los botones de edición (publicar, ↑ ↓, quitar, `+`, editar nota)
   aparecen solo si el email de la sesión está en `admins/` (`esAdminOk` y el
   evento `sesion-admin`).
 - **En la base:** las reglas de `database.rules.json` dejan escribir solo a esos
@@ -248,7 +251,7 @@ más de 100 fieles a la vez.
     así no hay destello claro.
   - Arranca con el tema del celular (`prefers-color-scheme`) y sigue sus
     cambios.
-  - Si la persona toca 🌙/☀️ en el encabezado, su elección queda en
+  - Si la persona toca la luna / el sol del encabezado, su elección queda en
     `localStorage.tema` y ya no sigue al sistema.
   - El botón está en todos los modos, banco incluido.
 - **Cómo está armado:** `comun.css` redefine las variables bajo
@@ -271,8 +274,9 @@ sola vez:
   - `MODO` (banco, admin, cat, leídos de la URL).
   - `linkCon(página, extra)`: links que conservan modo, admin y categoría (D4).
   - `botonModo()`: el botón "Modo admin".
-  - `normalize`, `escaparHtml` y `lineasDeLetra` (la usan la búsqueda y el
-    lector de voz).
+  - `normalize`, `escaparHtml` y `lineasDeLetra` (la usa la búsqueda por
+    letra).
+  - `ico(nombre)` y `ponerConIcono(el, nombre, texto)`: íconos (D21).
   - `leerCopia` / `guardarCopia`.
   - Misa de Hoy: `insertarEnMisa` (orden por momento) y el borrador
     (`leerBorradorMisa`, `guardarBorradorMisa`, `borrarBorradorMisa`; §4).
@@ -336,6 +340,9 @@ botones, del tamaño de un dedo. Se respetan la paleta y las fuentes.
   - La estampa (`.carmel-banner`) es una franja baja, con la imagen a la
     izquierda. Debajo, pegada, va la placa del día litúrgico (`.liturgia`); el
     color del día cuelga como la cinta de un misal (`.liturgia-color`).
+  - Debajo, "Próximos avisos" en un renglón: solo el más cercano (§4f).
+  - El buscador se esconde detrás del encabezado al bajar y vuelve al subir
+    o al tocarlo. No se esconde cerca del principio ni mientras se escribe.
   - Las categorías no llevan título propio.
   - En cada fila, el momento de la misa (`.song-tag`) va arriba del título,
     como una rúbrica. Dentro de una sola categoría no se muestra
@@ -343,15 +350,41 @@ botones, del tamaño de un dedo. Se respetan la paleta y las fuentes.
   - "Publicada por…" y "Compartir" comparten renglón (`.misa-barra`).
   - Los tres botones de admin van en un renglón; "Publicar Misa" es el
     principal.
-- **Canción:**
-  - Los controles ocupan dos renglones (`.toolbar`, grilla de 12 columnas):
-    `− ½ tono · acordes · + ½ tono` y `capo · escuchar letra`.
-  - Justo arriba de la letra (`.letra-barra`): a la izquierda el tono del coro
-    y el aviso de capo, a la derecha A− / A+.
+- **Canción** (agrupada por para qué sirve):
+  - Un renglón con lo del tono (`.toolbar`): `− ½ tono · + ½ tono · capo`.
+    Justo debajo (`.tono-info`), en qué tono está: el tono del coro y el aviso
+    de capo.
+  - Justo arriba de la letra (`.letra-barra`), cómo se ve: "Acordes" a la
+    izquierda y A− / A+ a la derecha.
   - Anterior / siguiente va inmediatamente después de la letra, antes de los
     audios.
 - **Tarjetas:** un solo radio y una sola sombra (`--radio`, `--sombra` en
   `comun.css`).
+- **Nombre:** en todo el sitio es "Coro Virgen del Carmen" (2026-11-17).
+
+**D21. Íconos de línea propios, sin emojis** (2026-11-17). Los emojis se ven
+distinto en cada celular y desentonan con la paleta. La interfaz usa íconos
+dibujados para el sitio, en `assets/iconos.svg`.
+- **Cómo se usan:** en HTML,
+  `<svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#caliz"/></svg>`;
+  en JS, `ico('caliz')` o `ponerConIcono(el, 'caliz', texto)` (`comun.js`).
+  `ico(nombre, true)` es un ícono sin texto al lado.
+- **Estilo:** trazo redondeado de 1,75 en una grilla de 24 × 24, sin relleno.
+  Toman el color del texto (`currentColor`), así que funcionan en los dos temas
+  sin ajustes. En los botones claros van en `--brown-mid` (`.ico` en
+  `comun.css`). Son decorativos (`aria-hidden`): el texto o el `aria-label`
+  del botón dice qué hace.
+- **Categorías:** el cuarto campo de `CATS` (`songs.js`) es el ícono; el
+  tercero, el emoji, se usa solo en el texto que se comparte por WhatsApp.
+  Una categoría nueva lleva los dos.
+- **Dónde siguen los emojis:** en el texto de "Compartir la misa" (WhatsApp)
+  y en los `alert()` de error, que son del sistema.
+- **Ícono nuevo:** agregar un `<symbol>` a `iconos.svg` con el mismo estilo.
+  El service worker lo actualiza como al código (no hace falta subir
+  `VERSION`).
+- **`offline.js` no depende de `comun.js`:** el aviso de versión nueva tiene
+  que funcionar aunque la página guardada sea de otra versión. Si falta
+  `ponerConIcono`, muestra solo el texto.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -467,14 +500,14 @@ botones, del tamaño de un dedo. Se respetan la paleta y las fuentes.
 ## 4. Reglas de negocio: Misa de Hoy
 
 - Se arma en `index.html?admin=true`, con sesión de admin (D16): `+` agrega,
-  `❌ Quitar` saca y `💾 Publicar Misa` guarda en Firebase (`misa_actual`, un
+  "Quitar" (✕) saca y "Publicar Misa" guarda en Firebase (`misa_actual`, un
   array de ids).
 - **Orden** (2026-10-01): `+` inserta cada canción en su momento litúrgico,
   según el orden de `CATS` (entrada → gloria → aleluya → ofrenda → santo →
   comunión → adoración → marianos…), después de las que ya están en ese
   momento. El orden fino se ajusta con ↑ ↓ en la vista de la misa. El orden del
   array es el orden de la misa.
-- `🗑️ Limpiar Misa` vacía solo la lista local hasta que se publique.
+- "Limpiar Misa" vacía solo la lista local hasta que se publique.
 - **Borrador** (2026-11-15): lo armado y todavía no publicado se guarda en el
   celular (`localStorage.misa_borrador` = `{ ids, base }`), así no se pierde al
   entrar a ver una canción ni al recargar.
@@ -484,7 +517,7 @@ botones, del tamaño de un dedo. Se respetan la paleta y las fuentes.
   - Se borra al publicar, al cargar la versión publicada o si la lista vuelve
     a quedar igual a la publicada.
 - **Agregar desde la canción** (2026-11-15): en `cancion.html`, un admin con
-  sesión ve "➕ Agregar a la Misa de Hoy" bajo el título.
+  sesión ve "+ Agregar a la Misa de Hoy" bajo el título.
   - Suma la canción al borrador, en su momento litúrgico. **No publica.**
   - Después muestra "✓ En la Misa de Hoy · Quitar" y "Falta publicar · Ir a
     Misa de Hoy". El renglón de "Falta publicar" queda reservado aunque no se
@@ -521,10 +554,10 @@ botones, del tamaño de un dedo. Se respetan la paleta y las fuentes.
 
 - **Para qué sirven:** indicaciones para el coro, como el tono en que se canta,
   dónde entra cada voz o una aclaración del ensayo.
-- **Quién las ve:** la vista de músicos y la de admin, en una tarjeta "📝 Nota"
+- **Quién las ve:** la vista de músicos y la de admin, en una tarjeta "Nota"
   arriba de la letra. **Nunca en `?modo=banco`.**
 - **Quién las edita:** un admin con sesión de Google autorizada (D16), con
-  "➕ Agregar nota" o "✏️ Editar".
+  "Agregar nota" o "Editar".
   - **Guardar vacío borra la nota.**
   - Máximo 500 caracteres.
   - Texto plano: los saltos de línea se respetan y no se interpreta HTML.
@@ -563,20 +596,20 @@ Ninguna aparece en modo banco.
   - La velocidad se recuerda en el celular (`localStorage.autoscroll_nivel`).
 - **Tono del coro** (`tonos/<id>` en Firebase, `{ transponer, capo }`):
   - Al abrir la canción, los acordes se muestran ya en el tono del coro.
-    Arriba se indica "🎼 Tono del coro: empieza en RE · capo 2", calculado con
+    Arriba se indica "Tono del coro: empieza en RE · capo 2", calculado con
     el primer acorde.
   - "Ver tono original" / "Volver al tono del coro" alterna entre los dos.
   - Si el músico transpone o pone capo a mano, eso queda solo en su celular y
     el indicador dice "(estás viendo otro tono)".
-  - Un admin con sesión ve "💾 Guardar como tono del coro" cuando el tono que
+  - Un admin con sesión ve "Guardar como tono del coro" cuando el tono que
     tiene en pantalla es distinto del guardado. Guardar el original sin capo
     borra el tono del coro.
   - Copia local en `localStorage.tono_<id>`.
 - **Audios y links:** debajo de la letra. Salen del campo `medios` de
   `songs.js` (§3) y de Firebase (`medios/<id>`, 2026-11-15):
-  - Un admin con sesión ve "➕ Agregar audio o link": pega el link (tiene que
+  - Un admin con sesión ve "Agregar audio o link": pega el link (tiene que
     empezar con `https://`) y una etiqueta opcional de hasta 60 caracteres.
-  - Hasta 5 por canción. Cada uno tiene "🗑 Quitar", con confirmación.
+  - Hasta 5 por canción. Cada uno tiene "Quitar", con confirmación.
   - Los de `songs.js` no se editan desde la web. Si un link está en los dos
     lados, se muestra una sola vez.
   - Copia local en `localStorage.medios_<id>`.
@@ -595,7 +628,7 @@ Ninguna aparece en modo banco.
   anota la categoría, la búsqueda y la posición (`sessionStorage.indice_vuelta`).
   Al volver las restaura, una sola vez. Es estado efímero de pantalla, no
   contexto de navegación: D4 no cambia.
-- **Compartir la misa:** en Misa de Hoy (músicos y admin), "📤 Compartir la misa"
+- **Compartir la misa:** en Misa de Hoy (músicos y admin), "Compartir la misa"
   arma un texto con las canciones por momento, un link para músicos
   (`?cat=misa`) y otro para fieles (`?modo=banco`).
   - Usa el menú de compartir del celular (`navigator.share`).
@@ -607,7 +640,7 @@ Ninguna aparece en modo banco.
   (`https://riforta.github.io/cancionero-carmen/index.html?modo=banco`). Como la
   dirección no cambia, se imprime una sola vez y sirve para todas las misas.
 - **Formatos:** cartel de hoja completa o 4 tarjetas por hoja A4, para recortar.
-- **Dónde está:** en la barra de admin, "🖨️ QR para fieles".
+- **Dónde está:** en la barra de admin, "QR para fieles".
 - **Si se abre fuera de GitHub Pages** (por ejemplo, probando en la compu), el
   QR apunta igual al sitio publicado.
 - **Antes de difundirlo:** tienen que estar publicadas las fases 0 (banco sin
@@ -624,17 +657,18 @@ Ninguna aparece en modo banco.
     de Misa de Hoy, si tiene canciones.
 - **Avisos** (`avisos.html`, 2026-10-02): **solo para el coro**. En modo banco
   la página vuelve al índice y el índice no los muestra.
-  - **Qué hay:** ensayos 🎶, celebraciones ⛪ y avisos 📢, cargados de a uno
-    (sin repetición), más las fiestas litúrgicas ✝️ de los próximos 60 días,
+  - **Qué hay:** ensayos, celebraciones y avisos, cargados de a uno (sin
+    repetición), más las fiestas litúrgicas de los próximos 60 días,
     que aparecen solas y no se editan.
   - **Lista:** agrupada por mes. Lo que ya pasó no aparece.
-  - **"📅 Agregar a mi calendario":** baja un `.ics` con la hora local del
+  - **"Agregar a mi calendario":** baja un `.ics` con la hora local del
     celular (1 h de duración), o de día completo si no tiene hora.
   - **Edición:** un admin con sesión agrega, edita y borra (`escribirDato`;
     `push` para los nuevos).
   - **Sin conexión:** copia local en `localStorage.avisos_cache`.
-  - **En el índice:** "Próximos avisos", con los 3 más cercanos de los próximos
-    30 días y link a la página.
+  - **En el índice** (2026-11-17): el aviso más cercano de los próximos 30
+    días, en un solo renglón (el título se corta con … si no entra). Toda la
+    tarjeta lleva a la página de avisos.
 - **Pendiente:** la vista de calendario (grilla del mes) queda para más
   adelante (§6).
 ---
@@ -668,7 +702,7 @@ Ninguna aparece en modo banco.
   `run.ps1`. Corta el script antes de que cierre Chrome, y las corridas
   siguientes se conectan a ese Chrome viejo.
 - **Modo oscuro:** al agregar estilos, probar la pantalla en los dos temas
-  (botón 🌙/☀️). Ningún color fijo pensado para fondo claro debe quedar sin su
+  (botón luna / sol). Ningún color fijo pensado para fondo claro debe quedar sin su
   ajuste en `comun.css` (D17).
 - **Diagramas de guitarra:** un acorde nuevo que no esté en `CHORD_DICTIONARY`
   muestra "Diagrama no disponible". Si aparece en una letra, agregar su voicing.

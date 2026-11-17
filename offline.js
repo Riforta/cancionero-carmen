@@ -3,6 +3,13 @@
 // conexión" y el de "Listo para usar sin internet". Las copias locales de los
 // datos (leerCopia/guardarCopia) están en comun.js.
 
+// Texto con ícono (comun.js). Sin comun.js, solo el texto: el aviso de versión
+// nueva tiene que funcionar aunque la página en caché sea de otra versión
+function textoConIcono(el, nombre, texto) {
+  if (typeof ponerConIcono === 'function') ponerConIcono(el, nombre, texto);
+  else el.textContent = texto;
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -19,7 +26,7 @@ if ('serviceWorker' in navigator) {
       guardadas = Math.max(guardadas, urls.filter(u => u.includes('/letras/')).length);
     }
     if (guardadas >= SONGS.length) {
-      ponerConIcono(estado, 'descarga', 'Listo para usar sin internet');
+      textoConIcono(estado, 'descarga', 'Listo para usar sin internet');
       estado.hidden = false;
     }
   }).catch(() => {});
@@ -52,7 +59,7 @@ if ('serviceWorker' in navigator) {
     boton.type = 'button';
     boton.textContent = 'Actualizar';
     boton.addEventListener('click', () => location.reload());
-    ponerConIcono(aviso, 'actualizar', 'Hay una versión nueva');
+    textoConIcono(aviso, 'actualizar', 'Hay una versión nueva');
     aviso.append(boton);
     header.appendChild(aviso);
     window.dispatchEvent(new Event('resize'));   // el buscador del índice se reacomoda
@@ -68,7 +75,7 @@ if ('serviceWorker' in navigator) {
   const aviso = document.createElement('div');
   aviso.className = 'aviso-offline';
   aviso.setAttribute('role', 'status');
-  ponerConIcono(aviso, 'sin-red', 'Sin conexión: mostrando lo último guardado');
+  textoConIcono(aviso, 'sin-red', 'Sin conexión: mostrando lo último guardado');
   const header = document.querySelector('header');
   if (header) header.appendChild(aviso);
 
