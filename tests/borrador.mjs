@@ -7,7 +7,7 @@ const PUBLICADA = ['ent_bendecire', 'com_alma-misionera'];
 const DB = () => ({ misa_actual: PUBLICADA, 'admins/test@gmail,com': true });
 const borrador = async p => JSON.parse(await p.ev(`localStorage.getItem('misa_borrador')`) || 'null');
 const flotante = p => p.ev(`(() => { const a = document.getElementById('aviso-flotante'); return a && a.classList.contains('visible') ? a.textContent : null; })()`);
-const boton = (p, id) => p.ev(`(() => { const b = document.querySelector('.admin-btn.btn-mas[data-song-id="${id}"]'); return b ? { texto: b.textContent, accion: b.dataset.action, enMisa: b.classList.contains('en-misa'), ancho: b.offsetWidth } : null; })()`);
+const boton = (p, id) => p.ev(`(() => { const b = document.querySelector('.admin-btn.btn-mas[data-song-id="${id}"]'); return b ? { icono: b.querySelector('use').getAttribute('href').split('#')[1], accion: b.dataset.action, enMisa: b.classList.contains('en-misa'), ancho: b.offsetWidth } : null; })()`);
 const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto'); };
 
 { // Admin con sesión: de la canción al índice y a publicar
@@ -17,10 +17,10 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
 
   await p.go('/cancion.html?id=ofert_toma&admin=true&cat=todas');
   const antes = await p.ev(`({ visible: !document.getElementById('misa-agregar').hidden, texto: misaAgregarBtn.textContent, pendiente: !misaPendiente.classList.contains('oculta') })`);
-  check('canción: botón "Agregar a la Misa de Hoy"', antes.visible && antes.texto.startsWith('➕') && !antes.pendiente, JSON.stringify(antes));
+  check('canción: botón "Agregar a la Misa de Hoy"', antes.visible && antes.texto === 'Agregar a la Misa de Hoy' && !antes.pendiente, JSON.stringify(antes));
   await p.ev(`misaAgregarBtn.click()`); await wait(200);
   const despues = await p.ev(`({ texto: misaAgregarBtn.textContent, activo: misaAgregarBtn.classList.contains('active'), pressed: misaAgregarBtn.getAttribute('aria-pressed'), pendiente: !misaPendiente.classList.contains('oculta'), link: misaIrPublicar.getAttribute('href') })`);
-  check('canción: al tocar pasa a "✓ En la Misa de Hoy"', despues.texto.startsWith('✓') && despues.activo && despues.pressed === 'true', JSON.stringify(despues));
+  check('canción: al tocar pasa a "✓ En la Misa de Hoy"', despues.texto === 'En la Misa de Hoy · Quitar' && despues.activo && despues.pressed === 'true', JSON.stringify(despues));
   check('canción: "Falta publicar" con link a Misa de Hoy', despues.pendiente && despues.link === 'index.html?admin=true&cat=misa', despues.link);
   check('canción: aviso flotante con "Ir a publicar"', ((await flotante(p)) || '').includes('Agregada a la Misa de Hoy (3)') && ((await flotante(p)) || '').includes('Ir a publicar'), String(await flotante(p)));
   const b1 = await borrador(p);
@@ -36,16 +36,16 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
   // El + del índice: se nota y alterna
   await p.ev(`elegirCategoria('entrada')`);
   const ya = await boton(p, 'ent_bendecire');
-  check('+ de una canción que ya está: ✓ dorado', ya && ya.texto === '✓' && ya.enMisa && ya.accion === 'remove', JSON.stringify(ya));
+  check('+ de una canción que ya está: ✓ dorado', ya && ya.icono === 'check' && ya.enMisa && ya.accion === 'remove', JSON.stringify(ya));
   const mas = await boton(p, 'ent_ven-hermano');
-  check('+ cómodo para el dedo (40 px)', mas && mas.texto === '+' && mas.ancho >= 40, JSON.stringify(mas));
+  check('+ cómodo para el dedo (40 px)', mas && mas.icono === 'mas' && mas.ancho >= 40, JSON.stringify(mas));
   await p.ev(`document.querySelector('.admin-btn[data-song-id="ent_ven-hermano"]').click()`); await wait(150);
   const tras = await boton(p, 'ent_ven-hermano');
-  check('tocar +: pasa a ✓', tras.texto === '✓' && tras.enMisa, JSON.stringify(tras));
+  check('tocar +: pasa a ✓', tras.icono === 'check' && tras.enMisa, JSON.stringify(tras));
   check('tocar +: aviso flotante con la cantidad', ((await flotante(p)) || '').includes('Agregada a la Misa de Hoy (4)'), String(await flotante(p)));
   check('tocar +: salta el contador de Misa de Hoy', await p.ev(`document.querySelector('.cat-chip[data-cat="misa"] .chip-count').classList.contains('pulso')`));
   await p.ev(`document.querySelector('.admin-btn[data-song-id="ent_ven-hermano"]').click()`); await wait(150);
-  check('tocar ✓: la quita', (await boton(p, 'ent_ven-hermano')).texto === '+' && !(await p.ev(`misaIds.includes('ent_ven-hermano')`)));
+  check('tocar ✓: la quita', (await boton(p, 'ent_ven-hermano')).icono === 'mas' && !(await p.ev(`misaIds.includes('ent_ven-hermano')`)));
 
   await p.go('/index.html?admin=true&cat=misa');
   check('el borrador sobrevive a la recarga', (await p.ev('JSON.stringify(misaIds)')) === JSON.stringify(b1.ids));

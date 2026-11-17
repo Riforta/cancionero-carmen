@@ -14,7 +14,7 @@ const tono = `(() => { const q = id => document.getElementById(id); return { vis
   check('primer acorde original es LA', original === 'LA', original);
   check('se aplica el tono del coro (+2 → SI)', (await p.ev(primerAcorde)) === 'SI');
   let t = await p.ev(tono);
-  check('indicador muestra el tono', t.visible && t.texto === '🎼 Tono del coro: empieza en SI', t.texto);
+  check('indicador muestra el tono', t.visible && t.texto === 'Tono del coro: empieza en SI', t.texto);
   check('músico: sin botón guardar', t.guardar === null);
   await viewport(p, 'f4-tono-musico');
   await p.ev(`tonoUsar.click()`);
@@ -37,16 +37,16 @@ const tono = `(() => { const q = id => document.getElementById(id); return { vis
   check('admin sin tono guardado: indicador oculto', !t.visible, JSON.stringify(t));
   await p.ev(`capoSelect.value = '2'; capoSelect.dispatchEvent(new Event('change')); applyTransposition(2)`);
   t = await p.ev(tono);
-  check('admin con otro tono: ofrece guardar', t.visible && t.guardar === '💾 Guardar como tono del coro', JSON.stringify(t));
+  check('admin con otro tono: ofrece guardar', t.visible && t.guardar === 'Guardar como tono del coro', JSON.stringify(t));
   if (!(await p.ev('Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto');
   await p.ev(`tonoGuardar.click()`); await wait(300);
   check('guarda { transponer: 2, capo: 2 } (falso)', (await p.ev('JSON.stringify(__writes)')) === '[["set","tonos/ofert_toma",{"transponer":2,"capo":2}]]', await p.ev('JSON.stringify(__writes)'));
   t = await p.ev(tono);
-  check('después de guardar: indicador del coro', t.texto === '🎼 Tono del coro: empieza en SI · capo 2' && t.guardar === null, JSON.stringify(t));
+  check('después de guardar: indicador del coro', t.texto === 'Tono del coro: empieza en SI · capo 2' && t.guardar === null, JSON.stringify(t));
   await viewport(p, 'f4-tono-admin');
   await p.ev(`tonoUsar.click()`); // ver original
   t = await p.ev(tono);
-  check('en el original: ofrece guardar original', t.guardar === '💾 Guardar: tono original, sin capo', JSON.stringify(t));
+  check('en el original: ofrece guardar original', t.guardar === 'Guardar: tono original, sin capo', JSON.stringify(t));
   await p.ev(`tonoGuardar.click()`); await wait(300);
   check('guardar original borra el tono (falso)', (await p.ev('JSON.stringify(__writes[1])')) === '["remove","tonos/ofert_toma"]');
   check('sin errores', p.errors.length === 0, p.errors.join(' | '));

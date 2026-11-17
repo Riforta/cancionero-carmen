@@ -32,7 +32,7 @@ const ESPERADA = 'https://riforta.github.io/cancionero-carmen/index.html?modo=ba
 { // link desde la barra de admin
   const p = await c.newPage({ fake: FAKE_FIREBASE({ 'admins/test@gmail,com': true }, { email: 'test@gmail.com' }) });
   await p.go('/index.html?admin=true');
-  check('admin: link al QR', (await p.ev(`document.querySelector('#admin-bar a[href="qr.html"]')?.textContent`)) === '🖨️ QR para fieles');
+  check('admin: link al QR', (await p.ev(`document.querySelector('#admin-bar a[href="qr.html"]')?.textContent`)) === 'QR para fieles');
   await p.close();
 }
 done(); c.close();

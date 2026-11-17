@@ -18,7 +18,7 @@ const lista = `[...document.querySelectorAll('#listaAvisos .mes, #listaAvisos .a
   await fecha(p);
   await p.go('/avisos.html');
   const l = await p.ev(lista);
-  check('lista por mes y en orden, con fiestas y sin lo pasado', JSON.stringify(l) === JSON.stringify(['octubre 2026', '🎶 Ensayo general', 'noviembre 2026', '⛪ Misa de Todos los Santos <img src=x onerror=alert(1)>', '✝️ Todos los Santos', '✝️ Jesucristo, Rey del Universo']), JSON.stringify(l));
+  check('lista por mes y en orden, con fiestas y sin lo pasado', JSON.stringify(l) === JSON.stringify(['octubre 2026', 'Ensayo general', 'noviembre 2026', 'Misa de Todos los Santos <img src=x onerror=alert(1)>', 'Todos los Santos', 'Jesucristo, Rey del Universo']), JSON.stringify(l));
   check('el título se muestra como texto (sin HTML)', !(await p.ev(`!!document.querySelector('#listaAvisos img')`)) && (await p.ev('window.__alertas')) === 0);
   check('datos del aviso: hora, lugar y tipo', (await p.ev(`document.querySelector('.aviso-datos').textContent`)) === '20:00 h · Salón parroquial · Ensayo');
   check('músico: sin botones de editar', !(await p.ev(`!!document.querySelector('[data-accion=editar]')`)));
@@ -42,7 +42,7 @@ const lista = `[...document.querySelectorAll('#listaAvisos .mes, #listaAvisos .a
   await p.ev(`fFecha.value = '2026-10-15'; fHora.value = '19:30'; fTipo.value = 'aviso'; fTitulo.value = 'Reunión del coro'; fLugar.value = 'Capilla'; fDetalle.value = 'Organizamos la fiesta patronal'; formAviso.requestSubmit()`); await wait(300);
   const w1 = await p.ev('JSON.stringify(__writes[0])');
   check('nuevo aviso guardado con push', w1 === '["set","avisos/-k1",{"fecha":"2026-10-15","hora":"19:30","tipo":"aviso","titulo":"Reunión del coro","lugar":"Capilla","detalle":"Organizamos la fiesta patronal"}]', w1);
-  check('aparece en la lista y el formulario se cierra', (await p.ev(lista)).includes('📢 Reunión del coro') && (await p.ev('formAviso.hidden')));
+  check('aparece en la lista y el formulario se cierra', (await p.ev(lista)).includes('Reunión del coro') && (await p.ev('formAviso.hidden')));
   await p.ev(`document.querySelector('[data-accion=editar]').click()`);
   check('editar carga los datos en el formulario', (await p.ev('fTitulo.value')) === 'Ensayo general' && (await p.ev('fHora.value')) === '20:00');
   await p.ev(`fTitulo.value = 'Ensayo general (cambia el horario)'; fHora.value = '20:30'; formAviso.requestSubmit()`); await wait(300);
@@ -77,7 +77,9 @@ const lista = `[...document.querySelectorAll('#listaAvisos .mes, #listaAvisos .a
   await fecha(p);
   await p.go('/index.html?cat=todas');
   const items = await p.ev(`[...document.querySelectorAll('#proximosLista li')].map(li => li.textContent)`);
-  check('índice: los próximos 3 (30 días), con fecha corta y hora', JSON.stringify(items) === JSON.stringify(['jue 8/10 · 20:00🎶 Ensayo general', 'dom 1/11⛪ Misa de Todos los Santos <img src=x onerror=alert(1)>', 'dom 1/11✝️ Todos los Santos']), JSON.stringify(items));
+  check('índice: el próximo aviso (30 días), con fecha corta y hora', JSON.stringify(items) === JSON.stringify(['jue 8/10 · 20:00Ensayo general']), JSON.stringify(items));
+  check('índice: el próximo aviso entra en un renglón', await p.ev(`document.getElementById('proximos').offsetHeight < 60`), String(await p.ev(`document.getElementById('proximos').offsetHeight`)));
+  check('índice: ícono del tipo de aviso', (await p.ev(`document.querySelector('#proximosLista .px-titulo use')?.getAttribute('href')`)) === 'assets/iconos.svg#notas');
   check('índice: link a avisos.html con el contexto', (await p.ev(`document.getElementById('proximos').getAttribute('href')`)) === 'avisos.html?cat=todas');
   const r = await p.s('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(`${OUT}/avisos-indice.png`, Buffer.from(r.result.data, 'base64'));
   check('sin errores', p.errors.length === 0, p.errors.join(' | '));

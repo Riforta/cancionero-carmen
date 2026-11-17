@@ -7,11 +7,12 @@
 //   página no depende de la señal. Si cambió un archivo que no es una letra,
 //   se avisa a las páginas abiertas ('version-nueva', lo atiende offline.js).
 // - Imágenes, Google Fonts y SDK de Firebase: la copia guardada si existe.
+//   Excepción: assets/iconos.svg se trata como código (cambia con él).
 // - La base de Firebase (firebaseio.com) no se toca: cada página guarda su
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v11';
+const VERSION = 'v12';
 const CACHE = 'cancionero-' + VERSION;
 
 // songs.js: la lista de letras a guardar. firebase-config.js: FIREBASE_SDK
@@ -23,7 +24,7 @@ const PROPIOS = [
   './', 'index.html', 'cancion.html', 'avisos.html', 'avisos.js', 'songs.js', 'firebase-config.js',
   'comun.js', 'acordes.js', 'cancion.js', 'liturgia.js', 'offline.js', 'sesion.js', 'tema.js', 'comun.css',
   'manifest.webmanifest',
-  'assets/logo-medallon.png', 'assets/logo-medallon-color.png',
+  'assets/logo-medallon.png', 'assets/logo-medallon-color.png', 'assets/iconos.svg',
   'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png',
   'assets/pantalla-encendida.mp4', 'assets/pantalla-encendida.webm'
 ];
@@ -135,7 +136,8 @@ self.addEventListener('fetch', event => {
   if (url.origin === self.location.origin) {
     // Las pruebas (capturas, etc.) no pasan por la caché
     if (url.pathname.includes('/tests/')) return;
-    if (url.pathname.includes('/assets/')) event.respondWith(primeroCopia(request));
+    // iconos.svg cambia con el código (íconos nuevos): se actualiza como él
+    if (url.pathname.includes('/assets/') && !url.pathname.endsWith('/iconos.svg')) event.respondWith(primeroCopia(request));
     else event.respondWith(copiaYActualiza(event, !url.pathname.includes('/letras/')));
     return;
   }

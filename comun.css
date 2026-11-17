@@ -27,6 +27,9 @@
   --text-strong: var(--brown-dark);   /* títulos y texto de botones */
   --text-accent: var(--brown);        /* etiquetas de chips y controles */
   --page-bg:     linear-gradient(180deg, #FAD296 0%, var(--peach) 45%, #F3BC72 100%);
+  /* Tarjetas (letra, lista, avisos): un solo radio y una sola sombra */
+  --radio:       16px;
+  --sombra:      0 1px 2px rgba(74,30,8,0.06), 0 6px 20px rgba(74,30,8,0.07);
 }
 
 /* ─── MODO OSCURO ───
@@ -47,6 +50,7 @@
   --text-strong: #F6E6CC;
   --text-accent: #EBCB9C;
   --page-bg:     linear-gradient(180deg, #1B120C 0%, #20150E 50%, #26190F 100%);
+  --sombra:      0 2px 10px rgba(0,0,0,0.35);
 }
 
 /* ─── BASE ─── */
@@ -65,6 +69,33 @@ body {
 
 /* hidden siempre oculta, aunque la clase tenga su propio display */
 [hidden] { display: none !important; }
+
+/* ─── ÍCONOS (assets/iconos.svg, D21) ───
+   De línea, con el color del texto que los rodea. Delante de un texto dejan
+   un espacio a la derecha; .ico-solo es un ícono sin texto (botones ↑ ↓ ✕) */
+.ico {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: -0.24em;
+  margin-right: 0.4em;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+.ico-solo { margin-right: 0; }
+/* En los botones claros, el ícono va en el color de acento; en los oscuros
+   (principales, activos) toma el color del texto */
+:is(.admin-action-btn, .nota-edit, .tono-btn, .aviso-btn, .sesion-btn, .btn-toggle) .ico { color: var(--brown-mid); }
+:is(.principal, .active, [data-action="publicar"]) .ico { color: inherit; }
+/* Junto a texto en Cinzel (chico y en versalitas) el ícono va más grande */
+:is(.btn-toggle, .mode-toggle, .nota-label, .medios-titulo, .tono-texto) .ico {
+  width: 1.5em; height: 1.5em; vertical-align: -0.42em;
+}
 
 /* ─── ENCABEZADO ─── */
 header {
@@ -159,6 +190,15 @@ header {
 .mode-toggle:hover { background: rgba(255,255,255,0.14); border-color: var(--gold-light); }
 .mode-toggle.is-admin { background: var(--gold-light); color: var(--brown-dark); border-color: transparent; }
 .mode-toggle.is-admin:hover { background: var(--gold-bright); }
+
+/* Celulares: el encabezado no corta el título. El botón de modo dice solo
+   "Admin" / "Salir" y el subtítulo se queda con el nombre del coro */
+@media (max-width: 560px) {
+  .mode-toggle .mt-largo, .h-sub-largo { display: none; }
+  .mode-toggle { padding: 0.35rem 0.7rem; }
+  .header-body.subpagina { gap: 0.5rem; }
+  .header-brand { letter-spacing: 0.08em; }
+}
 
 /* ─── BOTONES "PÍLDORA" (lo común; cada clase pone sus colores y tamaño) ─── */
 .btn-toggle, .capo-select, .tono-btn, .nota-edit,
@@ -280,7 +320,7 @@ header {
   color: #2C1A0D;
   border-color: transparent;
 }
-[data-theme="dark"] .cat-chip.active .chip-label { color: #2C1A0D; }
+[data-theme="dark"] .cat-chip.active :is(.chip-label, .chip-icon) { color: #2C1A0D; }
 [data-theme="dark"] .cat-chip.active .chip-count { background: rgba(44,26,13,0.16); color: #2C1A0D; }
 [data-theme="dark"] .capo-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23E0B36A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
@@ -313,15 +353,26 @@ header {
 /* ─── Botón de tema (encabezado, en todos los modos) ─── */
 .theme-toggle {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 36px;
   height: 36px;
   border-radius: 50%;
   border: 1.5px solid rgba(221,180,94,0.45);
   background: rgba(255,255,255,0.08);
-  font-size: 1rem;
+  color: var(--gold-light);
+  font-size: 1.05rem;
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s, border-color 0.15s;
 }
 .theme-toggle:hover { background: rgba(255,255,255,0.14); border-color: #DDB45E; }
+/* Luna en modo claro (pasar a oscuro), sol en modo oscuro */
+.theme-toggle .ico { vertical-align: middle; }
+:root[data-theme="dark"] .theme-toggle .ico-luna,
+:root:not([data-theme="dark"]) .theme-toggle .ico-sol { display: none; }
+
+/* Íconos dentro de los avisos del encabezado y del pie */
+.aviso-offline .ico, .aviso-version .ico { vertical-align: -0.22em; }

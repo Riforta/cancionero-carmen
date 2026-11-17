@@ -26,13 +26,27 @@ function linkCon(pagina, extra = {}) {
   return qs ? `${pagina}?${qs}` : pagina;
 }
 
-// Botón "🔧 Modo admin" / "🎵 Salir de admin" del encabezado (no existe en
+// ── Íconos (assets/iconos.svg, AGENTS.md D21) ──
+// ico('caliz') devuelve el <svg> para meter en un innerHTML; toma el color
+// del texto. `solo` = ícono sin texto al lado (sin espacio a la derecha)
+function ico(nombre, solo) {
+  return `<svg class="ico${solo ? ' ico-solo' : ''}" aria-hidden="true"><use href="assets/iconos.svg#${nombre}"/></svg>`;
+}
+// Ícono + texto en un elemento, con el texto escapado
+function ponerConIcono(el, nombre, texto) {
+  el.innerHTML = ico(nombre) + escaparHtml(texto);
+}
+
+// Botón "Modo admin" / "Salir de admin" del encabezado (no existe en
 // banco). Recarga la misma página con o sin admin=true. `avisoAlSalir()`
 // devuelve un texto para confirmar si hay algo sin guardar, o null.
 function botonModo(avisoAlSalir) {
   if (MODO.banco) return;
   const btn = document.getElementById('modeToggle');
-  btn.textContent = MODO.admin ? '🎵 Salir de admin' : '🔧 Modo admin';
+  // .mt-largo se oculta en pantallas angostas (comun.css): queda "Salir" / "admin"
+  btn.innerHTML = MODO.admin
+    ? ico('nota') + 'Salir<span class="mt-largo"> de admin</span>'
+    : ico('llave') + '<span class="mt-largo">Modo </span>admin';
   btn.classList.toggle('is-admin', MODO.admin);
   btn.setAttribute('aria-label', MODO.admin ? 'Cambiar a vista de músicos' : 'Cambiar a modo admin');
   btn.hidden = false;
@@ -61,8 +75,8 @@ function escaparHtml(t) {
 }
 
 // Líneas de letra de un fragmento de letras/*.html: sin acordes, sin líneas
-// de solo acordes y sin renglones vacíos o de puro signo. La usan la
-// búsqueda del índice y el lector de voz de cancion.html
+// de solo acordes y sin renglones vacíos o de puro signo. La usa la
+// búsqueda por letra del índice
 function lineasDeLetra(html) {
   const div = document.createElement('div');
   div.innerHTML = html;
@@ -163,10 +177,10 @@ const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
   'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const TIPOS_AVISO = {
-  ensayo: { icono: '🎶', nombre: 'Ensayo' },
-  celebracion: { icono: '⛪', nombre: 'Celebración' },
-  aviso: { icono: '📢', nombre: 'Aviso' },
-  liturgia: { icono: '✝️', nombre: 'Fiesta litúrgica' }
+  ensayo: { icono: 'notas', nombre: 'Ensayo' },
+  celebracion: { icono: 'iglesia', nombre: 'Celebración' },
+  aviso: { icono: 'megafono', nombre: 'Aviso' },
+  liturgia: { icono: 'cruz', nombre: 'Fiesta litúrgica' }
 };
 
 // "jue 8/10" a partir de 'AAAA-MM-DD'

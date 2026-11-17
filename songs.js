@@ -141,22 +141,25 @@ const SONGS = [
   { "id": "var_ven-espiritu-de-dios", "num": 337, "title": "Ven, Espíritu de Dios", "category": "varias" }
 ];
 
+// Categorías, en el orden de la misa: [clave, nombre, emoji, ícono]. El emoji
+// va en el texto que se comparte por WhatsApp; en la página se usa el ícono
+// de assets/iconos.svg (AGENTS.md D21)
 const CATS = [
-  ["misa","Misa de Hoy","⛪"],
-  ["entrada","Entrada","🚪"],
-  ["gloria","Gloria / Kyrie","✨"],
-  ["aleluya","Aleluya","🎶"],
-  ["ofertorio","Ofrenda","🌾"],
-  ["santo","Santo / Cordero","🔔"],
-  ["comunion","Comunión","✝️"],
-  ["adoracion","Adoración / Post-Comunión","🙏"],
-  ["marianos","A María","🌹"],
-  ["carmelitanos","Carmelitanos","📜"],
-  ["sanjose","San José","⚒️"],
-  ["adviento","Adviento","🕯️"],
-  ["navidad","Navidad","⭐"],
-  ["cuaresma","Cuaresma","🏜️"],
-  ["pascua","Pascua","🕊️"],
-  ["varias","Varios","🎵"]
+  ["misa","Misa de Hoy","⛪","iglesia"],
+  ["entrada","Entrada","🚪","puerta"],
+  ["gloria","Gloria / Kyrie","✨","gloria"],
+  ["aleluya","Aleluya","🎶","notas"],
+  ["ofertorio","Ofrenda","🌾","trigo"],
+  ["santo","Santo / Cordero","🔔","campana"],
+  ["comunion","Comunión","✝️","caliz"],
+  ["adoracion","Adoración / Post-Comunión","🙏","custodia"],
+  ["marianos","A María","🌹","rosa"],
+  ["carmelitanos","Carmelitanos","📜","escudo"],
+  ["sanjose","San José","⚒️","martillo"],
+  ["adviento","Adviento","🕯️","vela"],
+  ["navidad","Navidad","⭐","estrella"],
+  ["cuaresma","Cuaresma","🏜️","desierto"],
+  ["pascua","Pascua","🕊️","amanecer"],
+  ["varias","Varios","🎵","nota"]
 ];
 const CMAP = Object.fromEntries(CATS.map(([id,label]) => [id, label]));

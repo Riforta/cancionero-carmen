@@ -32,7 +32,7 @@ const contraste = (p, sel) => p.ev(`(${CONTRASTE})(${JSON.stringify(sel)})`);
   await p.go('/index.html', 2500);
   await p.ev(`localStorage.removeItem('tema')`); await p.go('/index.html', 2500);
   check('sistema oscuro → tema oscuro', (await p.ev(`document.documentElement.dataset.theme`)) === 'dark');
-  check('botón muestra ☀️', (await p.ev(`themeToggle.textContent`)) === '☀️');
+  check('botón muestra el sol', await p.ev(`getComputedStyle(themeToggle.querySelector('.ico-sol')).display !== 'none' && getComputedStyle(themeToggle.querySelector('.ico-luna')).display === 'none'`));
   await esquema(p, 'light'); await wait(300);
   check('sigue el cambio del sistema si no eligió', (await p.ev(`document.documentElement.dataset.theme`)) === 'light');
   await p.ev(`themeToggle.click()`);

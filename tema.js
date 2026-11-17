@@ -4,7 +4,8 @@
 // (más abajo), por la misma razón: decidir antes de pintar.
 //
 // Arranca con el tema del celular (prefers-color-scheme). Si la persona toca
-// el botón 🌙/☀️, su elección queda guardada en este celular (localStorage).
+// el botón de luna / sol, su elección queda guardada en este celular
+// (localStorage). Qué ícono se ve lo decide comun.css según data-theme.
 (function () {
   const raiz = document.documentElement;
   const sistema = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -17,7 +18,6 @@
   function pintarBotones() {
     const oscuro = temaActual() === 'dark';
     document.querySelectorAll('.theme-toggle').forEach(b => {
-      b.textContent = oscuro ? '☀️' : '🌙';
       b.setAttribute('aria-label', oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
       b.title = oscuro ? 'Modo claro' : 'Modo oscuro';
     });

@@ -8,7 +8,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 
-  // "📥 Listo para usar sin internet" (pie del índice, #estado-offline):
+  // "Listo para usar sin internet" (pie del índice, #estado-offline):
   // aparece cuando la caché del service worker ya tiene todas las letras
   navigator.serviceWorker.ready.then(async () => {
     const estado = document.getElementById('estado-offline');
@@ -19,7 +19,7 @@ if ('serviceWorker' in navigator) {
       guardadas = Math.max(guardadas, urls.filter(u => u.includes('/letras/')).length);
     }
     if (guardadas >= SONGS.length) {
-      estado.textContent = '📥 Listo para usar sin internet';
+      ponerConIcono(estado, 'descarga', 'Listo para usar sin internet');
       estado.hidden = false;
     }
   }).catch(() => {});
@@ -52,7 +52,8 @@ if ('serviceWorker' in navigator) {
     boton.type = 'button';
     boton.textContent = 'Actualizar';
     boton.addEventListener('click', () => location.reload());
-    aviso.append('🔄 Hay una versión nueva', boton);
+    ponerConIcono(aviso, 'actualizar', 'Hay una versión nueva');
+    aviso.append(boton);
     header.appendChild(aviso);
     window.dispatchEvent(new Event('resize'));   // el buscador del índice se reacomoda
   }
@@ -67,7 +68,7 @@ if ('serviceWorker' in navigator) {
   const aviso = document.createElement('div');
   aviso.className = 'aviso-offline';
   aviso.setAttribute('role', 'status');
-  aviso.textContent = '📴 Sin conexión: mostrando lo último guardado';
+  ponerConIcono(aviso, 'sin-red', 'Sin conexión: mostrando lo último guardado');
   const header = document.querySelector('header');
   if (header) header.appendChild(aviso);
 

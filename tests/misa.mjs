@@ -88,12 +88,12 @@ const MISA = ['ent_bendecire', 'glo_gloria-congreso-2000', 'com_alma-misionera',
   await p.shot('f1-autoscroll', 640);
   await p.ev(`document.querySelector('pre').dispatchEvent(new TouchEvent('touchstart', { bubbles: true }))`); await wait(800);
   const y2 = await p.ev('scrollY'); await wait(800);
-  check('se detiene al tocar', (await p.ev('scrollY')) === y2 && (await p.ev(`asPlay.textContent`)) === '▶');
+  check('se detiene al tocar', (await p.ev('scrollY')) === y2 && (await p.ev(`asPlay.getAttribute('aria-label')`)) === 'Desplazamiento automático');
   await p.ev(`asPlay.click()`); await wait(300);
   await p.ev(`asPlay.dispatchEvent(new TouchEvent('touchstart', { bubbles: true }))`); await wait(300);
-  check('tocar el control no lo detiene', (await p.ev(`asPlay.textContent`)) === '⏸');
+  check('tocar el control no lo detiene', (await p.ev(`asPlay.getAttribute('aria-label')`)) === 'Detener desplazamiento');
   await p.ev(`window.scrollTo(0, document.body.scrollHeight)`); await wait(800);
-  check('se detiene al final', (await p.ev(`asPlay.textContent`)) === '▶');
+  check('se detiene al final', (await p.ev(`asPlay.getAttribute('aria-label')`)) === 'Desplazamiento automático');
   check('sin errores', p.errors.length === 0, p.errors.join(' | '));
   await p.close();
 }

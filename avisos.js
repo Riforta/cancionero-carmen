@@ -39,17 +39,17 @@ function render() {
     const tipo = TIPOS_AVISO[ev.tipo];
     const datos = [ev.hora ? ev.hora + ' h' : '', ev.lugar, tipo.nombre].filter(Boolean).map(escaparHtml).join(' · ');
     const editar = ev.id && puedeEditar()
-      ? `<button class="aviso-btn" type="button" data-accion="editar" data-i="${i}">✏️ Editar</button>
-         <button class="aviso-btn" type="button" data-accion="borrar" data-i="${i}">🗑️ Borrar</button>`
+      ? `<button class="aviso-btn" type="button" data-accion="editar" data-i="${i}">${ico('lapiz')}Editar</button>
+         <button class="aviso-btn" type="button" data-accion="borrar" data-i="${i}">${ico('papelera')}Borrar</button>`
       : '';
     return `${cabecera}<article class="aviso${ev.tipo === 'liturgia' ? ' liturgia' : ''}">
       <div class="aviso-dia"><div class="num">${d}</div><div class="sem">${DIAS_CORTOS[new Date(a, m - 1, d).getDay()]}</div></div>
       <div class="aviso-cuerpo">
-        <div class="aviso-titulo">${tipo.icono} ${escaparHtml(ev.titulo)}</div>
+        <div class="aviso-titulo">${ico(tipo.icono)}${escaparHtml(ev.titulo)}</div>
         <div class="aviso-datos">${datos}</div>
         ${ev.detalle ? `<div class="aviso-detalle">${escaparHtml(ev.detalle)}</div>` : ''}
         <div class="aviso-botones">
-          <button class="aviso-btn" type="button" data-accion="calendario" data-i="${i}">📅 Agregar a mi calendario</button>
+          <button class="aviso-btn" type="button" data-accion="calendario" data-i="${i}">${ico('calendario')}Agregar a mi calendario</button>
           ${editar}
         </div>
       </div>

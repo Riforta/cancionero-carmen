@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Cancionero">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Avisos del coro — Coro del Carmen</title>
+<title>Avisos del coro — Coro Virgen del Carmen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -83,22 +83,29 @@ main {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
+.mes::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-mid), transparent); }
 .mes:first-child { margin-top: 0; }
 .aviso {
   display: flex;
   gap: 0.8rem;
-  padding: 0.75rem 0.9rem;
+  padding: 0.75rem 0.9rem 0.75rem 0.5rem;
   margin-bottom: 0.6rem;
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(107,66,38,0.08);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
 }
 .aviso.liturgia { border-left: 4px solid var(--gold); }
+/* El día, como la hoja de un calendario: separado del texto por una línea */
 .aviso-dia {
   flex-shrink: 0;
-  width: 3.2rem;
+  width: 3.4rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--border);
   text-align: center;
   line-height: 1.1;
 }
@@ -106,11 +113,13 @@ main {
 .aviso-dia .sem { font-size: 0.85rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
 .aviso-cuerpo { flex: 1; min-width: 0; }
 .aviso-titulo { font-size: 1.1rem; font-weight: 500; color: var(--ink); overflow-wrap: break-word; }
+.aviso-titulo .ico { color: var(--brown-mid); }
 .aviso-datos { margin-top: 0.1rem; font-size: 0.95rem; color: var(--ink-soft); }
 .aviso-detalle { margin-top: 0.3rem; font-size: 1rem; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 .aviso-botones { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
 .aviso-btn {
-  padding: 0.25rem 0.75rem;
+  min-height: 36px;
+  padding: 0.25rem 0.8rem;
   border: 1.5px solid var(--border);
   background: var(--bg);
   color: var(--text-strong);
@@ -133,7 +142,7 @@ main {
     <div class="header-center">
       <div class="header-brand">Avisos</div>
     </div>
-    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"></button>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"><svg class="ico ico-solo ico-luna" aria-hidden="true"><use href="assets/iconos.svg#luna"/></svg><svg class="ico ico-solo ico-sol" aria-hidden="true"><use href="assets/iconos.svg#sol"/></svg></button>
     <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
     <div class="header-logo">
       <img src="assets/logo-medallon-color.png" alt="Virgen del Carmen" />
@@ -149,7 +158,7 @@ main {
   </div>
 
   <div class="avisos-acciones">
-    <button id="nuevoAviso" class="admin-action-btn" type="button" hidden>➕ Nuevo aviso</button>
+    <button id="nuevoAviso" class="admin-action-btn" type="button" hidden><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#mas"/></svg>Nuevo aviso</button>
   </div>
 
   <form id="formAviso" class="aviso-form" hidden>
@@ -159,9 +168,9 @@ main {
     </div>
     <label>Tipo
       <select id="fTipo">
-        <option value="ensayo">🎶 Ensayo</option>
-        <option value="celebracion">⛪ Celebración</option>
-        <option value="aviso">📢 Aviso</option>
+        <option value="ensayo">Ensayo</option>
+        <option value="celebracion">Celebración</option>
+        <option value="aviso">Aviso</option>
       </select>
     </label>
     <label>Título <input id="fTitulo" type="text" maxlength="80" required placeholder="Ej.: Ensayo general para la fiesta patronal"></label>

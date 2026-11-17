@@ -2,7 +2,7 @@
 // firebase-config.js, offline.js, sesion.js y songs.js. Las secciones
 // "LÓGICA N" están descriptas en AGENTS.md §4b–§4c.
 
-// MODO, urlParams, linkCon, botonModo y lineasDeLetra vienen de comun.js;
+// MODO, urlParams, linkCon, botonModo, ico y ponerConIcono vienen de comun.js;
 // seguirDato, suscribirMisa y escribirDato, de firebase-config.js
 const esBanco = MODO.banco;
 const isAdmin = MODO.admin;
@@ -57,7 +57,7 @@ const idValido = /^[a-z]+_[a-z0-9-]+$/.test(idCancion || '');
     document.getElementById('letra-box').innerHTML = wrapChordLines(textoLetra);
 
     document.getElementById('song-title').textContent = tituloCancion;
-    document.title = `${tituloCancion} — Coro del Carmen`;
+    document.title = `${tituloCancion} — Coro Virgen del Carmen`;
 
     document.querySelectorAll('pre c').forEach(el => {
       el.setAttribute('data-original', el.textContent.trim());
@@ -134,7 +134,7 @@ function ponerCapo(traste) {
   capoSelect.value = String(traste);
   capoSelect.classList.toggle('active', capoFret > 0);
   if (capoFret > 0) {
-    capoIndicator.textContent = `🎸 Capotraste en traste ${capoFret} — acordes en posición de tocar`;
+    ponerConIcono(capoIndicator, 'guitarra', `Capotraste en traste ${capoFret}: acordes en posición de tocar`);
     capoIndicator.classList.add('visible');
   } else {
     capoIndicator.classList.remove('visible');
@@ -194,56 +194,6 @@ document.addEventListener('click', (e) => {
 
 window.addEventListener('scroll', () => { popover.style.display = 'none'; });
 
-// ─── LÓGICA 4: LECTOR DE LETRA EN VOZ ALTA (accesibilidad) ───
-const btnSpeak = document.getElementById('btnSpeak');
-
-if (!('speechSynthesis' in window)) {
-  btnSpeak.parentElement.style.display = 'none';
-} else {
-
-  let leyendo = false;
-
-  function detenerLectura() {
-    speechSynthesis.cancel();
-    leyendo = false;
-    btnSpeak.textContent = '🔊 Escuchar letra';
-    btnSpeak.classList.remove('active');
-    btnSpeak.setAttribute('aria-pressed', 'false');
-  }
-
-  btnSpeak.addEventListener('click', () => {
-    if (leyendo) {
-      detenerLectura();
-      return;
-    }
-    const lineas = lineasDeLetra(letraBox.innerHTML);   // solo la letra (comun.js)
-    if (!lineas.length) return;
-
-    speechSynthesis.cancel();
-    leyendo = true;
-    btnSpeak.textContent = '⏹ Detener lectura';
-    btnSpeak.classList.add('active');
-    btnSpeak.setAttribute('aria-pressed', 'true');
-
-    const vozEs = speechSynthesis.getVoices()
-      .find(v => v.lang && v.lang.toLowerCase().startsWith('es')) || null;
-
-    // Una utterance por línea: evita el corte de Chrome en textos largos
-    // y marca una pausa natural al final de cada verso
-    lineas.forEach((linea, i) => {
-      const u = new SpeechSynthesisUtterance(linea);
-      u.lang = 'es-ES';
-      if (vozEs) u.voice = vozEs;
-      u.rate = 0.95;
-      if (i === lineas.length - 1) u.onend = detenerLectura;
-      u.onerror = () => { if (leyendo) detenerLectura(); };
-      speechSynthesis.speak(u);
-    });
-  });
-
-  window.addEventListener('pagehide', () => speechSynthesis.cancel());
-}
-
 // ─── LÓGICA 5: NOTA PARA MÚSICOS (Firebase notas/<id>) ───
 // Se ve en la vista de músicos y en admin; solo la edita un admin con sesión.
 // En modo banco ni se consulta. Si Firebase no cargó, la página sigue igual.
@@ -262,7 +212,7 @@ if (!esBanco && idCancion) {
     notaTexto.textContent = notaActual;
     notaTexto.hidden = !notaActual || editando;
     notaEditBtn.hidden = !puedeEditar() || editando;
-    notaEditBtn.textContent = notaActual ? '✏️ Editar' : '➕ Agregar nota';
+    notaEditBtn.innerHTML = notaActual ? ico('lapiz') + 'Editar' : ico('mas') + 'Agregar nota';
     notaBox.hidden = !notaActual && !puedeEditar();
   }
   const puedeEditar = () => isAdmin && esAdminOk;
@@ -392,7 +342,7 @@ if (!esBanco) {
   function pintarAutoscroll() {
     velEl.textContent = nivel;
     box.classList.toggle('playing', activo);
-    btnPlay.textContent = activo ? '⏸' : '▶';
+    btnPlay.innerHTML = ico(activo ? 'pausa' : 'play', true);
     btnPlay.setAttribute('aria-label', activo ? 'Detener desplazamiento' : 'Desplazamiento automático');
   }
   const alFinal = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
@@ -440,7 +390,7 @@ if (!esBanco) {
 // ─── LÓGICA 9: TONO DEL CORO (Firebase tonos/<id>) ───
 // { transponer, capo } en semitonos y traste. Al abrir la canción se aplica
 // solo; el músico puede cambiarlo en su celular sin guardar. Un admin con
-// sesión lo guarda con "💾 Guardar como tono del coro" (0 y 0 = se borra).
+// sesión lo guarda con "Guardar como tono del coro" (0 y 0 = se borra).
 // No existe en modo banco (no hay acordes)
 if (!esBanco && idCancion) {
   const tonoBox = document.getElementById('tono-coro');
@@ -485,7 +435,7 @@ if (!esBanco && idCancion) {
     const enTonoCoro = mismoTono(actual, referencia);
 
     if (tonoCoro) {
-      tonoTexto.textContent = '🎼 Tono del coro: ' + describirTono(tonoCoro) + (enTonoCoro ? '' : ' (estás viendo otro tono)');
+      ponerConIcono(tonoTexto, 'diapason', 'Tono del coro: ' + describirTono(tonoCoro) + (enTonoCoro ? '' : ' (estás viendo otro tono)'));
     } else {
       tonoTexto.textContent = 'Sin tono del coro guardado';
     }
@@ -494,9 +444,9 @@ if (!esBanco && idCancion) {
     tonoUsar.hidden = !tonoCoro;
     tonoUsar.textContent = enTonoCoro ? 'Ver tono original' : 'Volver al tono del coro';
     tonoGuardar.hidden = !puedeGuardarTono() || enTonoCoro;
-    tonoGuardar.textContent = mismoTono(actual, ORIGINAL)
-      ? '💾 Guardar: tono original, sin capo'
-      : '💾 Guardar como tono del coro';
+    tonoGuardar.innerHTML = ico('diapason') + (mismoTono(actual, ORIGINAL)
+      ? 'Guardar: tono original, sin capo'
+      : 'Guardar como tono del coro');
 
     tonoBox.hidden = !tonoCoro && tonoGuardar.hidden;
   }
@@ -620,7 +570,7 @@ function renderMedios(fijos) {
       const quitar = document.createElement('button');
       quitar.type = 'button';
       quitar.className = 'nota-edit medio-btn';
-      quitar.textContent = '🗑 Quitar';
+      quitar.innerHTML = ico('papelera') + 'Quitar';
       quitar.addEventListener('click', () => {
         if (!confirm('¿Quitar este audio o link?')) return;
         guardarMedios(mediosAgregados.filter(x => x !== m), quitar, 'quitar el audio').catch(() => {});
@@ -704,7 +654,7 @@ if (isAdmin && !esBanco && cancionActual) {
 
   function pintarMisaAgregar() {
     const esta = listaDeTrabajo().ids.includes(idCancion);
-    btn.textContent = esta ? '✓ En la Misa de Hoy · Quitar' : '➕ Agregar a la Misa de Hoy';
+    btn.innerHTML = esta ? ico('check') + 'En la Misa de Hoy · Quitar' : ico('mas') + 'Agregar a la Misa de Hoy';
     btn.classList.toggle('active', esta);
     btn.setAttribute('aria-pressed', String(esta));
     pendiente.classList.toggle('oculta', !leerBorradorMisa());

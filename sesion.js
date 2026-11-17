@@ -81,7 +81,7 @@ function panelSesion(contenedor) {
     else if (estado === 'sin-sesion') mostrar(estado, 'Para editar, iniciá sesión.', 'Entrar con Google', entrarConGoogle, true);
     else if (estado === 'no-admin') mostrar(estado, `Tu cuenta (${email}) no está autorizada para editar.`, 'Cerrar sesión', salirDeSesion);
     else if (estado === 'admin') mostrar(estado, `✓ Admin: ${email}`, 'Cerrar sesión', salirDeSesion);
-    else mostrar(estado, '📴 Sin conexión: no se puede verificar la sesión ni editar.');
+    else mostrar(estado, 'Sin conexión: no se puede verificar la sesión ni editar.');
 
     if (estado === 'admin') guardarCopia('sesion_admin', { email, nombre: nombre || '' });
     else if (estado === 'sin-sesion' || estado === 'no-admin') guardarCopia('sesion_admin', null);

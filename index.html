@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#3E2415">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Cancionero — Coro Virgen Del Carmen</title>
+<title>Cancionero — Coro Virgen del Carmen</title>
 
 <link rel="icon" type="image/png" href="assets/logo-medallon.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -92,11 +92,16 @@ html { scroll-behavior: smooth; }
   position: absolute;
   left: 0.95rem; top: 50%;
   transform: translateY(-50%);
-  color: rgba(255,255,255,0.38);
-  font-size: 1rem;
+  color: rgba(255,255,255,0.45);
+  font-size: 1.05rem;
   pointer-events: none;
   line-height: 1;
 }
+.search-icon .ico { display: block; }
+/* Al bajar, el buscador se va detrás del encabezado (script al final) */
+.search-wrap { transition: transform 0.22s ease; }
+.search-wrap.escondido { transform: translateY(-100%); }
+@media (prefers-reduced-motion: reduce) { .search-wrap { transition: none; } }
 
 .search-wrap input {
   width: 100%;
@@ -126,16 +131,22 @@ main {
 }
 
 /* ─── BANNER DECORATIVO ─── */
+/* Estampa: la imagen a la izquierda y el nombre al lado, en una franja baja
+   (la lista de canciones queda más arriba). Abajo se le une la placa del día
+   litúrgico (.liturgia), como el pie de una estampita */
 .carmel-banner {
-  text-align: center;
-  padding: clamp(1.1rem, 3vw, 1.6rem) 1rem clamp(1rem, 2.5vw, 1.4rem);
-  margin-bottom: clamp(0.5rem, 2vw, 1rem);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: clamp(0.85rem, 3.5vw, 1.3rem);
+  padding: clamp(0.8rem, 2.5vw, 1.1rem) clamp(1rem, 3.5vw, 1.4rem);
   background: linear-gradient(135deg, var(--brown-dark) 0%, #5A3520 50%, var(--brown) 100%);
-  border-radius: 14px;
+  border-radius: var(--radio) var(--radio) 0 0;
   box-shadow: 0 4px 20px rgba(62,36,21,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
   position: relative;
   overflow: hidden;
 }
+.banner-texto { min-width: 0; position: relative; z-index: 1; }
 .carmel-banner::before {
   content: '';
   position: absolute;
@@ -150,77 +161,67 @@ main {
   pointer-events: none;
 }
 .banner-medallion {
-  width: clamp(86px, 24vw, 120px);
-  height: clamp(86px, 24vw, 120px);
+  width: clamp(76px, 21vw, 104px);
+  height: clamp(76px, 21vw, 104px);
   border-radius: 50%;
-  margin: 0 auto 0.7rem;
   background: #FBF3E6;
   border: 2px solid rgba(232,201,122,0.85);
-  box-shadow: 0 0 0 5px rgba(196,154,42,0.16), 0 6px 22px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 4px rgba(196,154,42,0.16), 0 5px 18px rgba(0,0,0,0.4);
   overflow: hidden;
   position: relative;
   z-index: 1;
 }
 .banner-medallion img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Las tres estrellas del escudo del Carmen */
 .banner-stars {
-  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
-  color: var(--gold);
-  letter-spacing: 0.6em;
-  opacity: 0.75;
-  margin-bottom: 0.5rem;
   display: block;
-  position: relative;
-  z-index: 1;
+  font-size: clamp(0.62rem, 1.8vw, 0.8rem);
+  color: var(--gold-light);
+  letter-spacing: 0.55em;
+  opacity: 0.8;
+  margin-bottom: 0.3rem;
 }
 .banner-title {
   font-family: 'Cinzel', serif;
-  font-size: clamp(1.05rem, 4.2vw, 1.4rem);
+  font-size: clamp(1rem, 4.2vw, 1.4rem);
   font-weight: 700;
   color: #fff;
-  letter-spacing: 0.06em;
-  line-height: 1.25;
-  margin-bottom: 0.25rem;
-  position: relative;
-  z-index: 1;
+  letter-spacing: 0.04em;
+  line-height: 1.22;
+  text-wrap: balance;
 }
 .banner-subtitle {
+  margin-top: 0.25rem;
   font-family: 'EB Garamond', serif;
-  font-size: clamp(0.78rem, 2.2vw, 0.92rem);
+  font-size: clamp(0.86rem, 2.4vw, 0.98rem);
   color: var(--gold-light);
   font-style: italic;
-  letter-spacing: 0.06em;
-  opacity: 0.9;
-  position: relative;
-  z-index: 1;
-}
-.banner-rule {
-  width: clamp(60px, 20vw, 100px);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  margin: 0.6rem auto 0;
-  opacity: 0.55;
-  position: relative;
-  z-index: 1;
+  letter-spacing: 0.03em;
 }
 
-/* ─── TIEMPO LITÚRGICO (liturgia.js) ─── */
+/* ─── TIEMPO LITÚRGICO (liturgia.js) ───
+   Placa clara pegada debajo de la estampa. El color del día cuelga como la
+   cinta de un misal */
 .liturgia {
-  display: flex;
-  align-items: stretch;
-  gap: 0.8rem;
-  margin-bottom: clamp(0.9rem, 2.5vw, 1.3rem);
-  padding: 0.65rem 0.9rem;
+  position: relative;
+  margin-bottom: clamp(0.8rem, 2.5vw, 1.2rem);
+  padding: 0.6rem 0.9rem 0.65rem calc(clamp(1rem, 3.5vw, 1.4rem) + 28px);
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(107,66,38,0.08);
+  border-top: 0;
+  border-radius: 0 0 var(--radio) var(--radio);
+  box-shadow: var(--sombra);
 }
 .liturgia-color {
-  flex-shrink: 0;
-  width: 8px;
-  border-radius: 6px;
-  background: var(--color-liturgico);
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+  position: absolute;
+  left: clamp(1rem, 3.5vw, 1.4rem);
+  top: -7px;
+  width: 15px;
+  height: calc(100% - 4px);
+  max-height: 46px;
+  /* sombra en los bordes: se distingue también la cinta blanca */
+  background: linear-gradient(90deg, rgba(0,0,0,0.22), rgba(0,0,0,0) 28%, rgba(0,0,0,0) 72%, rgba(0,0,0,0.22)) var(--color-liturgico);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%);
 }
 .liturgia[data-color="verde"]  { --color-liturgico: #3F7A3A; }
 .liturgia[data-color="morado"] { --color-liturgico: #6B3FA0; }
@@ -244,32 +245,35 @@ main {
 
 /* ─── PRÓXIMOS AVISOS (músicos y admin) ─── */
 .proximos {
-  display: block;
-  margin-bottom: clamp(0.9rem, 2.5vw, 1.3rem);
-  padding: 0.7rem 0.9rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  margin-bottom: clamp(0.8rem, 2.5vw, 1.2rem);
+  padding: 0.55rem 0.9rem 0.5rem;
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(107,66,38,0.08);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
   color: var(--ink);
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 .proximos:hover { border-color: var(--brown-mid); }
-.proximos-cabecera { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.35rem; }
-.proximos-titulo {
-  font-family: 'Cinzel', serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-strong);
+.proximos > .ico { width: 1.35rem; height: 1.35rem; margin: 0; color: var(--brown-mid); }
+.proximos-ver { flex-shrink: 0; font-size: 1.4rem; line-height: 1; color: var(--border-mid); }
+.proximos:hover .proximos-ver { color: var(--gold); }
+.proximos-lista { flex: 1; min-width: 0; list-style: none; }
+/* Un renglón: la fecha entera y el título cortado con … si no entra */
+.proximos-lista li { display: flex; align-items: baseline; gap: 0.55rem; font-size: 1.02rem; line-height: 1.3; white-space: nowrap; }
+.px-fecha { flex-shrink: 0; color: var(--brown-mid); font-weight: 500; }
+.px-titulo { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.px-titulo .ico { color: var(--brown-mid); }
+.proximos-lista .vacio { color: var(--ink-soft); font-style: italic; white-space: normal; }
+.solo-lector {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
-.proximos-ver { font-size: 0.9rem; color: var(--ink-soft); white-space: nowrap; }
-.proximos-lista { list-style: none; }
-.proximos-lista li { display: flex; gap: 0.6rem; padding: 0.2rem 0; font-size: 1rem; line-height: 1.3; }
-.px-fecha { flex-shrink: 0; min-width: 5.6rem; color: var(--brown-mid); font-weight: 500; }
-.px-titulo { min-width: 0; overflow-wrap: break-word; }
-.proximos-lista .vacio { color: var(--ink-soft); font-style: italic; }
 
 /* ─── SECTION LABEL ─── */
 .sec-label {
@@ -308,10 +312,12 @@ main {
   scrollbar-width: none;
   /* bleed to edges of main padding so fade works */
   margin: 0 calc(-1 * clamp(0.85rem, 4vw, 1.6rem));
-  padding: 0.2rem clamp(0.85rem, 4vw, 1.6rem) 1rem;
-  margin-bottom: clamp(0.8rem, 2.5vw, 1.4rem);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  padding: 0.2rem clamp(0.85rem, 4vw, 1.6rem) 0.8rem;
+  margin-bottom: clamp(0.3rem, 1.5vw, 0.8rem);
+  /* se desvanece solo a la derecha: avisa que hay más categorías sin
+     apagar la primera */
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 88%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 88%, transparent 100%);
 }
 .cat-scroll-wrap::-webkit-scrollbar { display: none; }
 
@@ -353,9 +359,11 @@ main {
 }
 
 .chip-icon {
-  font-size: 1rem;
-  line-height: 1;
+  display: flex;
+  color: var(--brown-mid);
 }
+.chip-icon .ico { width: 1.15rem; height: 1.15rem; }
+.cat-chip.active .chip-icon { color: var(--gold-light); }
 
 .chip-label {
   font-family: 'Cinzel', serif;
@@ -387,9 +395,9 @@ main {
 .songs-list {
   background: var(--bg);
   border: 1.5px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radio);
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(74,30,8,0.06), 0 8px 28px rgba(74,30,8,0.06);
+  box-shadow: var(--sombra);
   margin-bottom: 1.5rem;
 }
 
@@ -397,8 +405,8 @@ main {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: clamp(0.8rem, 2.5vw, 1rem) clamp(1rem, 3vw, 1.25rem);
-  min-height: clamp(56px, 12vw, 64px);
+  padding: clamp(0.6rem, 2vw, 0.8rem) clamp(0.75rem, 3vw, 1.1rem) clamp(0.6rem, 2vw, 0.8rem) clamp(0.85rem, 3vw, 1.1rem);
+  min-height: clamp(58px, 12vw, 64px);
   border-bottom: 1px solid rgba(224,204,186,0.5);
   text-decoration: none;
   color: var(--ink);
@@ -412,27 +420,31 @@ main {
   border-left-color: var(--gold);
 }
 
+/* El momento de la misa va arriba del título, como la rúbrica de un misal:
+   el título usa todo el ancho de la fila */
+.song-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
 .song-tag {
   font-family: 'Cinzel', serif;
-  font-size: clamp(0.52rem, 1.4vw, 0.6rem);
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--brown-mid);
-  background: var(--brown-light);
-  border: 1px solid rgba(122,60,24,0.18);
-  border-radius: 4px;
-  padding: 3px 7px 2px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
+/* Dentro de una sola categoría la rúbrica se repetiría en todas las filas */
+.una-categoria .song-tag { display: none; }
 
 .song-name {
-  flex: 1;
   font-family: 'EB Garamond', serif;
-  font-size: clamp(1.05rem, 2.8vw, 1.12rem);
-  line-height: 1.3;
+  font-size: clamp(1.12rem, 2.8vw, 1.2rem);
+  line-height: 1.25;
   color: var(--ink);
   min-width: 0;
   overflow-wrap: break-word;
@@ -460,16 +472,24 @@ main {
 }
 .song-snippet mark { background: var(--peach-soft); color: inherit; border-radius: 3px; padding: 0 1px; }
 
-/* Quién publicó la misa */
+/* Quién publicó la misa y el botón de compartir, en un mismo renglón */
+.misa-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.misa-barra > * { margin-bottom: 0.7rem; }
 .misa-meta {
-  margin: -0.5rem 0 0.8rem;
-  font-size: 0.92rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.95rem;
+  line-height: 1.25;
   font-style: italic;
   color: var(--ink-soft);
 }
-
-/* Compartir la misa */
-.misa-share { display: flex; justify-content: flex-end; margin: -0.4rem 0 0.8rem; }
+.misa-share { margin-left: auto; flex-shrink: 0; }
+.misa-share .admin-action-btn { padding: 0.4rem 0.9rem; white-space: nowrap; }
 
 /* ─── NO RESULTS ─── */
 .no-results {
@@ -485,9 +505,11 @@ main {
   display: block;
   font-size: 2.8rem;
   margin-bottom: 0.9rem;
-  opacity: 0.28;
+  opacity: 0.45;
   font-style: normal;
+  color: var(--brown-mid);
 }
+.no-results-icon .ico { width: 1em; height: 1em; stroke-width: 1.4; }
 
 /* ─── FOOTER ─── */
 footer {
@@ -497,26 +519,24 @@ footer {
 }
 .footer-ornament {
   font-size: 0.72rem;
-  color: var(--gold);
+  color: var(--brown-mid);
   letter-spacing: 0.55em;
-  opacity: 0.55;
+  opacity: 0.7;
   margin-bottom: 0.4rem;
 }
-.footer-text.estado-offline { margin-top: 0.4rem; opacity: 0.85; font-style: normal; }
+.footer-text.estado-offline { margin-top: 0.4rem; font-style: normal; }
 .footer-text {
   font-family: 'EB Garamond', serif;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--ink-soft);
-  opacity: 0.5;
   font-style: italic;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
 }
 
 /* ─── RESPONSIVE: lg — desktop ─── */
 @media (min-width: 720px) {
   main { padding: 2rem 2rem 5rem; }
-  .carmel-banner { border-radius: 16px; }
-  .songs-list { border-radius: 18px; }
   .cat-chip { height: 50px; font-size: 0.72rem; }
 }
 
@@ -535,18 +555,33 @@ footer {
 .sin-entrada .carmel-banner, .sin-entrada .cat-scroll-wrap, .sin-entrada .songs-list { animation: none; }
 
 /* ─── ADMIN BAR ─── */
+/* Los tres botones en un solo renglón, del mismo ancho. El de publicar va
+   marcado como el principal */
 #admin-bar {
-  display: flex;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: 1.08fr 1fr 1.08fr;
+  gap: 0.35rem;
   margin-bottom: 1rem;
-  flex-wrap: wrap;
 }
+#admin-bar .admin-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.3rem 0.2rem;
+  white-space: nowrap;
+  font-size: clamp(0.8rem, 3.4vw, 1rem);
+  line-height: 1.15;
+  text-align: center;
+}
+#admin-bar [data-action="publicar"] { background: var(--brown-dark); color: #fff; border-color: transparent; }
+#admin-bar [data-action="publicar"]:hover { background: var(--brown); }
+[data-theme="dark"] #admin-bar [data-action="publicar"] { background: linear-gradient(135deg, #B8862E 0%, #DDB45E 100%); color: #2C1A0D; }
 /* Sesión de admin recordada (tema.js): el lugar de los botones queda
    reservado mientras carga, así la página no se corre al aparecer */
-:root[data-admin="ok"] #admin-bar[hidden] { display: flex !important; visibility: hidden; }
+:root[data-admin="ok"] #admin-bar[hidden] { display: grid !important; visibility: hidden; }
 body.banco-mode #searchWrap,
-body.banco-mode #cat-wrap,
-body.banco-mode #cat-section { display: none; }
+body.banco-mode #cat-wrap { display: none; }
 .aviso-misa {
   display: flex;
   flex-wrap: wrap;
@@ -560,6 +595,7 @@ body.banco-mode #cat-section { display: none; }
   border-radius: 12px;
   color: var(--ink);
 }
+.aviso-misa .ico { color: #C9822C; }
 .admin-action-btn {
   padding: 0.5rem 1.1rem;
   border: 1.5px solid var(--border-mid);
@@ -595,6 +631,9 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
   border-color: var(--border-mid);
   color: var(--text-strong);
 }
+.admin-btn .ico { width: 1.15rem; height: 1.15rem; vertical-align: middle; }
+.admin-btn.btn-mas .ico { stroke-width: 2; }
+.admin-btn.btn-mas.en-misa .ico { stroke-width: 2.4; }
 .admin-btn.btn-mas.en-misa,
 .admin-btn.btn-mas.en-misa:hover {
   background: var(--gold-light);
@@ -609,9 +648,12 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 }
 .chip-count.pulso { animation: pulso 0.45s ease; }
 /* Celulares: filas de admin compactas para que el título no quede tapado */
+/* ↑ ↓ ❌ de Misa de Hoy: del tamaño de un dedo */
+.admin-row .admin-btn:not(.btn-mas) { min-width: 40px; min-height: 40px; font-size: 1rem; }
 @media (max-width: 480px) {
-  .admin-row { gap: 0.4rem; padding-left: 0.75rem; padding-right: 0.75rem; }
-  .admin-row .admin-btn:not(.btn-mas) { padding: 0.2rem 0.5rem; }
+  .btn-largo { display: none; }
+  .admin-row { gap: 0.35rem; padding-left: 0.75rem; padding-right: 0.6rem; }
+  .admin-row .admin-btn:not(.btn-mas) { padding: 0.2rem 0.4rem; }
   .admin-row .btn-txt,
   .admin-row .song-arrow { display: none; }
 }
@@ -627,16 +669,16 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     </div>
     <div class="header-title-group">
       <div class="h-title">Cancionero <span class="accent">✦</span></div>
-      <div class="h-sub">Coro Virgen del Carmen · Parroquia Virgen del Carmen</div>
+      <div class="h-sub">Coro Virgen del Carmen<span class="h-sub-largo"> · Parroquia Virgen del Carmen</span></div>
     </div>
-    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"></button>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema"><svg class="ico ico-solo ico-luna" aria-hidden="true"><use href="assets/iconos.svg#luna"/></svg><svg class="ico ico-solo ico-sol" aria-hidden="true"><use href="assets/iconos.svg#sol"/></svg></button>
     <button id="modeToggle" class="mode-toggle" type="button" hidden></button>
   </div>
 </header>
 
 <div class="search-wrap" id="searchWrap">
   <div class="search-inner">
-    <span class="search-icon">⌕</span>
+    <span class="search-icon"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#lupa"/></svg></span>
     <input type="text" id="si" placeholder="Buscar canción..." autocomplete="off" spellcheck="false" />
   </div>
 </div>
@@ -645,19 +687,20 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 
   <div id="sesion-slot" class="sesion-slot"></div>
   <div id="admin-bar" hidden>
-    <button class="admin-action-btn" type="button" data-action="publicar">💾 Publicar Misa</button>
-    <button class="admin-action-btn" type="button" data-action="limpiar">🗑️ Limpiar Misa</button>
-    <a class="admin-action-btn" href="qr.html">🖨️ QR para fieles</a>
+    <button class="admin-action-btn" type="button" data-action="publicar"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#publicar"/></svg>Publicar Misa</button>
+    <button class="admin-action-btn" type="button" data-action="limpiar"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#papelera"/></svg>Limpiar Misa</button>
+    <a class="admin-action-btn" href="qr.html"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#qr"/></svg>QR para fieles</a>
   </div>
 
   <div class="carmel-banner">
     <div class="banner-medallion">
       <img src="assets/logo-medallon-color.png" alt="Virgen del Carmen" />
     </div>
-    <span class="banner-stars">☆ ★ ☆</span>
-    <div class="banner-title">Nuestra Señora del Monte Carmelo</div>
-    <div class="banner-subtitle">Cancionero del Coro Parroquial</div>
-    <div class="banner-rule"></div>
+    <div class="banner-texto">
+      <span class="banner-stars" aria-hidden="true">★ ★ ★</span>
+      <div class="banner-title">Nuestra Señora del Monte Carmelo</div>
+      <div class="banner-subtitle">Cancionero del Coro Parroquial</div>
+    </div>
   </div>
 
   <div class="liturgia" id="liturgia" hidden>
@@ -668,19 +711,14 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     </div>
   </div>
 
+  <!-- El aviso más cercano, en un renglón. Toda la tarjeta lleva a avisos.html -->
   <a class="proximos" id="proximos" href="avisos.html" hidden>
-    <div class="proximos-cabecera">
-      <span class="proximos-titulo">📢 Próximos avisos</span>
-      <span class="proximos-ver">Ver todos ›</span>
-    </div>
+    <svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#megafono"/></svg><span class="solo-lector">Próximo aviso del coro:</span>
     <ul class="proximos-lista" id="proximosLista"></ul>
+    <span class="proximos-ver"><span class="solo-lector">Ver todos los avisos</span><span aria-hidden="true">›</span></span>
   </a>
 
-  <div class="sec-label" id="cat-section">
-    <span class="sec-label-text">Categorías</span>
-    <div class="sec-label-rule"></div>
-  </div>
-  <div class="cat-scroll-wrap" id="cat-wrap">
+  <div class="cat-scroll-wrap" id="cat-wrap" role="group" aria-label="Categorías">
     <div class="cat-chips" id="cg"></div>
   </div>
 
@@ -690,17 +728,19 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     <span class="sec-label-count" id="cnt"></span>
   </div>
   <div class="aviso-misa" id="misa-pendiente" role="status" hidden>● Hay cambios en la Misa de Hoy sin publicar</div>
-  <div class="misa-meta" id="misa-meta" hidden></div>
-  <div class="misa-share" id="misa-share" hidden>
-    <button id="btnCompartir" class="admin-action-btn" type="button">📤 Compartir la misa</button>
+  <div class="misa-barra">
+    <div class="misa-meta" id="misa-meta" hidden></div>
+    <div class="misa-share" id="misa-share" hidden>
+      <button id="btnCompartir" class="admin-action-btn" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#compartir"/></svg>Compartir<span class="btn-largo"> la misa</span></button>
+    </div>
   </div>
   <div class="songs-list" id="list"></div>
   <div class="no-results" id="nr">
-    <span class="no-results-icon">♪</span>
+    <span class="no-results-icon"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#lupa"/></svg></span>
     Sin resultados para "<span id="nrt"></span>"
   </div>
   <div class="no-results" id="misa-empty">
-    <span class="no-results-icon">⛪</span>
+    <span class="no-results-icon"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#iglesia"/></svg></span>
     Aún no se han seleccionado las canciones para la próxima misa
   </div>
 
@@ -708,7 +748,7 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 
 <footer>
   <div class="footer-ornament">✦ ✝ ✦</div>
-  <div class="footer-text">Coro Santa María del Carmen · Parroquia del Carmen · Córdoba, Argentina</div>
+  <div class="footer-text">Coro Virgen del Carmen · Parroquia Virgen del Carmen · Córdoba, Argentina</div>
   <div class="footer-text estado-offline" id="estado-offline" hidden></div>
 </footer>
 
@@ -820,10 +860,10 @@ if (!MODO.banco) {
   const caja = document.getElementById('proximos');
   caja.href = linkCon('avisos.html');
   const pintarProximos = avisos => {
-    const eventos = proximosEventos(avisos, 30).slice(0, 3);
+    const eventos = proximosEventos(avisos, 30).slice(0, 1);
     document.getElementById('proximosLista').innerHTML = eventos.length
       ? eventos.map(ev => `<li><span class="px-fecha">${fechaCorta(ev.fecha)}${ev.hora ? ' · ' + ev.hora : ''}</span>` +
-          `<span class="px-titulo">${TIPOS_AVISO[ev.tipo].icono} ${escaparHtml(ev.titulo)}</span></li>`).join('')
+          `<span class="px-titulo">${ico(TIPOS_AVISO[ev.tipo].icono)}${escaparHtml(ev.titulo)}</span></li>`).join('')
       : '<li class="vacio">No hay avisos para los próximos días</li>';
     caja.hidden = false;
   };
@@ -869,7 +909,7 @@ if (MODO.admin) {
   aviso.className = 'aviso-misa';
   aviso.hidden = true;
   aviso.setAttribute('role', 'status');
-  aviso.innerHTML = `<span>⚠️ Se publicó otra versión de la Misa de Hoy mientras editabas.</span>
+  aviso.innerHTML = `<span>${ico('alerta')}Se publicó otra versión de la Misa de Hoy mientras editabas.</span>
     <button class="admin-action-btn" type="button">Cargar la publicada</button>`;
   aviso.querySelector('button').addEventListener('click', () => {
     if (confirm('Se descartan tus cambios sin publicar. ¿Cargar la versión publicada?')) cargarMisaPublicada();
@@ -915,7 +955,7 @@ function syncCatParam() {
 }
 
 function renderCats() {
-  document.getElementById('cg').innerHTML = catsOrdenadas().map(([id, label, icon]) => {
+  document.getElementById('cg').innerHTML = catsOrdenadas().map(([id, label, , icono]) => {
     let n;
     if (id === 'misa') {
       n = misaIds.length;
@@ -924,7 +964,7 @@ function renderCats() {
       if (!n) return '';
     }
     return `<button class="cat-chip${af === id ? ' active' : ''}" type="button" data-cat="${id}">
-      <span class="chip-icon">${icon}</span>
+      <span class="chip-icon">${ico(icono, true)}</span>
       <span class="chip-label">${label}</span>
       <span class="chip-count">${n}</span>
     </button>`;
@@ -948,6 +988,8 @@ function renderList(songs) {
     return;
   }
   list.style.display = 'block';
+  // Vista de una sola categoría: no hace falta repetirla en cada fila
+  list.classList.toggle('una-categoria', !!af && af !== 'misa' && !document.getElementById('si').value.trim());
   document.getElementById('misa-share').hidden = !(af === 'misa' && !MODO.banco);
   document.getElementById('nr').style.display = 'none';
   document.getElementById('misa-empty').style.display = 'none';
@@ -961,15 +1003,17 @@ function filaHtml(s) {
   const href = linkCon('cancion.html', { id: s.id, cat: af || 'todas' });
   const editable = MODO.admin && esAdminOk;
   const botones = !editable ? '' : af === 'misa'
-    ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">↑</button>
-       <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">↓</button>
-       <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">❌<span class="btn-txt"> Quitar</span></button>`
+    ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">${ico('arriba', true)}</button>
+       <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">${ico('abajo', true)}</button>
+       <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">${ico('cerrar', true)}<span class="btn-txt"> Quitar</span></button>`
     : misaIds.includes(s.id)
-      ? `<button class="admin-btn btn-mas en-misa" data-action="remove" data-song-id="${s.id}" aria-label="En la Misa de Hoy. Tocar para quitar">✓</button>`
-      : `<button class="admin-btn btn-mas" data-action="add" data-song-id="${s.id}" aria-label="Agregar a la Misa de Hoy">+</button>`;
+      ? `<button class="admin-btn btn-mas en-misa" data-action="remove" data-song-id="${s.id}" aria-label="En la Misa de Hoy. Tocar para quitar">${ico('check', true)}</button>`
+      : `<button class="admin-btn btn-mas" data-action="add" data-song-id="${s.id}" aria-label="Agregar a la Misa de Hoy">${ico('mas', true)}</button>`;
   const contenido = `
-      <span class="song-tag">${CMAP[s.category] || s.category}</span>
-      <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
+      <span class="song-main">
+        <span class="song-tag">${CMAP[s.category] || s.category}</span>
+        <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
+      </span>
       ${botones}
       <span class="song-arrow">›</span>`;
   return editable
@@ -1019,7 +1063,7 @@ function publicarMisa() {
     misa_actual: misaIds,
     misa_meta: { por: por.slice(0, 80), cuando: horaServidor() }
   }, null, 'publicar la misa')
-    .then(() => { borrarBorradorMisa(); render(); avisar('✅ Misa publicada'); })
+    .then(() => { borrarBorradorMisa(); render(); avisar('✓ Misa publicada'); })
     .catch(() => { misaSinPublicar = habiaCambios; render(); });
 }
 
@@ -1180,12 +1224,24 @@ document.getElementById('btnCompartir').addEventListener('click', () => {
   }
 });
 
-/* Sticky search flush below header */
+// Buscador pegado debajo del encabezado. Al bajar se esconde detrás del
+// encabezado (más lugar para la lista) y vuelve apenas se sube un poco. No se
+// esconde mientras se escribe ni cerca del principio de la página
 (function () {
   const sw = document.getElementById('searchWrap');
+  const si = document.getElementById('si');
   function pos() { sw.style.top = document.querySelector('header').offsetHeight + 'px'; }
   pos();
   window.addEventListener('resize', pos);
+
+  let ultimoY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (Math.abs(y - ultimoY) < 8) return;   // temblores del dedo
+    sw.classList.toggle('escondido', y > ultimoY && y > 140 && document.activeElement !== si);
+    ultimoY = y;
+  }, { passive: true });
+  si.addEventListener('focus', () => sw.classList.remove('escondido'));
 })();
 
 render();

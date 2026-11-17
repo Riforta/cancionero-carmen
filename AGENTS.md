@@ -322,6 +322,36 @@ internet ni datos cargados a mano.
   prueba.
 - **`window.FECHA_PRUEBA`** (`'AAAA-MM-DD'`, en `fechaHoy()` de `comun.js`) fija
   el día: solo lo usan las pruebas.
+
+**D20. Distribución de las pantallas** (2026-11-17). Rediseño sin cambios de
+funcionalidad, pensado para el celular: lo que más se usa queda arriba y los
+botones, del tamaño de un dedo. Se respetan la paleta y las fuentes.
+- **Regla general:** en el índice, la lista de canciones tiene que empezar
+  dentro de la primera pantalla; en la canción, la letra. Un bloque nuevo
+  arriba de ellas tiene que ser bajo o ir después.
+- **Encabezado:** en pantallas de hasta 560 px el botón de modo dice "Admin" /
+  "Salir" (`.mt-largo` se oculta) y el subtítulo queda en "Coro Virgen del
+  Carmen". Así el título no se corta.
+- **Índice:**
+  - La estampa (`.carmel-banner`) es una franja baja, con la imagen a la
+    izquierda. Debajo, pegada, va la placa del día litúrgico (`.liturgia`); el
+    color del día cuelga como la cinta de un misal (`.liturgia-color`).
+  - Las categorías no llevan título propio.
+  - En cada fila, el momento de la misa (`.song-tag`) va arriba del título,
+    como una rúbrica. Dentro de una sola categoría no se muestra
+    (`.una-categoria`).
+  - "Publicada por…" y "Compartir" comparten renglón (`.misa-barra`).
+  - Los tres botones de admin van en un renglón; "Publicar Misa" es el
+    principal.
+- **Canción:**
+  - Los controles ocupan dos renglones (`.toolbar`, grilla de 12 columnas):
+    `− ½ tono · acordes · + ½ tono` y `capo · escuchar letra`.
+  - Justo arriba de la letra (`.letra-barra`): a la izquierda el tono del coro
+    y el aviso de capo, a la derecha A− / A+.
+  - Anterior / siguiente va inmediatamente después de la letra, antes de los
+    audios.
+- **Tarjetas:** un solo radio y una sola sombra (`--radio`, `--sombra` en
+  `comun.css`).
 ---
 
 ## 3. Reglas de negocio: canciones
