@@ -545,6 +545,114 @@ body.banco-mode .letra { line-height: 1.65; }
 /* Controles, nota, tono, audios y autoscroll: solo músicos y admin */
 body.banco-mode .no-banco { display: none !important; }
 
+/* ─── CORRECCIÓN DE LA LETRA (canciones/<id>, D23): quién y cuándo ─── */
+.correccion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+  text-align: center;
+}
+.correccion-texto { font-size: 0.98rem; font-style: italic; color: var(--ink-soft); }
+.correccion-texto .ico { color: var(--brown-mid); }
+.correccion .tono-acciones { justify-content: center; }
+
+/* ─── EDITOR DE ACORDES (admin con sesión, editor.js, D23) ─── */
+/* El lápiz, al lado de "Acordes". La palabra "Editar" solo si entra */
+.editar-acordes { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
+.editar-acordes .ico { width: 1.3em; height: 1.3em; color: var(--brown-mid); }
+.editar-texto { display: none; }
+@media (min-width: 480px) { .editar-texto { display: inline; } }
+.editar-acordes.active { background: var(--brown-dark); color: #fff; border-color: transparent; }
+.editar-acordes.active .ico { color: inherit; }
+/* Sesión de admin recordada: su lugar queda reservado desde antes de pintar (D16) */
+:root[data-admin="ok"] #editarAcordes[hidden] { display: inline-flex !important; visibility: hidden; }
+
+/* La letra en edición: borde punteado, cada acorde con fondo (se ve que se
+   puede tocar) y el elegido resaltado. Nada cambia de tamaño: se ve igual a
+   como va a quedar */
+.letra.editando { border-style: dashed; border-color: var(--gold); cursor: pointer; }
+.letra.editando c { background-color: rgba(221,180,94,0.22); border-radius: 3px; }
+.letra.editando c.sel {
+  background-color: var(--gold-light);
+  color: #2C1A0D;
+  border-bottom-color: transparent;
+  border-radius: 4px;
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+/* La letra sobre la que cae el acorde elegido, o la elegida para agregar uno */
+::highlight(editor-letra) { background-color: rgba(221,180,94,0.55); }
+/* Mientras se edita: el tono y "Acordes" quedan quietos (editor.js), sin
+   autoscroll, y abajo hay lugar para la barra */
+body.editando-acordes :is(.toolbar, .tono-info, #toggleChords, #correccion) { opacity: 0.4; }
+body.editando-acordes .autoscroll { display: none !important; }
+body.editando-acordes main { padding-bottom: 13rem; }
+html:has(> body.editando-acordes) { scroll-padding: 5.5rem 0 12rem; }
+
+/* La barra, fija abajo: oscura en los dos temas, como el encabezado */
+.editor-barra {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 950;
+  padding: 0.55rem max(0.75rem, env(safe-area-inset-right)) calc(0.6rem + env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  background: linear-gradient(160deg, var(--brown-dark) 0%, #5A3520 100%);
+  border-top: 2px solid var(--gold);
+  box-shadow: 0 -4px 22px rgba(62,36,21,0.4);
+  color: #fff;
+}
+.editor-barra > * { max-width: 640px; margin-left: auto; margin-right: auto; }
+.eb-info {
+  min-height: 1.35em;
+  margin-bottom: 0.45rem;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: rgba(255,255,255,0.88);
+}
+.eb-info b { font-family: system-ui, -apple-system, sans-serif; font-size: 0.92em; color: var(--gold-bright); }
+.eb-info u { color: #fff; font-weight: 500; text-decoration-color: var(--gold-light); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.eb-fila { display: flex; align-items: center; gap: 0.4rem; }
+.eb-estado { flex: 1; min-width: 0; font-size: 0.95rem; font-style: italic; color: rgba(255,255,255,0.7); }
+.eb-btn {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border-radius: 50px;
+  border: 1.5px solid rgba(221,180,94,0.5);
+  background: rgba(255,255,255,0.08);
+  color: var(--gold-light);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.02rem;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.eb-btn.principal { background: var(--gold-light); color: #2C1A0D; border-color: transparent; font-weight: 500; }
+.eb-btn:disabled { opacity: 0.35; cursor: default; }
+.eb-flecha { width: 52px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.eb-flecha .ico { width: 1.45em; height: 1.45em; }
+#ebAcorde .eb-btn:not(.eb-flecha) { flex: 1; padding: 0 0.45rem; }
+.eb-nombre {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1.5px solid var(--gold-light);
+  border-radius: 50px;
+  background: #FFFDF7;
+  color: #2C1A0D;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1.1rem;   /* 16 px o más: el iPhone no agranda la página al escribir */
+  font-weight: 700;
+}
+.eb-aviso { margin-top: 0.4rem; font-size: 0.95rem; line-height: 1.3; color: var(--gold-bright); }
+@media (max-width: 360px) {
+  .eb-btn { font-size: 0.95rem; }
+  .eb-flecha { width: 46px; }
+}
+
 .error-msg {
   white-space: normal;
   text-align: center;
@@ -641,6 +749,8 @@ body.banco-mode .no-banco { display: none !important; }
        banco), tamaño de letra a la derecha (en todos los modos) -->
   <div class="letra-barra">
     <button id="toggleChords" class="btn-toggle active no-banco">Acordes: Visibles</button>
+    <!-- Solo admin con sesión (editor.js, D23). En el mismo renglón: aparecer no corre la letra -->
+    <button id="editarAcordes" class="tam-btn editar-acordes no-banco" type="button" hidden aria-label="Editar acordes" title="Editar acordes"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#lapiz"/></svg><span class="editar-texto">Editar</span></button>
     <div class="tam-letra" role="group" aria-label="Tamaño de letra">
       <button id="letraMenos" class="tam-btn" type="button" aria-label="Achicar la letra">A−</button>
       <button id="letraMas" class="tam-btn" type="button" aria-label="Agrandar la letra">A+</button>
@@ -654,6 +764,16 @@ body.banco-mode .no-banco { display: none !important; }
     <span id="misaPos" class="misa-nav-pos"></span>
     <a id="misaNext" class="misa-nav-link next"><span class="mn-dir">Siguiente ›</span><span class="mn-title"></span></a>
   </nav>
+
+  <!-- La letra se corrigió desde la web (canciones/<id>, D23): quién y cuándo.
+       El admin con sesión puede deshacer o volver a la versión original -->
+  <section id="correccion" class="correccion no-banco" hidden aria-label="Corrección de la letra">
+    <span id="correccionTexto" class="correccion-texto"></span>
+    <span id="correccionAcciones" class="tono-acciones" hidden>
+      <button id="correccionDeshacer" class="tono-btn" type="button" hidden><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#actualizar"/></svg>Deshacer el último cambio</button>
+      <button id="correccionOriginal" class="tono-btn" type="button">Volver a la versión original</button>
+    </span>
+  </section>
 
   <section id="medios" class="medios no-banco" hidden aria-label="Escuchar la canción">
     <div class="medios-titulo"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#auriculares"/></svg>Escuchar</div>
@@ -677,6 +797,35 @@ body.banco-mode .no-banco { display: none !important; }
   <button id="asPlay" class="as-btn as-play" type="button" aria-label="Desplazamiento automático"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#play"/></svg></button>
 </div>
 
+<!-- Editor de acordes (editor.js, D23): barra fija abajo mientras se edita.
+     Una fila de botones según lo elegido: nada, un acorde, una letra sin
+     acorde o el nombre de un acorde -->
+<div id="editor-barra" class="editor-barra" hidden role="region" aria-label="Editor de acordes">
+  <div id="ebInfo" class="eb-info" aria-live="polite"></div>
+  <div id="ebNada" class="eb-fila">
+    <span id="ebEstado" class="eb-estado"></span>
+    <button id="ebSalir" class="eb-btn" type="button">Salir</button>
+    <button id="ebGuardar" class="eb-btn principal" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#check"/></svg>Guardar</button>
+  </div>
+  <div id="ebAcorde" class="eb-fila" hidden>
+    <button id="ebIzq" class="eb-btn eb-flecha" type="button" aria-label="Correr una letra a la izquierda"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#izquierda"/></svg></button>
+    <button id="ebDer" class="eb-btn eb-flecha" type="button" aria-label="Correr una letra a la derecha"><svg class="ico ico-solo" aria-hidden="true"><use href="assets/iconos.svg#derecha"/></svg></button>
+    <button id="ebCambiar" class="eb-btn" type="button">Cambiar</button>
+    <button id="ebBorrar" class="eb-btn" type="button">Borrar</button>
+    <button id="ebListo" class="eb-btn principal" type="button">Listo</button>
+  </div>
+  <div id="ebSilaba" class="eb-fila" hidden>
+    <button id="ebAgregar" class="eb-btn principal" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#mas"/></svg>Acorde acá</button>
+    <button id="ebCancelar" class="eb-btn" type="button">Cancelar</button>
+  </div>
+  <form id="ebCampo" class="eb-fila" hidden>
+    <input id="ebNombre" class="eb-nombre" type="text" maxlength="16" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" aria-label="Nombre del acorde" placeholder="Ej.: SOL, LAm, RE7">
+    <button id="ebAceptar" class="eb-btn principal" type="submit">Agregar</button>
+    <button id="ebCerrarCampo" class="eb-btn" type="button">Cancelar</button>
+  </form>
+  <div id="ebAviso" class="eb-aviso" hidden></div>
+</div>
+
 <div id="chord-popover" style="display:none">
   <div id="popover-title"></div>
   <svg id="popover-svg" width="130" height="155" viewBox="0 0 100 120"></svg>
@@ -691,5 +840,6 @@ body.banco-mode .no-banco { display: none !important; }
 <script src="acordes.js"></script>
 <script src="letra.js"></script>
 <script src="cancion.js"></script>
+<script src="editor.js"></script>
 </body>
 </html>

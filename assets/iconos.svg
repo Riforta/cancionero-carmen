@@ -47,6 +47,8 @@
 <symbol id="cerrar" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
 <symbol id="arriba" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
 <symbol id="abajo" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="izquierda" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+<symbol id="derecha" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
 <symbol id="play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5Z" fill="currentColor"/></symbol>
 <symbol id="pausa" viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor" stroke="none"/></symbol>
 <symbol id="sin-red" viewBox="0 0 24 24"><path d="M2.5 9.5a13.5 13.5 0 0 1 19 0M5.8 13a9 9 0 0 1 12.4 0M9 16.3a4.3 4.3 0 0 1 6 0M4 3.5l16 17"/><circle cx="12" cy="19" r=".9" fill="currentColor" stroke="none"/></symbol>

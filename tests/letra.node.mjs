@@ -71,6 +71,36 @@ check('armarRenglon: acordes en orden y en la misma posición', L.armarRenglon('
   { nombre: 'LA', opcional: false, pos: 7 }, { nombre: 'RE', opcional: false, pos: 8 }, { nombre: 'FA#', opcional: false, pos: 8 },
   { nombre: 'SI', opcional: true, pos: 99 }]) === '[FA#]Amén, [MIm]a[LA] [RE][FA#]mén.[(SI)]');
 
+// ── Editor de acordes ──
+{
+  const r = L.parsearLetra('Tan [SOL]sólo re[MIm]cibe,[DO7]')[0];
+  const e = L.acordesDeRenglon(r);
+  check('acordesDeRenglon: texto y posiciones', e.texto === 'Tan sólo recibe,' && igual(e.acordes.map(a => [a.nombre, a.pos]), [['SOL', 4], ['MIm', 11], ['DO7', 16]]), JSON.stringify(e));
+  check('renglonDeAcordes: lo inverso', igual(L.renglonDeAcordes(e.texto, e.acordes, false), r));
+  check('renglonDeAcordes: sin acordes, un tramo de texto', igual(L.renglonDeAcordes('Hola', [], true), { tipo: 'letra', tramos: [{ acorde: null, texto: 'Hola' }], estribillo: true }));
+  check('renglonDeAcordes: dos en la misma letra, en el orden en que vienen', L.escribirLetra([L.renglonDeAcordes('amén', [{ nombre: 'RE', pos: 2 }, { nombre: 'FA#', pos: 2 }, { nombre: 'LA', pos: 0, opcional: true }])]) === '[(LA)]am[RE][FA#]én\n');
+  check('normalizarRenglon: un espacio entre palabras, cada acorde sobre su letra',
+    L.escribirLetra([L.normalizarRenglon(L.parsearLetra('Toma,   Se[RE]ñor,  [LA] y')[0])]) === 'Toma, Se[RE]ñor,[LA] y\n');
+  // ubicarAcorde: ▶ no salta por encima de los acordes que encuentra, ◀ tampoco,
+  // y al tocar una letra el acorde queda sobre ella (último de la posición)
+  const lista = [{ nombre: 'A', pos: 1 }, { nombre: 'B', pos: 2 }, { nombre: 'C', pos: 5 }];
+  const orden = res => res.acordes.map(a => a.nombre + a.pos).join(' ') + ' k=' + res.k;
+  check('ubicarAcorde ▶ hasta otro acorde: queda antes', orden(L.ubicarAcorde(lista, 0, 2, true)) === 'A2 B2 C5 k=0');
+  check('ubicarAcorde ▶ otra vez: lo pasa', orden(L.ubicarAcorde([{ nombre: 'A', pos: 2 }, lista[1], lista[2]], 0, 3, true)) === 'B2 A3 C5 k=1');
+  check('ubicarAcorde ◀ hasta otro acorde: queda después', orden(L.ubicarAcorde(lista, 1, 1, false)) === 'A1 B1 C5 k=1');
+  check('ubicarAcorde al tocar una letra con acorde: queda después (sobre la letra)', orden(L.ubicarAcorde(lista, 2, 1, false)) === 'A1 C1 B2 k=1');
+  check('ubicarAcorde no cambia la lista original', orden({ acordes: lista, k: 0 }) === 'A1 B2 C5 k=0');
+}
+{ // Todas las letras: pasar cada renglón a texto + acordes y volver da lo mismo
+  let distintas = [];
+  for (const f of fs.readdirSync(path.join(raiz, 'letras')).filter(f => f.endsWith('.txt'))) {
+    const t = fs.readFileSync(path.join(raiz, 'letras', f), 'utf8');
+    const r = L.parsearLetra(t).map(x => x.tipo === 'letra' ? (e => L.renglonDeAcordes(e.texto, e.acordes, x.estribillo))(L.acordesDeRenglon(x)) : x);
+    if (L.escribirLetra(r) !== t || L.escribirLetra(L.parsearLetra(t).map(L.normalizarRenglon)) !== t) distintas.push(f);
+  }
+  check('todas las letras: texto + acordes y vuelta, y normalizar, no cambian nada', !distintas.length, distintas.join(', '));
+}
+
 // ── HTML ──
 {
   const h = L.htmlDeLetra(L.parsearLetra('[SOL]Toma, Señor, y re[MIm]cibe'));

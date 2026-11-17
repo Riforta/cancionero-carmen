@@ -212,7 +212,7 @@ header {
    entró aunque la acción tarde. En modo oscuro se aclara en vez de oscurecer */
 :is(.btn-toggle, .capo-select, .tono-btn, .nota-edit, .admin-action-btn, .admin-btn,
     .sesion-btn, .tam-btn, .as-btn, .cat-chip, .mode-toggle, .theme-toggle,
-    .misa-nav-link, .medio-btn):active:not(:disabled) {
+    .misa-nav-link, .medio-btn, .eb-btn):active:not(:disabled) {
   transform: scale(0.94);
   filter: brightness(0.88);
   transition-duration: 0.06s;
@@ -315,7 +315,8 @@ header {
 [data-theme="dark"] .cat-chip.active,
 [data-theme="dark"] .btn-toggle.active,
 [data-theme="dark"] .tono-btn.principal,
-[data-theme="dark"] .sesion-btn.principal {
+[data-theme="dark"] .sesion-btn.principal,
+[data-theme="dark"] .editar-acordes.active {
   background: linear-gradient(135deg, #B8862E 0%, #DDB45E 100%);
   color: #2C1A0D;
   border-color: transparent;

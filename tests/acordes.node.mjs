@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
-const { transposeChord, chordLookup, drawChordSVG, CHORD_DICTIONARY } = require(path.join(raiz, 'acordes.js'));
+const { transposeChord, chordLookup, normalizarAcorde, drawChordSVG, CHORD_DICTIONARY } = require(path.join(raiz, 'acordes.js'));
 const { parsearLetra, acordesDeLetra } = require(path.join(raiz, 'letra.js'));
 
 let fallas = 0;
@@ -32,6 +32,30 @@ check('DO9 → DOadd9', chordLookup('DO9') === CHORD_DICTIONARY['DOadd9']);
 check('SIadd9 sin voicing → SI', chordLookup('SIadd9') === CHORD_DICTIONARY['SI']);
 check('RE/FA# → RE', chordLookup('RE/FA#') === CHORD_DICTIONARY['RE']);
 check('acorde inexistente → undefined', chordLookup('XYZ') === undefined);
+
+// Lo que escribe un admin en el editor (normalizarAcorde)
+for (const [escrito, esperado] of [
+  ['SOL', 'SOL'], ['lam', 'LAm'], ['Rem7', 'REm7'], ['fa#m', 'FA#m'], ['Am', 'LAm'], ['G/F#', 'SOL/FA#'],
+  ['La-', 'LAm'], ['Dom', 'DOm'], ['Fadd9', 'FAadd9'], ['Bb', 'SIb'], ['Mib', 'MIb'], ['C#m7', 'DO#m7'],
+  ['re/fa#', 'RE/FA#'], ['SOLmaj7', 'SOLmaj7'], ['Mi7sus4', 'MI7sus4'], ['RE4', 'RE4'], ['la♯m', 'LA#m'],
+  ['[SOL]', 'SOL'], [' do 7 ', 'DO7'], ['(mi)', 'MI'], ['Ladim', 'LAdim']
+]) {
+  const r = normalizarAcorde(escrito);
+  check(`acorde escrito "${escrito}" → ${esperado}`, r && r.nombre === esperado, JSON.stringify(r));
+}
+check('acorde opcional entre paréntesis', JSON.stringify(normalizarAcorde('(Mi)')) === '{"nombre":"MI","opcional":true}' && normalizarAcorde('SOL').opcional === false);
+for (const malo of ['', 'x', 'Hola', 'LAM', 'SOL/', 'RE/FA#/LA', 'H', 'DO DO RE', 'SOLxyz', 'RE/m'])
+  check(`"${malo}" no es un acorde`, normalizarAcorde(malo) === null, JSON.stringify(normalizarAcorde(malo)));
+{
+  const raros = new Set();
+  for (const archivo of fs.readdirSync(path.join(raiz, 'letras')).filter(f => f.endsWith('.txt'))) {
+    for (const { nombre } of acordesDeLetra(parsearLetra(fs.readFileSync(path.join(raiz, 'letras', archivo), 'utf8')))) {
+      const r = normalizarAcorde(nombre);
+      if (!r || r.nombre !== nombre) raros.add(nombre);
+    }
+  }
+  check('todos los acordes de las letras se reconocen tal cual', !raros.size, [...raros].join(' '));
+}
 
 // SVG
 const svg = drawChordSVG(CHORD_DICTIONARY['DO']);

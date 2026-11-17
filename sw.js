@@ -12,7 +12,7 @@
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v13';
+const VERSION = 'v14';
 const CACHE = 'cancionero-' + VERSION;
 
 // songs.js: la lista de letras a guardar. firebase-config.js: FIREBASE_SDK
@@ -22,7 +22,7 @@ importScripts('songs.js', 'firebase-config.js');
 
 const PROPIOS = [
   './', 'index.html', 'cancion.html', 'avisos.html', 'avisos.js', 'songs.js', 'firebase-config.js',
-  'comun.js', 'acordes.js', 'letra.js', 'cancion.js', 'liturgia.js', 'offline.js', 'sesion.js', 'tema.js', 'comun.css',
+  'comun.js', 'acordes.js', 'letra.js', 'cancion.js', 'editor.js', 'liturgia.js', 'offline.js', 'sesion.js', 'tema.js', 'comun.css',
   'manifest.webmanifest',
   'assets/logo-medallon.png', 'assets/logo-medallon-color.png', 'assets/iconos.svg',
   'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png',

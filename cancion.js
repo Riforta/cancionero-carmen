@@ -1,6 +1,7 @@
 // Página de una canción (cancion.html?id=<id>). Usa comun.js, acordes.js,
-// firebase-config.js, offline.js, sesion.js y songs.js. Las secciones
-// "LÓGICA N" están descriptas en AGENTS.md §4b–§4c.
+// letra.js, firebase-config.js, offline.js, sesion.js y songs.js. Las
+// secciones "LÓGICA N" están descriptas en AGENTS.md §4b–§4c y D23. El
+// editor de acordes (solo admin) está aparte, en editor.js.
 
 // MODO, urlParams, linkCon, botonModo, ico y ponerConIcono vienen de comun.js;
 // seguirDato, suscribirMisa y escribirDato, de firebase-config.js
@@ -15,7 +16,8 @@ document.querySelector('.back-link').href = linkCon('index.html');
 // (esAdminOk y el evento 'sesion-admin' vienen de sesion.js)
 if (isAdmin && !esBanco) panelSesion(document.querySelector('main'));
 
-// Botón "Modo admin" (comun.js): pide confirmación si hay una nota a medio escribir
+// Botón "Modo admin" (comun.js): pide confirmación si hay una nota a medio
+// escribir (los acordes sin guardar los cuida editor.js)
 botonModo(() => document.getElementById('notaForm').hidden ? null : 'Hay una nota sin guardar. ¿Salir igual?');
 
 const idCancion = urlParams.get('id');
@@ -35,36 +37,112 @@ const tituloCancion = (cancionActual && cancionActual.title) || urlParams.get('t
 // Solo ids con forma de nombre de archivo (prefijo_slug): nada de rutas ni HTML
 const idValido = /^[a-z]+_[a-z0-9-]+$/.test(idCancion || '');
 
-(idValido ? fetch(`letras/${idCancion}.txt`) : Promise.reject(new Error('id inválido')))
-  .then(response => {
-    if (!response.ok) throw new Error();
-    return response.text();
-  })
-  .then(textoLetra => {
-    // letra.js arma el HTML: cada acorde sobre su sílaba, con data-original y
-    // aria-hidden (los lectores de pantalla leen solo la letra), y el texto
-    // escapado
-    document.getElementById('letra-box').innerHTML = htmlDeLetra(parsearLetra(textoLetra));
+// ─── LÓGICA 0: LA LETRA Y SU CORRECCIÓN (AGENTS.md D23) ───
+// La letra sale de letras/<id>.txt. Si un admin la corrigió desde la web
+// (editor.js), la corrección guardada en Firebase la pisa: canciones/<id> =
+// { letra, por, cuando, anterior }. Se dibuja lo primero que haya (la copia
+// local de la corrección o el archivo) y se redibuja si llega otra versión.
+// Músicos y admin la siguen en vivo; banco lee una vez por REST solo el texto
+// (canciones/<id>/letra, D14)
+let textoRepo = null;        // letras/<id>.txt (null mientras no llega)
+let faltaRepo = false;       // no se pudo bajar el archivo
+let correccion = null;       // { letra, por, cuando, anterior } o null
+let textoDibujado = null;    // el texto que está en pantalla
+let editandoLetra = false;   // el editor de acordes maneja la letra (editor.js)
+let cancionRef = null;       // ref del SDK para guardar la corrección (admin)
 
+const textoVigente = () => correccion ? correccion.letra : textoRepo;
+
+// Lo que llega de Firebase (en banco, solo el texto)
+function validarCorreccion(val) {
+  if (typeof val === 'string') val = { letra: val };
+  if (!val || typeof val.letra !== 'string' || !val.letra.trim()) return null;
+  return {
+    letra: val.letra,
+    por: typeof val.por === 'string' ? val.por : '',
+    cuando: typeof val.cuando === 'number' ? val.cuando : 0,
+    anterior: typeof val.anterior === 'string' && val.anterior.trim() ? val.anterior : null
+  };
+}
+
+// letra.js arma el HTML: cada acorde sobre su sílaba, con data-original y
+// aria-hidden (los lectores de pantalla leen solo la letra), y el texto
+// escapado. También lo usa el editor
+function dibujarLetra(texto) {
+  letraBox.innerHTML = htmlDeLetra(parsearLetra(texto));
+  renderChords();   // con el tono que corresponda (si el del coro llegó antes, ya)
+}
+
+// Dibuja la versión vigente si cambió (`forzar`: aunque sea la misma). Mientras
+// se edita no toca la letra: al salir del editor se dibuja la vigente
+function actualizarLetra(forzar) {
+  pintarCorreccion();
+  if (editandoLetra) return;
+  const texto = textoVigente();
+  if (texto === null) {
+    if (faltaRepo && textoDibujado === null) mostrarErrorLetra();
+    return;
+  }
+  if (texto === textoDibujado && !forzar) return;
+  const primeraVez = textoDibujado === null;
+  textoDibujado = texto;
+  dibujarLetra(texto);
+  if (primeraVez) {
     document.getElementById('song-title').textContent = tituloCancion;
     document.title = `${tituloCancion} — Coro Virgen del Carmen`;
-
-    // Si el tono del coro llegó antes que la letra, se aplica ahora
-    renderChords();
     // Cuando terminan de cargar las fuentes cambian los anchos: se mide de nuevo
     if (document.fonts) document.fonts.ready.then(acomodarAcordes);
-    document.dispatchEvent(new Event('letra-cargada'));
-  })
-  .catch(() => {
-    // El id viene de la URL: va con textContent, nunca como HTML (evita XSS)
-    const msg = document.createElement('div');
-    msg.className = 'error-msg';
-    const archivo = document.createElement('b');
-    archivo.textContent = `letras/${idCancion}.txt`;
-    msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Verificá el archivo: ', archivo);
-    document.getElementById('letra-box').replaceChildren(msg);
-    document.getElementById('song-title').textContent = tituloCancion || "Error";
-  });
+  }
+  document.dispatchEvent(new Event('letra-cargada'));
+}
+
+function mostrarErrorLetra() {
+  // El id viene de la URL: va con textContent, nunca como HTML (evita XSS)
+  const msg = document.createElement('div');
+  msg.className = 'error-msg';
+  const archivo = document.createElement('b');
+  archivo.textContent = `letras/${idCancion}.txt`;
+  msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Verificá el archivo: ', archivo);
+  document.getElementById('letra-box').replaceChildren(msg);
+  document.getElementById('song-title').textContent = tituloCancion || "Error";
+}
+
+// "Corregida por Mateo · 17/11" (músicos y admin; en banco no se ve). El
+// admin con sesión ve además "Deshacer el último cambio" (si se guardó la
+// versión anterior) y "Volver a la versión original" (editor.js)
+function pintarCorreccion() {
+  const box = document.getElementById('correccion');
+  box.hidden = !correccion;
+  if (!correccion) return;
+  let texto = 'Corregida';
+  if (correccion.por) texto += ' por ' + correccion.por;
+  if (correccion.cuando) {
+    const d = new Date(correccion.cuando);
+    texto += ` · ${d.getDate()}/${d.getMonth() + 1}` + (d.getFullYear() !== new Date().getFullYear() ? '/' + d.getFullYear() : '');
+  }
+  ponerConIcono(document.getElementById('correccionTexto'), 'lapiz', texto);
+  const admin = isAdmin && !esBanco && esAdminOk && !editandoLetra;
+  document.getElementById('correccionAcciones').hidden = !admin;
+  document.getElementById('correccionDeshacer').hidden = !correccion.anterior;
+}
+
+if (idValido) {
+  fetch(`letras/${idCancion}.txt`)
+    .then(response => {
+      if (!response.ok) throw new Error();
+      return response.text();
+    })
+    .then(texto => { textoRepo = texto; actualizarLetra(); })
+    .catch(() => { faltaRepo = true; actualizarLetra(); });
+  seguirDato(esBanco ? `canciones/${idCancion}/letra` : `canciones/${idCancion}`, 'cancion_' + idCancion, val => {
+    correccion = validarCorreccion(val);
+    actualizarLetra();
+    document.dispatchEvent(new Event('correccion-cambio'));
+  }).then(ref => { cancionRef = ref; });
+} else {
+  faltaRepo = true;
+  mostrarErrorLetra();
+}
 
 // ─── LÓGICA 1: MOSTRAR/OCULTAR ACORDES ───
 const btnToggle = document.getElementById('toggleChords');
@@ -208,11 +286,13 @@ let currentTranspose = 0;
 let capoFret = 0;
 
 // Con capo en traste N, la posición a tocar queda N semitonos abajo
-// del acorde que suena: mostrado = original + transposición − capo
+// del acorde que suena: mostrado = original + transposición − capo.
+// Mientras se editan los acordes se ven en el tono original (como se guardan)
 function renderChords() {
+  const semitonos = editandoLetra ? 0 : currentTranspose - capoFret;
   letraBox.querySelectorAll('c').forEach(el => {
     const original = el.getAttribute('data-original');
-    el.textContent = transposeChord(original, currentTranspose - capoFret);
+    el.textContent = transposeChord(original, semitonos);
   });
   acomodarAcordes();
 }
@@ -259,6 +339,7 @@ const popoverSvg = document.getElementById('popover-svg');
 const popoverTitle = document.getElementById('popover-title');
 
 document.addEventListener('click', (e) => {
+  if (editandoLetra) return;   // en el editor, tocar un acorde lo elige (editor.js)
   if (e.target.tagName === 'C') {
     e.stopPropagation();
     let chordName = e.target.textContent.trim();

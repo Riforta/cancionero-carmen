@@ -23,6 +23,9 @@ const __val = p => {
 // Avisa a la ruta y a sus padres (cambiar avisos/k1 avisa a avisos)
 const __emit = p => { const partes = p.split('/'); for (let i = partes.length; i > 0; i--) { const q = partes.slice(0, i).join('/'); (__subs[q] || []).forEach(cb => cb({ val: () => __val(q) })); } };
 window.__nPush = 0;
+// La hora del servidor ({ '.sv': 'timestamp' }) se resuelve a Date.now()
+const __resolver = v => v && typeof v === 'object' && !Array.isArray(v)
+  ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x && x['.sv'] === 'timestamp' ? Date.now() : __resolver(x)])) : v;
 window.firebase = {
   apps: [], initializeApp() { this.apps.push({}); },
   database() { return { ref(p) { return {
@@ -31,13 +34,11 @@ window.firebase = {
     once() { return Promise.resolve({ val: () => __val(p) }); },
     child(h) { return window.firebase.database().ref(p + '/' + h); },
     push() { return this.child('-k' + (++window.__nPush)); },
-    set(v) { __writes.push(['set', p, v]); __db[p] = v; __emit(p); return Promise.resolve(); },
+    set(v) { v = __resolver(v); __writes.push(['set', p, v]); __db[p] = v; __emit(p); return Promise.resolve(); },
     remove() { __writes.push(['remove', p]); Object.keys(__db).filter(k => k === p || k.startsWith(p + '/')).forEach(k => delete __db[k]); __emit(p); return Promise.resolve(); },
     root: { update(cambios) {
-      // Varias rutas juntas; la hora del servidor se resuelve a Date.now()
-      const resolver = v => v && typeof v === 'object' && !Array.isArray(v)
-        ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x && x['.sv'] === 'timestamp' ? Date.now() : resolver(x)])) : v;
-      Object.entries(cambios).forEach(([k, v]) => { v = resolver(v); __writes.push(['update', k, v]); if (v === null) delete __db[k]; else __db[k] = v; __emit(k); });
+      // Varias rutas juntas
+      Object.entries(cambios).forEach(([k, v]) => { v = __resolver(v); __writes.push(['update', k, v]); if (v === null) delete __db[k]; else __db[k] = v; __emit(k); });
       return Promise.resolve();
     } }
   }; } }; },

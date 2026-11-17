@@ -95,6 +95,46 @@ function chordLookup(name) {
   return undefined;
 }
 
+// Lo que escribe un admin en el editor de acordes → { nombre, opcional } en
+// notación latina, o null si no es un acorde. Acepta minúsculas ("lam" →
+// LAm), notación americana ("Am" → LAm, "G/F#" → SOL/FA#), el menor con guion
+// ("La-" → LAm), ♯ y ♭, corchetes y el opcional entre paréntesis ("(mi)").
+// Primero prueba la nota latina; si lo que sigue no es un sufijo de acorde,
+// la americana ("Fadd9" → FAadd9)
+const AMERICANA = { C: 'DO', D: 'RE', E: 'MI', F: 'FA', G: 'SOL', A: 'LA', B: 'SI' };
+const RE_SUFIJO = /^(?:m|min|-)?(?:maj7|maj9|maj|sus2|sus4|sus|add9|add11|add2|dim7|dim|aug|7|9|11|13|6|5|4|2|\+|°|ø)*$/;
+
+function leerNota(t, conSufijo) {
+  const opciones = [];
+  const lat = t.match(/^(do|re|mi|fa|sol|la|si)(#|b)?(.*)$/i);
+  if (lat) opciones.push([lat[1].toUpperCase(), lat[2] || '', lat[3]]);
+  const am = t.match(/^([a-g])(#|b)?(.*)$/i);
+  if (am) opciones.push([AMERICANA[am[1].toUpperCase()], am[2] || '', am[3]]);
+  for (const [nota, alteracion, resto] of opciones) {
+    if (!conSufijo) { if (!resto) return nota + alteracion; continue; }
+    if (RE_SUFIJO.test(resto)) return nota + alteracion + resto.replace(/^(?:-|min)/, 'm');
+  }
+  return null;
+}
+
+function normalizarAcorde(texto) {
+  let t = String(texto || '').replace(/\s+/g, '').replace(/♯/g, '#').replace(/♭/g, 'b');
+  t = t.replace(/^\[(.*)\]$/, '$1');
+  const opcional = /^\(.*\)$/.test(t);
+  if (opcional) t = t.slice(1, -1);
+  if (!t || t.length > 14) return null;
+  const [cuerpo, bajo, ...sobra] = t.split('/');
+  if (sobra.length) return null;
+  let nombre = leerNota(cuerpo, true);
+  if (!nombre) return null;
+  if (bajo !== undefined) {
+    const nota = leerNota(bajo, false);
+    if (!nota) return null;
+    nombre += '/' + nota;
+  }
+  return { nombre, opcional };
+}
+
 // SVG del diagrama (viewBox 0 0 100 120). Los colores también van por clase
 // (cd-*) para que el modo oscuro los cambie (comun.css)
 function drawChordSVG(positions) {
@@ -130,5 +170,5 @@ function drawChordSVG(positions) {
 
 // Para Node (tests/acordes.node.mjs); en el navegador no hace nada
 if (typeof module !== 'undefined') {
-  module.exports = { SCALE, NOTE_MAP, transposeNote, transposeChord, CHORD_DICTIONARY, chordLookup, drawChordSVG };
+  module.exports = { SCALE, NOTE_MAP, transposeNote, transposeChord, CHORD_DICTIONARY, chordLookup, normalizarAcorde, drawChordSVG };
 }

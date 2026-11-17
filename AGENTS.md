@@ -19,7 +19,7 @@ Tiene tres públicos:
 |---|---|---|
 | Músicos del coro | `index.html` | Letras con acordes, transposición, capotraste y diagramas de guitarra |
 | Fieles en el banco | `?modo=banco` | Solo la letra: sin acordes, sin controles, sin búsqueda ni categorías |
-| Quien arma la misa | `?admin=true` | Botones para elegir las canciones de "Misa de Hoy" y publicarlas, y para editar las notas |
+| Quien arma la misa | `?admin=true` | Botones para elegir las canciones de "Misa de Hoy" y publicarlas, editar las notas y corregir los acordes (D23) |
 
 En las vistas de músicos y admin, el botón "Modo admin" / "Salir de
 admin" del encabezado pasa de una a otra (2026-10-01):
@@ -40,7 +40,10 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 - `index.html`: índice con búsqueda y categorías (CSS y script propios).
 - `cancion.html`: muestra una letra (`?id=<id>`): el HTML y su CSS. El
   comportamiento está en `cancion.js`, que hace `fetch` de `letras/<id>.txt` y
-  la dibuja con `letra.js` (D22).
+  la dibuja con `letra.js` (D22). Si la letra se corrigió desde la web, la
+  corrección de Firebase la pisa (D23).
+- `editor.js`: el editor de acordes de `cancion.html`, solo para un admin con
+  sesión (D23).
 - `acordes.js`: escala, transposición, diccionario de diagramas de guitarra y
   su dibujo en SVG. Funciones puras, probadas en Node (D18).
 - `letra.js`: el formato de las letras (acordes anclados a su sílaba): lo lee,
@@ -81,6 +84,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
     canción (ver §4c).
   - `medios/<id>`: lista de hasta 5 `{ url, etiqueta }`, los audios y links
     cargados desde la app (D12).
+  - `canciones/<id>`: `{ letra, por, cuando, anterior }`, la letra corregida
+    desde la web; pisa a `letras/<id>.txt` (D23).
   - `admins/<email>`: `true` para cada admin autorizado. El email va en
     minúsculas y con los puntos cambiados por comas (`claveAdmin()`).
 - Hosting: GitHub Pages.
@@ -95,7 +100,8 @@ Google Fonts y `qrious` (cdnjs, solo en `qr.html`).
 **D2. Letras como archivos de texto cargados por `fetch`** (`letras/<id>.txt`
 desde 2026-11-17; antes eran fragmentos HTML). Así agregar una canción es solo
 crear un archivo. Consecuencia: el sitio no funciona abriéndolo con `file://`;
-para probarlo hay que servirlo por HTTP (ver §5).
+para probarlo hay que servirlo por HTTP (ver §5). Una letra corregida desde la
+web (Firebase `canciones/<id>`) pisa a su archivo (D23).
 
 **D3. `SONGS` en `songs.js` es la fuente de verdad del índice** (archivo propio
 desde 2026-10-01). Lo cargan `index.html`, `cancion.html` y el service worker
@@ -107,8 +113,9 @@ queda solo como respaldo para links viejos.
 vuelven con el botón "Volver". No usar `localStorage` para esto.
 
 **D5. Firebase solo para lo que se edita desde la web.** Hoy son "Misa de Hoy",
-las notas y el tono del coro de cada canción. Lo que se edita como código (letras, índice,
-links de audio) va en el repo. La config de Firebase (`firebase-config.js`) es
+las notas, el tono del coro de cada canción, los audios cargados desde la app,
+los avisos y las letras corregidas desde la web (D23). Lo que se edita como
+código (letras, índice, links de audio de `songs.js`) va en el repo. La config de Firebase (`firebase-config.js`) es
 pública por diseño (así funciona Firebase web); la seguridad depende de las
 reglas de la base (`database.rules.json`, D16).
 
@@ -216,13 +223,13 @@ más de 100 fieles a la vez.
 
 **D16. Login de admin con Google** (2026-10-01).
 - **En la página:** en modo admin, `sesion.js` muestra una barra con "Entrar con
-  Google". Los botones de edición (publicar, ↑ ↓, quitar, `+`, editar nota)
-  aparecen solo si el email de la sesión está en `admins/` (`esAdminOk` y el
-  evento `sesion-admin`).
+  Google". Los botones de edición (publicar, ↑ ↓, quitar, `+`, editar nota,
+  editar acordes) aparecen solo si el email de la sesión está en `admins/`
+  (`esAdminOk` y el evento `sesion-admin`).
 - **En la base:** las reglas de `database.rules.json` dejan escribir solo a esos
   emails, verificados. Bloquean también a quien intente escribir por REST sin
-  pasar por la página. Lectura pública solo en `misa_actual`, `notas` y
-  `tonos`; cada admin puede leer únicamente su propia entrada en `admins/`.
+  pasar por la página. Lectura pública en todo menos `admins/`, donde cada
+  admin puede leer únicamente su propia entrada.
 - **Popup, no redirect:** el login usa popup. El redirect falla en GitHub Pages
   porque el navegador bloquea el almacenamiento de terceros de
   `firebaseapp.com`. Si el popup está bloqueado, se intenta con redirect.
@@ -241,7 +248,7 @@ más de 100 fieles a la vez.
     - siempre en modo admin: el lugar de la barra (`#sesion-slot`, de alto
       fijo);
     - con `"ok"`: el de los botones que solo ve un admin (`#admin-bar`,
-      `#misa-agregar`, `#nota`, `#nuevoAviso`).
+      `#misa-agregar`, `#nota`, `#nuevoAviso`, `#editarAcordes`).
   - **Regla:** un bloque nuevo que aparezca solo para admins en la parte de
     arriba de una página va en el HTML con `hidden`, y lleva su reserva
     `:root[data-admin="ok"] #id[hidden] { display: … !important; visibility: hidden; }`.
@@ -294,11 +301,14 @@ sola vez:
   - `escribirDato(ref, valor, botón, acción)`: sin conexión no escribe,
     deshabilita el botón y avisa errores.
   - **Todo dato nuevo de Firebase tiene que usar estas funciones.**
-- **`acordes.js`:** funciones puras de acordes. Si se agrega un acorde a una
-  letra, `tests/acordes.node.mjs` avisa si le falta diagrama.
+- **`acordes.js`:** funciones puras de acordes, y `normalizarAcorde` (lo que
+  se escribe en el editor, a notación latina; D23). Si se agrega un acorde a
+  una letra, `tests/acordes.node.mjs` avisa si le falta diagrama.
 - **`letra.js`** (D22): `parsearLetra`, `escribirLetra`, `htmlDeLetra`,
   `lineasDeTexto` (la usa la búsqueda por letra), `acordesDeLetra`,
-  `colapsarEspacios` y `armarRenglon`.
+  `colapsarEspacios` y `armarRenglon`. Para el editor (D23):
+  `acordesDeRenglon`, `renglonDeAcordes`, `normalizarRenglon` y
+  `ubicarAcorde`.
 - **`comun.css`:** paleta, base, encabezado, `[hidden]` global, la base de los
   botones píldora, la barra de sesión y el aviso sin conexión.
   - Las páginas no inyectan estilos desde JS.
@@ -436,6 +446,77 @@ web.
     acorde a 0,1 em de su letra (mediana).
   - Arreglado a mano: `com_alma-misionera`, que tenía un renglón de letra y uno
     de acordes pegados.
+
+**D23. Editor de acordes y letras corregidas desde la web** (2026-11-17,
+etapa 2 del plan de canciones editables, §6). Un admin con sesión corrige los
+acordes desde el celular, sin pasar por el repo.
+- **Dónde se guarda:** en Firebase, `canciones/<id>` =
+  `{ letra, por, cuando, anterior }`. Si existe, **pisa** a
+  `letras/<id>.txt` (`cancion.js`, LÓGICA 0).
+  - Se dibuja lo primero que haya (la copia local o el archivo) y se vuelve a
+    dibujar si llega otra versión.
+  - Músicos y admin: `seguirDato('canciones/<id>')`, en vivo, con copia en
+    `localStorage.cancion_<id>`.
+  - Banco: una lectura por REST de `canciones/<id>/letra`, solo el texto (D14).
+  - `anterior`: la corrección que se reemplazó. Si lo reemplazado era el
+    archivo, no se guarda (para eso está "Volver a la versión original").
+  - **Corregir el `.txt` de una canción corregida desde la web no alcanza:**
+    se sigue viendo la de Firebase. Hasta la etapa 4 (§6), pasar el cambio a
+    mano o usar "Volver a la versión original".
+- **Quién y cuándo:** "Corregida por Mateo · 17/11", debajo de la letra
+  (después de anterior / siguiente, D20). Lo ven músicos y admin, no banco.
+  El admin con sesión ve además, con confirmación:
+  - "Deshacer el último cambio" (si hay `anterior`): vuelve esa versión, y ya
+    no hay otra para deshacer;
+  - "Volver a la versión original": borra la corrección.
+- **Editor (`editor.js`):**
+  - **Entrada:** el lápiz al lado de "Acordes" (`#editarAcordes`). Desde 480 px
+    dice además "Editar". Así no ocupa un renglón arriba de la letra (D20) y
+    aparecer no corre nada; igual tiene su reserva (D16).
+  - **Tono:** se edita en el tono original, que es como se guarda
+    (`renderChords()` no transpone mientras `editandoLetra`). El tono,
+    "Acordes" y la corrección quedan quietos (`inert`) y el autoscroll se
+    esconde.
+  - **Barra fija abajo**, oscura en los dos temas (como el encabezado). Una
+    fila según lo elegido:
+    - nada: ayuda, "Sin cambios" / "Hay cambios sin guardar", Salir /
+      Descartar y Guardar;
+    - un acorde: ◀ ▶ (una letra por toque), Cambiar, Borrar y Listo, con el
+      acorde y la palabra ("LAm sobre re_c_ibe");
+    - una letra sin acorde: "+ Acorde acá";
+    - el nombre: un campo que acepta minúsculas, notación americana y `La-`
+      (`normalizarAcorde`), dice cómo queda y avisa si no tiene diagrama.
+  - **Toques:** tocar un acorde lo elige y tocarlo otra vez lo suelta. Con un
+    acorde elegido, tocar una letra lo lleva ahí (también a otro renglón); sin
+    acorde elegido, la marca para agregar uno. La letra tocada sale de
+    `caretPositionFromPoint`. La letra sobre la que cae el elegido se resalta
+    con la CSS Custom Highlight API (sin ella, se ve solo el acorde).
+  - **Posiciones:** cada acorde es `{ nombre, opcional, pos }` sobre el texto
+    del renglón (`acordesDeRenglon` / `renglonDeAcordes`). Al abrir, un solo
+    espacio entre palabras (`normalizarRenglon`): cada posición es una letra o
+    el hueco de una palabra (acorde después de la palabra). Con ◀ ▶ un acorde
+    no salta por encima de otro en la misma letra; al tocar una letra, queda
+    él encima (`ubicarAcorde`).
+  - **Renglones de solo acordes** (Intro): se cambia o se borra el acorde, no
+    se mueve. Si se borra el último, se va el renglón, con un renglón vacío
+    de al lado.
+  - **Guardar:** `escribirDato`, una sola escritura. Si mientras tanto otro
+    admin guardó, la barra lo dice y Guardar pregunta antes de reemplazarla
+    (gana el último, como estaba planeado).
+  - **Cambios sin guardar:** "Volver", anterior / siguiente y el botón de modo
+    preguntan antes de salir; recargar o cerrar, el navegador
+    (`beforeunload`; el iPhone no lo hace, por eso lo de los links).
+  - **Teclado** (compu): ← → corren el acorde, Supr lo borra y Esc lo suelta.
+  - **Teclado del celular:** con el campo del nombre abierto, la barra sube
+    con el teclado (`visualViewport`).
+- **Reglas** (`database.rules.json`, §7): escribe solo un admin; el id con
+  forma de canción; `letra` de 1 a 20 000 caracteres; `por` hasta 80;
+  `cuando` la hora del servidor (`== now`); `anterior` hasta 20 000; nada más.
+  Lectura pública (la necesita el banco).
+- **Pruebas:** `tests/editor.mjs` (navegador, con el Firebase falso),
+  `letra.node.mjs` y `acordes.node.mjs`.
+- **Renombrar el `id`** de una canción deja huérfana su corrección, igual que
+  la nota y el tono (§4b).
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -477,6 +558,11 @@ web.
      pueden cargar desde la app, sin tocar el repo (§4c).
 3. Antes de crear una canción, **verificar que no exista ya** (buscar por título
    y por número). Si existe y la letra coincide, no tocarla.
+4. Antes de corregir una letra en el repo, **ver si tiene una corrección hecha
+   desde la web**: si la tiene, es la que se ve (D23). Se consulta sin
+   sesión, por ejemplo:
+   `curl https://coro-97958-default-rtdb.firebaseio.com/canciones/<id>.json`
+   (`null` = no tiene).
 
 ### Prefijos y categorías
 
@@ -811,7 +897,7 @@ Hecha en 7 commits, cada uno verificado con `tests/`:
 
 Sin cambios visuales: las capturas son idénticas al píxel.
 
-### Plan: canciones editables desde la web (aprobado 2026-11-17; etapa 1 hecha)
+### Plan: canciones editables desde la web (aprobado 2026-11-17; etapas 1 y 2 hechas)
 
 **Objetivo:** que un admin pueda, desde el celular, corregir una canción (mover
 un acorde a la sílaba justa, cambiarlo, agregarlo o borrarlo, corregir el
@@ -847,8 +933,27 @@ también el editor y la carga de canciones nuevas.
   `tests/letra.node.mjs`. Se actualizaron las que miraban `pre c`.
 - `sw.js`: `LETRAS` a `.txt`, `letra.js` en `PROPIOS`, `VERSION` v13.
 
-#### Etapa 2 — Editor de acordes (admin)
+#### Etapa 2 — Editor de acordes (admin): HECHA (2026-11-17)
 
+Cómo quedó: D23. Pruebas: `tests/editor.mjs`, más casos en `letra.node.mjs`
+y `acordes.node.mjs`. `sw.js`: `editor.js` en `PROPIOS`, `VERSION` v14.
+Reglas de `canciones` en `database.rules.json` (hay que pegarlas, §7).
+
+Cambios respecto de lo planeado:
+- La entrada es un lápiz al lado de "Acordes" (con la palabra "Editar" desde
+  480 px), no un botón con texto: entra en ese renglón y no suma uno arriba de
+  la letra (D20).
+- "Corregida por…" va después de anterior / siguiente (D20), con los botones
+  del admin.
+- Deshacer es de un paso: vuelve `anterior` y no queda otro. `anterior` solo
+  se guarda si lo reemplazado era una corrección.
+- Se edita en el tono original; el campo del nombre acepta minúsculas y
+  notación americana y dice cómo queda.
+- Si otro admin guarda mientras se edita, se avisa y Guardar pregunta (sigue
+  ganando el último).
+- Banco lee solo `canciones/<id>/letra`.
+
+Lo planeado:
 - **Entrada:** botón "Editar acordes" en la canción, que solo ve un admin con
   sesión. Se reserva su lugar como manda D16.
 - **Acorde tocado:** queda marcado y aparece una barra con ◀ ▶, "Cambiar",
@@ -902,7 +1007,7 @@ también el editor y la carga de canciones nuevas.
 
 #### Reglas de la base (§7), para pegar en la consola con cada etapa
 
-- `canciones/<id>`:
+- `canciones/<id>` (etapa 2, ya en `database.rules.json`):
   - escribe solo un admin;
   - `letra` es texto de hasta 20 000 caracteres;
   - `por` es texto, y `cuando` es la hora del servidor.
@@ -924,7 +1029,8 @@ también el editor y la carga de canciones nuevas.
 ### Otros pendientes
 
 - **Editar y cargar canciones desde la web:** ver "Plan: canciones editables
-  desde la web", arriba.
+  desde la web", arriba. Faltan las etapas 3 (texto y canciones nuevas) y 4
+  (respaldo en el repo).
 
 - Vista de calendario de los avisos (grilla del mes con puntos en los días con
   eventos; al tocar un día, sus avisos). Decidido: después de la lista.
@@ -935,8 +1041,8 @@ también el editor y la carga de canciones nuevas.
 - Cargar las letras de `com_eucaristia` y `var_glorioso-rey-en-la-cruz` (hoy
   tienen el aviso de "letra pendiente").
 - `ador_noche-oscura-jesed`: los acordes vinieron amontonados al principio de
-  cada verso. Reacomodarlos (con el editor de la etapa 2) cuando alguien del
-  coro confirme en qué sílaba cae cada cambio.
+  cada verso. Reacomodarlos con el editor (D23) cuando alguien del coro
+  confirme en qué sílaba cae cada cambio.
 - Definir los prefijos para San José, Adviento, Navidad, Cuaresma y Pascua.
 
 ---
@@ -966,7 +1072,8 @@ suman `misa_meta` (quién y cuándo) y `avisos` (fecha, hora, tipo y largos
 validados); sin pegar las reglas nuevas, publicar la misa y guardar avisos da
 "Permission denied". Desde 2026-11-15 se suma `medios` (hasta 5 links `https`
 por canción); sin pegarlas, agregar un audio desde la app da "Permission
-denied".
+denied". Desde 2026-11-17 se suma `canciones` (letras corregidas desde la web,
+D23); sin pegarlas, guardar los acordes da "Permission denied".
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:

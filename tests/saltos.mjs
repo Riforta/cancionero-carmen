@@ -39,12 +39,14 @@ async function medir({ url, bloques, auth = null, recordada = null, borrador = n
 }
 const sinSalto = r => Array.isArray(r.antes) && r.antes.every((h, i) => Math.abs(r.despues[i] - h) <= 3);
 const det = r => r.bloques.map((b, i) => `${b}: ${r.antes ? r.antes[i].toFixed(0) : '?'} → ${r.despues[i].toFixed(0)}`).join(', ');
-const CANCION = ['#sesion-slot', '#misa-agregar', '#nota'];
+// .letra-barra: el lápiz del editor de acordes aparece en ese renglón
+const CANCION = ['#sesion-slot', '#misa-agregar', '#nota', '.letra-barra'];
 
 { // Canción, admin con sesión recordada: barra y botón de la misa al instante
   const r = await medir({ url: '/cancion.html?id=ofert_toma&admin=true', bloques: CANCION, auth: ADMIN, recordada: { email: ADMIN.email, nombre: ADMIN.displayName } });
   check('canción admin: barra, botón de la misa y nota no empujan la página', sinSalto(r), det(r));
-  check('canción admin: barra de sesión y botón de la misa visibles', await r.ev(`document.querySelector('.sesion-bar.admin') && !document.getElementById('misa-agregar').hidden`));
+  check('canción admin: barra de sesión, botón de la misa y lápiz visibles', await r.ev(`document.querySelector('.sesion-bar.admin') && !document.getElementById('misa-agregar').hidden && !document.getElementById('editarAcordes').hidden`));
+  check('canción admin: el lápiz no corre "Acordes" ni A− / A+', await r.ev(`(() => { const b = document.querySelector('.letra-barra'), r = b.getBoundingClientRect(); return [...b.children].every(h => h.getBoundingClientRect().right <= r.right + 0.5); })()`));
   check('canción admin: sin errores', r.errores.length === 0, r.errores.join(' | '));
   await r.cerrar();
 }

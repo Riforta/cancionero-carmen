@@ -1,8 +1,8 @@
 // Letras del cancionero (AGENTS.md §3 y D22): el formato de texto con cada
 // acorde anclado a su sílaba, su lectura, su escritura y el HTML que lo
 // dibuja. Funciones puras, sin tocar la página: las usan cancion.js, la
-// búsqueda del índice y (más adelante) el editor. Se prueban en Node con
-// tests/letra.node.mjs.
+// búsqueda del índice y el editor de acordes (editor.js). Se prueban en Node
+// con tests/letra.node.mjs.
 //
 // Formato de letras/<id>.txt, un renglón por línea:
 //   [SOL]Toma, Señor, y re[MIm]cibe toda mi [DO]libertad,
@@ -185,6 +185,62 @@ function armarRenglon(texto, acordes) {
   return linea + texto.slice(desde);
 }
 
+// ── Para el editor de acordes (editor.js, AGENTS.md D23) ──
+// Un renglón de letra se edita como su texto sin acordes y la lista de
+// acordes con su posición: [{ nombre, opcional, pos }], `pos` = índice en el
+// texto de la letra sobre la que cae (si es un espacio o el final, el acorde
+// va después de la palabra anterior). La lista va ordenada por posición.
+
+// Renglón de letra → { texto, acordes }
+function acordesDeRenglon(r) {
+  let texto = '';
+  const acordes = [];
+  for (const t of r.tramos) {
+    if (t.acorde) acordes.push({ nombre: t.acorde.nombre, opcional: !!t.acorde.opcional, pos: texto.length });
+    texto += t.texto;
+  }
+  return { texto, acordes };
+}
+
+// Lo inverso: texto y acordes → renglón de letra. Dos acordes en la misma
+// posición quedan en el orden en que vienen (como armarRenglon)
+function renglonDeAcordes(texto, acordes, estribillo = false) {
+  const orden = acordes.map((a, i) => ({ a, i, pos: Math.max(0, Math.min(texto.length, a.pos)) }))
+    .sort((x, y) => x.pos - y.pos || x.i - y.i);
+  const tramos = [];
+  const primero = orden.length ? orden[0].pos : texto.length;
+  if (primero > 0 || !orden.length) tramos.push({ acorde: null, texto: texto.slice(0, primero) });
+  orden.forEach((o, k) => tramos.push({
+    acorde: { nombre: o.a.nombre, opcional: !!o.a.opcional },
+    texto: texto.slice(o.pos, k + 1 < orden.length ? orden[k + 1].pos : texto.length)
+  }));
+  return { tipo: 'letra', tramos, estribillo: !!estribillo };
+}
+
+// Un solo espacio entre palabras y ninguno en las puntas, con cada acorde
+// sobre la misma letra (colapsarEspacios). Así cada posición del editor es
+// una letra o el hueco de una palabra
+function normalizarRenglon(r) {
+  if (r.tipo !== 'letra') return r;
+  const { texto, acordes } = acordesDeRenglon(r);
+  const c = colapsarEspacios(texto, acordes.map(a => a.pos));
+  return renglonDeAcordes(c.texto, acordes.map((a, i) => ({ ...a, pos: c.posiciones[i] })), r.estribillo);
+}
+
+// Lleva el acorde `k` a la posición `pos` y devuelve { acordes, k } (la lista
+// nueva, ordenada, y dónde quedó). Si en esa posición ya hay otros acordes,
+// queda antes de ellos (`antes`) o después. Con ◀ ▶ el acorde no salta por
+// encima de los que encuentra; al tocar una letra, queda él sobre la letra
+// (el último de los que comparten posición es el que se ve sobre ella)
+function ubicarAcorde(acordes, k, pos, antes) {
+  const movido = { ...acordes[k], pos };
+  const resto = acordes.filter((_, i) => i !== k);
+  let i = resto.findIndex(b => antes ? b.pos >= pos : b.pos > pos);
+  if (i < 0) i = resto.length;
+  resto.splice(i, 0, movido);
+  return { acordes: resto, k: i };
+}
+
 // ── HTML ──
 // Cada palabra con acordes va en un .palabra (no se corta), y cada acorde
 // con su sílaba en un .tramo: el acorde arriba (<c>) y la sílaba abajo
@@ -277,5 +333,6 @@ function htmlDeLetra(renglones) {
 
 // Para Node (tests/letra.node.mjs y la conversión); en el navegador no hace nada
 if (typeof module !== 'undefined') {
-  module.exports = { parsearLetra, escribirLetra, acordesDeLetra, lineasDeTexto, colapsarEspacios, armarRenglon, htmlDeLetra, escaparLetra };
+  module.exports = { parsearLetra, escribirLetra, acordesDeLetra, lineasDeTexto, colapsarEspacios, armarRenglon,
+    acordesDeRenglon, renglonDeAcordes, normalizarRenglon, ubicarAcorde, htmlDeLetra, escaparLetra };
 }
