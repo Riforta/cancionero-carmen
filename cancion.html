@@ -419,16 +419,16 @@ h1 {
 }
 .tam-btn:disabled { opacity: 0.4; cursor: default; }
 
-/* ─── LETRA / PRE ─── */
-/* white-space: pre + scroll horizontal: si la línea no entra, se desplaza
-   dentro de la tarjeta en vez de cortar y desalinear acordes de letra */
-pre {
+/* ─── LETRA (el HTML lo arma letra.js; ver AGENTS.md D22) ───
+   Cada acorde va arriba del comienzo de su sílaba: un .tramo con el <c> y
+   la .sil. Un renglón largo sigue abajo (con sangría) en vez de
+   desplazarse de costado: cada acorde viaja con su sílaba */
+.letra {
   font-family: 'EB Garamond', Georgia, serif;
   /* --escala-letra: botones A− / A+ (cancion.js). Los acordes son em, así
-     que escalan junto con la letra y la alineación se mantiene */
+     que escalan junto con la letra */
   font-size: calc(clamp(1.05rem, 2.8vw, 1.28rem) * var(--escala-letra, 1));
   line-height: 1.45;
-  white-space: pre;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
@@ -438,6 +438,33 @@ pre {
   border: 1.5px solid var(--border);
   box-shadow: var(--sombra);
 }
+.renglon { padding-left: 1.2em; text-indent: -1.2em; }
+.renglon.vacio::before { content: '\200B'; }
+.renglon.solo-acordes { white-space: pre-wrap; }
+.palabra { white-space: nowrap; }
+/* El acorde no ocupa lugar en la letra, así se lee de corrido. Donde hace
+   falta (dos acordes encimados, un acorde entre palabras, uno que se sale
+   por la derecha) cancion.js abre espacio: acomodarAcordes() */
+.tramo { position: relative; }
+.tramo > c { position: absolute; left: 0; bottom: 100%; }
+/* Puntal invisible: solo el renglón (de pantalla) que tiene acordes crece
+   hacia arriba para que entren. Si un verso largo sigue abajo sin acordes,
+   ese renglón queda pegado, como continuación. 2,38 em sobre la línea base:
+   deja 0,47 em entre la letra de arriba y el acorde */
+.tramo::before { content: ''; display: inline-block; height: 2.38em; }
+/* Un acorde abrió espacio dentro de una palabra: un guion une las dos
+   partes ("a- mor") */
+.tramo.estirado > .sil::after { content: '-'; content: '-' / ''; }
+.estribillo { color: var(--brown-mid); font-weight: bold; }
+.subtitulo {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82em;
+  letter-spacing: 0.04em;
+  color: var(--text-strong);
+  margin: 1.1em 0 0.25em;
+}
+.subtitulo:first-child { margin-top: 0; }
+.aclaracion { font-style: italic; }
 
 .letra-pendiente {
   white-space: normal;
@@ -464,8 +491,16 @@ c {
   height: 1.1em;
   line-height: 1;
   margin-bottom: 0.15rem;
-  transition: all 0.1s ease;
+  transition: background-color 0.1s ease, color 0.1s ease;
+  /* Sin la sangría de los renglones (.renglon): correría el nombre */
+  text-indent: 0;
+  /* Al copiar la letra no se llevan los acordes */
+  -webkit-user-select: none;
+  user-select: none;
 }
+/* Acorde opcional: [(MI)] en la letra */
+c.opcional::before { content: '('; }
+c.opcional::after { content: ')'; }
 c:hover {
   color: var(--brown-dark);
   background-color: var(--gold-light);
@@ -494,21 +529,21 @@ c:hover {
 }
 #popover-svg { display: block; margin: 0 auto; }
 
-/* ─── ACORDES OCULTOS ─── */
-/* .chord-line envuelve cada línea que solo tiene acordes (ver JS):
-   ocultarla entera evita que queden renglones en blanco */
+/* ─── ACORDES OCULTOS Y MODO BANCO (fieles) ───
+   Los renglones de solo acordes se ocultan enteros, sin dejar renglones en
+   blanco, y las sílabas vuelven a ser texto corrido */
 .no-chords c,
-.no-chords .chord-line { display: none; }
-pre.no-chords { line-height: 1.65; }
-
-/* ─── MODO BANCO (fieles, sin acordes) ─── */
+.no-chords .solo-acordes { display: none; }
 body.banco-mode c,
-body.banco-mode .chord-line { display: none !important; }
-body.banco-mode pre { line-height: 1.65; }
+body.banco-mode .solo-acordes { display: none !important; }
+:is(.no-chords, body.banco-mode .letra) .tramo.estirado > .sil::after { content: none; }
+:is(.no-chords, body.banco-mode .letra) .tramo::before { display: none; }
+:is(.no-chords, body.banco-mode .letra) :is(.sil, .palabra) { padding: 0 !important; margin: 0 !important; }
+:is(.no-chords, body.banco-mode .letra) .salto { display: none; }
+.letra.no-chords,
+body.banco-mode .letra { line-height: 1.65; }
 /* Controles, nota, tono, audios y autoscroll: solo músicos y admin */
 body.banco-mode .no-banco { display: none !important; }
-
-pre b { color: var(--brown-mid); font-weight: bold; }
 
 .error-msg {
   white-space: normal;
@@ -612,7 +647,7 @@ pre b { color: var(--brown-mid); font-weight: bold; }
     </div>
   </div>
 
-  <pre id="letra-box">Buscando letra y acordes...</pre>
+  <div id="letra-box" class="letra">Buscando letra y acordes...</div>
 
   <nav id="misa-nav" class="misa-nav" hidden aria-label="Canciones de la Misa de Hoy">
     <a id="misaPrev" class="misa-nav-link prev"><span class="mn-dir">‹ Anterior</span><span class="mn-title"></span></a>
@@ -654,6 +689,7 @@ pre b { color: var(--brown-mid); font-weight: bold; }
 <script src="sesion.js"></script>
 
 <script src="acordes.js"></script>
+<script src="letra.js"></script>
 <script src="cancion.js"></script>
 </body>
 </html>

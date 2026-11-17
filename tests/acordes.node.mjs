@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
 const { transposeChord, chordLookup, drawChordSVG, CHORD_DICTIONARY } = require(path.join(raiz, 'acordes.js'));
+const { parsearLetra, acordesDeLetra } = require(path.join(raiz, 'letra.js'));
 
 let fallas = 0;
 const check = (nombre, ok, extra = '') => { if (!ok) fallas++; console.log(`${ok ? 'OK   ' : 'FALLA'} ${nombre}${extra ? ' — ' + extra : ''}`); };
@@ -41,11 +42,10 @@ check('SVG: posición alta muestra "fr"', drawChordSVG(CHORD_DICTIONARY['SOL#7']
 const dir = path.join(raiz, 'letras');
 const sinDiagrama = new Set();
 let total = 0;
-for (const archivo of fs.readdirSync(dir).filter(f => f.endsWith('.html'))) {
-  const html = fs.readFileSync(path.join(dir, archivo), 'utf8');
-  for (const [, acorde] of html.matchAll(/<c>([^<]*)<\/c>/g)) {
-    const a = acorde.trim();
-    if (!a || a === '...') continue;
+for (const archivo of fs.readdirSync(dir).filter(f => f.endsWith('.txt'))) {
+  const texto = fs.readFileSync(path.join(dir, archivo), 'utf8');
+  for (const { nombre: a } of acordesDeLetra(parsearLetra(texto))) {
+    if (a === '...') continue;
     total++;
     for (let t = -11; t <= 11; t++) {
       if (!chordLookup(transposeChord(a, t))) sinDiagrama.add(`${a} (${t >= 0 ? '+' : ''}${t}) en ${archivo}`);

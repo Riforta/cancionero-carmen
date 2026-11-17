@@ -18,19 +18,6 @@ if (isAdmin && !esBanco) panelSesion(document.querySelector('main'));
 // Botón "Modo admin" (comun.js): pide confirmación si hay una nota a medio escribir
 botonModo(() => document.getElementById('notaForm').hidden ? null : 'Hay una nota sin guardar. ¿Salir igual?');
 
-// Envuelve cada línea compuesta solo por acordes (y espacios/guiones) en un
-// span.chord-line, para poder ocultarla entera sin dejar renglones en blanco.
-// Una línea "Intro: <c>DO</c> <c>FA</c>" también cuenta como línea de acordes
-function wrapChordLines(html) {
-  return html.replace(/\s+$/, '').split('\n').map(line => {
-    const resto = line.replace(/<c>[^<]*<\/c>/g, '').replace(/^\s*intro:/i, '');
-    if (/<c>/.test(line) && /^[\s\-–—|/.()]*$/.test(resto)) {
-      return '<span class="chord-line">' + line + '\n</span>';
-    }
-    return line + '\n';
-  }).join('');
-}
-
 const idCancion = urlParams.get('id');
 
 if (!idCancion) {
@@ -48,28 +35,24 @@ const tituloCancion = (cancionActual && cancionActual.title) || urlParams.get('t
 // Solo ids con forma de nombre de archivo (prefijo_slug): nada de rutas ni HTML
 const idValido = /^[a-z]+_[a-z0-9-]+$/.test(idCancion || '');
 
-(idValido ? fetch(`letras/${idCancion}.html`) : Promise.reject(new Error('id inválido')))
+(idValido ? fetch(`letras/${idCancion}.txt`) : Promise.reject(new Error('id inválido')))
   .then(response => {
     if (!response.ok) throw new Error();
     return response.text();
   })
   .then(textoLetra => {
-    document.getElementById('letra-box').innerHTML = wrapChordLines(textoLetra);
+    // letra.js arma el HTML: cada acorde sobre su sílaba, con data-original y
+    // aria-hidden (los lectores de pantalla leen solo la letra), y el texto
+    // escapado
+    document.getElementById('letra-box').innerHTML = htmlDeLetra(parsearLetra(textoLetra));
 
     document.getElementById('song-title').textContent = tituloCancion;
     document.title = `${tituloCancion} — Coro Virgen del Carmen`;
 
-    document.querySelectorAll('pre c').forEach(el => {
-      el.setAttribute('data-original', el.textContent.trim());
-    });
-
-    // Los lectores de pantalla saltean los acordes: solo leen la letra
-    document.querySelectorAll('pre c, pre .chord-line').forEach(el => {
-      el.setAttribute('aria-hidden', 'true');
-    });
-
     // Si el tono del coro llegó antes que la letra, se aplica ahora
     renderChords();
+    // Cuando terminan de cargar las fuentes cambian los anchos: se mide de nuevo
+    if (document.fonts) document.fonts.ready.then(acomodarAcordes);
     document.dispatchEvent(new Event('letra-cargada'));
   })
   .catch(() => {
@@ -77,7 +60,7 @@ const idValido = /^[a-z]+_[a-z0-9-]+$/.test(idCancion || '');
     const msg = document.createElement('div');
     msg.className = 'error-msg';
     const archivo = document.createElement('b');
-    archivo.textContent = `letras/${idCancion}.html`;
+    archivo.textContent = `letras/${idCancion}.txt`;
     msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Verificá el archivo: ', archivo);
     document.getElementById('letra-box').replaceChildren(msg);
     document.getElementById('song-title').textContent = tituloCancion || "Error";
@@ -96,6 +79,128 @@ btnToggle.addEventListener('click', () => {
     btnToggle.textContent = 'Acordes: Visibles';
     btnToggle.classList.add('active');
   }
+  acomodarAcordes();
+});
+
+// Los acordes van arriba de su sílaba sin ocupar lugar en la letra (CSS), así
+// la letra se lee de corrido. Esto abre espacio solo donde hace falta:
+// - un acorde sin sílaba (entre palabras o al final del renglón) ocupa su
+//   ancho: es el hueco de la palabra que se sostiene;
+// - si dos acordes del mismo renglón quedarían encimados, se corre el
+//   segundo: más espacio entre palabras o, dentro de una palabra, un guion
+//   ("a- mor");
+// - si el acorde de una palabra se sale por la derecha, la palabra pasa al
+//   renglón de abajo.
+// Depende de los anchos: se repite al transponer, al mostrar los acordes, al
+// cambiar el tamaño de letra o el ancho de la pantalla y al cargar las fuentes.
+// Para que sea rápido en un celular trabaja por pasadas: cada una mide toda
+// la letra de una vez, calcula sin tocar la página (cada espacio agregado corre
+// lo que le sigue en ese renglón de pantalla) y escribe todo junto. La
+// siguiente arregla lo que cambió si algún renglón se cortó en otro lugar
+const SEPARACION_ACORDES = 0.3;   // em, entre un acorde y el siguiente
+function acomodarAcordes() {
+  letraBox.querySelectorAll('.salto').forEach(el => el.remove());
+  letraBox.querySelectorAll('.sil[style], .palabra[style]').forEach(el => el.removeAttribute('style'));
+  letraBox.querySelectorAll('.tramo.estirado').forEach(el => el.classList.remove('estirado'));
+  if (esBanco || letraBox.classList.contains('no-chords')) return;
+  const renglones = [...letraBox.querySelectorAll('.renglon.con-acordes')];
+  if (!renglones.length) return;
+  const cs = getComputedStyle(letraBox);
+  const fs = parseFloat(cs.fontSize);
+  const sep = SEPARACION_ACORDES * fs;
+  const sangria = parseFloat(getComputedStyle(renglones[0]).paddingLeft);
+  const limite = letraBox.getBoundingClientRect().right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth);
+  // ¿Sigue la palabra después de este tramo?
+  const sigue = tramo => {
+    for (let n = tramo.nextSibling; n; n = n.nextSibling) {
+      if ((n.nodeType === 1 ? n.lastElementChild.textContent : n.textContent) !== '') return true;
+    }
+    return false;
+  };
+  // Espacio agregado (px): margen antes de una .palabra o relleno después de
+  // una .sil. Se anota y se escribe todo junto (escribir)
+  const agregado = new Map(), tocados = new Set(), guiones = [], conAncho = new Set();
+  const agregar = (el, px) => { agregado.set(el, (agregado.get(el) || 0) + px); tocados.add(el); };
+  const escribir = () => {
+    const habia = tocados.size > 0 || guiones.length > 0;
+    tocados.forEach(el => {
+      const prop = el.classList.contains('palabra') ? 'marginLeft' : 'paddingRight';
+      el.style[prop] = agregado.has(el) ? (agregado.get(el) / fs).toFixed(3) + 'em' : '';
+    });
+    guiones.forEach(t => t.classList.add('estirado'));
+    tocados.clear();
+    guiones.length = 0;
+    return habia;
+  };
+  // Para separar el acorde `b` del anterior `a`: más espacio antes de la
+  // palabra de `b` si `b` está al principio de ella; si no, después de la
+  // sílaba de `a`, con guion si la palabra sigue
+  const separar = (a, b, px) => {
+    if (b.palabra.firstChild === b.tramo && a.palabra !== b.palabra) return agregar(b.palabra, px);
+    if (a.sil.textContent && sigue(a.tramo)) guiones.push(a.tramo);
+    agregar(a.sil, px);
+  };
+
+  // Mide un renglón y anota lo que hace falta. Si una palabra tiene que pasar
+  // al renglón de abajo (su acorde se saldría por la derecha), la devuelve: lo
+  // que sigue no se puede calcular sin cortar y volver a medir
+  function medirRenglon(renglon) {
+    const inicio = renglon.getBoundingClientRect().left + sangria;
+    let ant = null, corrimiento = 0;
+    for (const c of renglon.querySelectorAll('.tramo > c')) {
+      const tramo = c.parentElement;
+      const d = { c, tramo, sil: tramo.lastElementChild, palabra: tramo.parentElement };
+      const b = c.getBoundingClientRect();
+      if (ant && Math.abs(ant.arriba - b.top) >= 2) { ant = null; corrimiento = 0; }
+      let izq = b.left + corrimiento;
+      // Una palabra que quedó al principio de un renglón ya no necesita el
+      // margen que la separaba de la anterior
+      const margen = d.palabra.firstChild === tramo ? agregado.get(d.palabra) : 0;
+      if (margen && d.palabra.getBoundingClientRect().left - margen <= inicio + 1) {
+        agregado.delete(d.palabra);
+        tocados.add(d.palabra);
+        corrimiento -= margen;
+        izq -= margen;
+      }
+      let falta = ant ? ant.der + sep - izq : 0;
+      if (falta <= 0.5) falta = 0;
+      if (izq + falta + b.width > limite + 0.5 && d.palabra.getBoundingClientRect().left > inicio + 1) return d.palabra;
+      if (falta) { separar(ant, d, falta); corrimiento += falta; izq += falta; }
+      // Acorde sin sílaba: ocupa su ancho (una sola vez)
+      if (!d.sil.textContent && !conAncho.has(d.sil)) {
+        conAncho.add(d.sil);
+        agregar(d.sil, b.width + sep);
+        corrimiento += b.width + sep;
+      }
+      ant = Object.assign(d, { arriba: b.top, der: izq + b.width });
+    }
+    return null;
+  }
+
+  for (let pasada = 0; pasada < 6; pasada++) {
+    for (const renglon of renglones) {
+      // Un corte: se escribe lo anotado, la palabra pasa abajo (sin el margen
+      // que la separaba de antes) y se vuelve a medir solo este renglón
+      for (let p = medirRenglon(renglon), cortes = 0; p && cortes < 50; p = medirRenglon(renglon), cortes++) {
+        agregado.delete(p);
+        tocados.add(p);
+        escribir();
+        const salto = document.createElement('br');
+        salto.className = 'salto';
+        p.before(salto);
+      }
+    }
+    if (!escribir()) break;   // nada nuevo: ya está
+  }
+}
+// Al girar el celular o cambiar el ancho de la ventana (no el alto: en el
+// celular cambia al desplazarse, cuando aparece o se va la barra de direcciones)
+let anchoAnterior = window.innerWidth, relojAcomodar = null;
+window.addEventListener('resize', () => {
+  if (window.innerWidth === anchoAnterior) return;
+  anchoAnterior = window.innerWidth;
+  clearTimeout(relojAcomodar);
+  relojAcomodar = setTimeout(acomodarAcordes, 150);
 });
 
 // ─── LÓGICA 2: ALGORITMO DE TRANSPOSICIÓN Y CAPOTRASTE ───
@@ -105,10 +210,11 @@ let capoFret = 0;
 // Con capo en traste N, la posición a tocar queda N semitonos abajo
 // del acorde que suena: mostrado = original + transposición − capo
 function renderChords() {
-  document.querySelectorAll('pre c').forEach(el => {
+  letraBox.querySelectorAll('c').forEach(el => {
     const original = el.getAttribute('data-original');
     el.textContent = transposeChord(original, currentTranspose - capoFret);
   });
+  acomodarAcordes();
 }
 
 // Los cambios hechos a mano (botones o selector) disparan 'tono-cambio'
@@ -414,7 +520,7 @@ if (!esBanco && idCancion) {
 
   // "empieza en RE · capo 2": el primer acorde tal como suena en ese tono
   function describirTono(t) {
-    const primero = document.querySelector('pre c[data-original]');
+    const primero = letraBox.querySelector('c[data-original]');
     const partes = [];
     if (primero) partes.push('empieza en ' + transposeChord(primero.getAttribute('data-original'), t.transponer));
     else if (t.transponer) partes.push((t.transponer > 0 ? '+' : '') + t.transponer + ' semitonos');
@@ -702,6 +808,7 @@ if (isAdmin && !esBanco && cancionActual) {
     letraBox.style.setProperty('--escala-letra', ESCALAS[nivel]);
     menos.disabled = nivel === 0;
     mas.disabled = nivel === ESCALAS.length - 1;
+    acomodarAcordes();   // con otro tamaño cambian los renglones
   }
   function cambiarTamano(delta) {
     nivel = Math.min(ESCALAS.length - 1, Math.max(0, nivel + delta));

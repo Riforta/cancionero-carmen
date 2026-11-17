@@ -74,18 +74,6 @@ function escaparHtml(t) {
   return t.replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 }
 
-// Líneas de letra de un fragmento de letras/*.html: sin acordes, sin líneas
-// de solo acordes y sin renglones vacíos o de puro signo. La usa la
-// búsqueda por letra del índice
-function lineasDeLetra(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  div.querySelectorAll('c, .chord-line, .error-msg').forEach(el => el.remove());
-  return div.textContent.split('\n')
-    .map(l => l.replace(/\s+/g, ' ').trim())
-    .filter(l => l && !/^[\s\-–—|/.():,;×xX]*$/.test(l));
-}
-
 // ── Copias locales en localStorage (D15) ──
 // Fallan en silencio (modo privado, sin espacio): la página funciona igual
 function leerCopia(clave) {

@@ -34,7 +34,7 @@ const c = await connect();
   await p.go('/cancion.html?id=ador_la-confianza');
   check('canción: título desde songs.js', (await p.ev(`document.getElementById('song-title').textContent`)) === 'La confianza');
   check('canción: nota visible', (await p.ev(`document.getElementById('notaTexto').textContent`)) === 'Tono RE');
-  check('canción: acordes', (await p.ev(`document.querySelectorAll('pre c[data-original]').length`)) > 10);
+  check('canción: acordes', (await p.ev(`document.querySelectorAll('#letra-box c[data-original]').length`)) > 10);
   await p.go('/cancion.html?id=ador_la-confianza&admin=true');
   if (!(await p.ev('Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto para no escribir en la base real');
   await p.ev(`document.getElementById('notaEditBtn').click(); document.getElementById('notaInput').value = 'Tono MI'; document.getElementById('notaSave').click()`);
@@ -57,7 +57,7 @@ const c = await connect();
   await p.go('/index.html?cat=carmelitanos');
   check('sin SDK: índice lista canciones', (await p.ev(`document.querySelectorAll('.song-row').length`)) === 14);
   await p.go('/cancion.html?id=ador_la-confianza&admin=true');
-  check('sin SDK: canción carga', (await p.ev(`document.querySelectorAll('pre c').length`)) > 10);
+  check('sin SDK: canción carga', (await p.ev(`document.querySelectorAll('#letra-box c').length`)) > 10);
   check('sin SDK: sin errores', p.errors.length === 0, p.errors.join(' | '));
   await p.close();
 }

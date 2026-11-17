@@ -755,14 +755,16 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
 <script src="firebase-config.js"></script>
 <script src="songs.js"></script>
 <script src="comun.js"></script>
+<script src="letra.js"></script>
 <script src="liturgia.js"></script>
 <script src="offline.js"></script>
 <script src="sesion.js"></script>
 
 <script>
 
-// MODO, linkCon, botonModo, normalize, escaparHtml y lineasDeLetra vienen de
-// comun.js; suscribirMisa y escribirDato, de firebase-config.js
+// MODO, linkCon, botonModo, normalize y escaparHtml vienen de comun.js;
+// lineasDeTexto, de letra.js; suscribirMisa y escribirDato, de
+// firebase-config.js
 
 // ── Misa de Hoy (misa_actual) ──
 // suscribirMisa entrega la copia local y después la publicada: en vivo para
@@ -1074,7 +1076,7 @@ function limpiarMisa() {
 }
 
 // ── Búsqueda por título y por letra ──
-// La primera búsqueda descarga todas las letras (≈ 450 KB; sin conexión
+// La primera búsqueda descarga todas las letras (≈ 95 KB; sin conexión
 // salen de la caché del service worker) y arma un índice en memoria
 let indiceLetras = null;   // id → [{ texto, normal }] (líneas de letra, sin acordes)
 let cargandoLetras = null;
@@ -1082,10 +1084,10 @@ let cargandoLetras = null;
 function cargarIndiceLetras() {
   if (!cargandoLetras) {
     cargandoLetras = Promise.all(SONGS.map(s =>
-      fetch(`letras/${s.id}.html`)
+      fetch(`letras/${s.id}.txt`)
         .then(r => r.ok ? r.text() : '')
         .catch(() => '')
-        .then(html => [s.id, lineasDeLetra(html)
+        .then(texto => [s.id, lineasDeTexto(texto)
           .filter(texto => texto.length > 2)
           .map(texto => ({ texto, normal: normalize(texto) }))])
     )).then(pares => { indiceLetras = Object.fromEntries(pares); });

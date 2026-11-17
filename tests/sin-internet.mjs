@@ -44,7 +44,7 @@ check('sin conexión: misa desde la copia', (await p.ev(`document.getElementById
 check('sin conexión: aviso visible', await p.ev(`!document.querySelector('.aviso-offline').hidden`));
 await viewport('f2-offline-index');
 await p.go('/cancion.html?id=ador_noche-oscura-jesed', 3000);
-check('sin conexión: canción nunca abierta carga', (await p.ev(`document.querySelectorAll('pre c[data-original]').length`)) > 50);
+check('sin conexión: canción nunca abierta carga', (await p.ev(`document.querySelectorAll('#letra-box c[data-original]').length`)) > 50);
 check('sin conexión: título', (await p.ev(`document.getElementById('song-title').textContent`)) === 'Noche oscura (Jesed)');
 check('sin conexión: nota desde la copia', (await p.ev(`document.getElementById('notaTexto').textContent`)) === 'Tono RE, empieza el coro');
 check('sin conexión: fuentes cargadas', await p.ev(`document.fonts.check('16px "EB Garamond"')`));
@@ -68,7 +68,7 @@ check('con conexión otra vez: aviso oculto', await p.ev(`document.querySelector
 // 5. Red lenta (4 s por pedido): la página sale de la copia sin esperar
 await c.swOffline(false, 4000);
 await p.go('/cancion.html?id=ofert_toma', 1500);
-check('red lenta: la canción carga al instante desde la copia', (await p.ev(`document.getElementById('song-title').textContent`)) === 'Toma' && (await p.ev(`document.querySelectorAll('pre c[data-original]').length`)) > 5);
+check('red lenta: la canción carga al instante desde la copia', (await p.ev(`document.getElementById('song-title').textContent`)) === 'Toma' && (await p.ev(`document.querySelectorAll('#letra-box c[data-original]').length`)) > 5);
 await p.go('/index.html?cat=todas', 1500);
 check('red lenta: el índice carga al instante desde la copia', (await p.ev(`document.querySelectorAll('.song-row').length`)) === totalSongs);
 await c.swOffline(false, 0);

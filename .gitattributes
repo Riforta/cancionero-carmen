@@ -1,0 +1,4 @@
+# Las letras van siempre con fin de línea LF (AGENTS.md §3), también en
+# Windows con core.autocrlf: tests/letra.node.mjs comprueba que leer y volver a
+# escribir cada letra dé el mismo texto, y escribirLetra (letra.js) usa LF
+letras/*.txt text eol=lf

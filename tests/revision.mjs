@@ -52,12 +52,12 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
   check('sin errores', p.errors.length === 0, p.errors.join(' | '));
   await p.close();
 }
-// A6: sin ?id= vuelve al índice sin pedir letras/null.html
+// A6: sin ?id= vuelve al índice sin pedir letras/null.txt
 {
   const p = await c.newPage();
   await p.go('/cancion.html', 2000);
   check('A6: redirige al índice', (await p.ev('location.pathname')).endsWith('/index.html'));
-  check('A6: no pide letras/null.html', !p.requests.some(u => u.includes('letras/null')));
+  check('A6: no pide letras/null.txt', !p.requests.some(u => u.includes('letras/null')));
   await p.close();
 }
 // A7: reglas y transposición acotada
@@ -68,7 +68,7 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
   const p = await c.newPage({ fake: FAKE_FIREBASE({}) });
   await p.go('/cancion.html?id=ofert_toma');
   await p.ev(`for (let i = 0; i < 13; i++) applyTransposition(1)`);
-  check('A7: +13 semitonos queda en +1 (misma nota, guardable)', (await p.ev('currentTranspose')) === 1 && (await p.ev(`document.querySelector('pre c').textContent`)) === 'LA#');
+  check('A7: +13 semitonos queda en +1 (misma nota, guardable)', (await p.ev('currentTranspose')) === 1 && (await p.ev(`document.querySelector('#letra-box c').textContent`)) === 'LA#');
   await p.ev(`for (let i = 0; i < 14; i++) applyTransposition(-1)`);
   check('A7: −13 queda en −1', (await p.ev('currentTranspose')) === -1);
   // Código muerto: solo notación latina

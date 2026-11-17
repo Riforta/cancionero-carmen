@@ -52,9 +52,9 @@ const CANCION = ['#sesion-slot', '#misa-agregar', '#nota'];
   const r = await medir({ url: '/cancion.html?id=ofert_toma&admin=true&cat=misa', bloques: CANCION, auth: ADMIN, recordada: { email: ADMIN.email }, borrador: { ids: ['ent_bendecire', 'ofert_toma', 'com_alma-misionera'], base: ['ent_bendecire', 'ofert_toma'] } });
   check('canción en la misa: no empuja la página', sinSalto(r), det(r));
   check('canción en la misa: muestra "✓ En la Misa de Hoy" y "Falta publicar"', (await r.ev('misaAgregarBtn.textContent')).startsWith('En la Misa de Hoy') && !(await r.ev(`misaPendiente.classList.contains('oculta')`)));
-  const alto1 = await r.ev(`document.querySelector('pre').getBoundingClientRect().top + scrollY`);
+  const alto1 = await r.ev(`document.getElementById('letra-box').getBoundingClientRect().top + scrollY`);
   await r.ev('misaAgregarBtn.click()'); await wait(150);
-  check('quitar de la misa: la letra no se corre', Math.abs((await r.ev(`document.querySelector('pre').getBoundingClientRect().top + scrollY`)) - alto1) < 1);
+  check('quitar de la misa: la letra no se corre', Math.abs((await r.ev(`document.getElementById('letra-box').getBoundingClientRect().top + scrollY`)) - alto1) < 1);
   await r.cerrar();
 }
 { // Primera vez en este celular (sin sesión recordada): la barra igual tiene su lugar

@@ -3,14 +3,14 @@ import { connect, check, done, wait, OUT, FAKE_FIREBASE } from './cdp.mjs';
 const c = await connect();
 const ADMIN = { email: 'test@gmail.com' };
 const viewport = async (p, name) => { const r = await p.s('Page.captureScreenshot', { format: 'png' }); fs.writeFileSync(`${OUT}/${name}.png`, Buffer.from(r.result.data, 'base64')); };
-const primerAcorde = `document.querySelector('pre c').textContent`;
+const primerAcorde = `document.querySelector('#letra-box c').textContent`;
 const tono = `(() => { const q = id => document.getElementById(id); return { visible: !q('tono-coro').hidden, texto: q('tonoTexto').textContent, usar: q('tonoUsar').hidden ? null : q('tonoUsar').textContent, guardar: q('tonoGuardar').hidden ? null : q('tonoGuardar').textContent, capo: capoFret, transp: currentTranspose }; })()`;
 
 // 1. Tono del coro, vista de músicos (ofert_toma empieza en SOL)
 {
   const p = await c.newPage({ fake: FAKE_FIREBASE({ 'tonos/ofert_toma': { transponer: 2, capo: 0 } }), width: 390, height: 760 });
   await p.go('/cancion.html?id=ofert_toma');
-  const original = await p.ev(`document.querySelector('pre c').getAttribute('data-original')`);
+  const original = await p.ev(`document.querySelector('#letra-box c').getAttribute('data-original')`);
   check('primer acorde original es LA', original === 'LA', original);
   check('se aplica el tono del coro (+2 → SI)', (await p.ev(primerAcorde)) === 'SI');
   let t = await p.ev(tono);

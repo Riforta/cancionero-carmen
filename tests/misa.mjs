@@ -89,7 +89,7 @@ const MISA = ['ent_bendecire', 'glo_gloria-congreso-2000', 'com_alma-misionera',
   check('avanza', y1 > 20, `scrollY=${y1}`);
   check('nivel 4 guardado', (await p.ev(`localStorage.getItem('autoscroll_nivel')`)) === '4');
   await p.shot('f1-autoscroll', 640);
-  await p.ev(`document.querySelector('pre').dispatchEvent(new TouchEvent('touchstart', { bubbles: true }))`); await wait(800);
+  await p.ev(`document.getElementById('letra-box').dispatchEvent(new TouchEvent('touchstart', { bubbles: true }))`); await wait(800);
   const y2 = await p.ev('scrollY'); await wait(800);
   check('se detiene al tocar', (await p.ev('scrollY')) === y2 && (await p.ev(`asPlay.getAttribute('aria-label')`)) === 'Desplazamiento automático');
   await p.ev(`asPlay.click()`); await wait(300);

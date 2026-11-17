@@ -73,7 +73,7 @@ const tocar = async p => {
   await p.go('/index.html', 2500);
   const estado = await p.ev(`(() => { const e = document.getElementById('estado-offline'); return e.hidden ? null : e.textContent; })()`);
   check('con todas las letras guardadas: muestra el aviso', estado === 'Listo para usar sin internet', String(estado));
-  await p.ev(`caches.keys().then(async ks => { for (const k of ks) { const c = await caches.open(k); await c.delete(new URL('letras/ofert_toma.html', location.href).href); } })`);
+  await p.ev(`caches.keys().then(async ks => { for (const k of ks) { const c = await caches.open(k); await c.delete(new URL('letras/ofert_toma.txt', location.href).href); } })`);
   await p.s('Network.setBypassServiceWorker', { bypass: true }); // que la recarga no vuelva a guardar la letra
   await p.go('/index.html', 2500);
   check('si falta una letra: no lo muestra', await p.ev(`document.getElementById('estado-offline').hidden`));

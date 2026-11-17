@@ -12,6 +12,7 @@ powershell -File tests/run.ps1 misa.mjs        # una sola prueba
 powershell -File tests/run.ps1 capturas.mjs --referencia   # capturas de referencia
 powershell -File tests/run.ps1 capturas.mjs    # comparar contra la referencia
 node tests/acordes.node.mjs                    # acordes.js en Node, sin navegador (Node 22+)
+node tests/letra.node.mjs                      # formato de las letras (letra.js) en Node
 node tests/liturgia.node.mjs                   # calendario litúrgico en Node
 ```
 
@@ -62,7 +63,8 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `audios.mjs` | Reproductores de las canciones con `medios` |
 | `corderos.mjs` | Las canciones de Santo / Cordero cargan con diagramas |
 | `publicada.mjs` | "Publicada por … · fecha": se guarda junto con la misa y solo se ve en Misa de Hoy (no en banco) |
-| `letra.mjs` | Tamaño de letra A− / A+: escala, topes, se recuerda, acordes alineados, visible en banco |
+| `letra.mjs` | Tamaño de letra A− / A+: escala, topes, se recuerda, cada acorde sigue sobre su sílaba, visible en banco |
+| `dibujo-letra.mjs` | Dibujo de la letra (D22): cada acorde sobre su sílaba, la letra de corrido, espacio solo donde chocan dos acordes (guion dentro de una palabra), acorde después de una palabra, corte de renglón en el borde, al transponer, acordes ocultos y banco, sin HTML desde la letra |
 | `avisos.mjs` | Avisos del coro: lista por mes con fiestas, sin lo pasado, `.ics`, alta/edición/baja de admin, sin conexión, banco, "Próximos avisos" del índice |
 | `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
 | `borrador.mjs` | Borrador de la misa guardado en el celular, botón "Agregar a la Misa de Hoy" de la canción, `+` / `✓` del índice y aviso flotante |
@@ -75,3 +77,4 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `capturas.mjs` | Comparación visual contra la referencia |
 | `liturgia.node.mjs` | `liturgia.js` en Node: Pascua, tiempos, numeración, colores, fiestas y traslados argentinos |
 | `acordes.node.mjs` | `acordes.js` en Node: transposición, bemoles, diagramas de todos los acordes de `letras/` en los 23 tonos |
+| `letra.node.mjs` | `letra.js` en Node: lectura y escritura del formato, búsqueda, HTML escapado, y que las 108 letras se lean y escriban iguales |

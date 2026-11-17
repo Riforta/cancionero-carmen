@@ -8,8 +8,8 @@ for (const [id, titulo] of Object.entries(canciones)) {
   const info = await p.ev(`(() => ({
     titulo: document.getElementById('song-title').textContent,
     error: !!document.querySelector('.error-msg'),
-    acordes: document.querySelectorAll('pre c[data-original]').length,
-    sinDiagrama: [...new Set([...document.querySelectorAll('pre c')].map(c => c.textContent))].filter(n => !chordLookup(n))
+    acordes: document.querySelectorAll('#letra-box c[data-original]').length,
+    sinDiagrama: [...new Set([...document.querySelectorAll('#letra-box c')].map(c => c.textContent))].filter(n => !chordLookup(n))
   }))()`);
   check(`${id}: carga con título`, !info.error && info.titulo === titulo, JSON.stringify(info));
   check(`${id}: todos los acordes con diagrama`, info.acordes > 5 && info.sinDiagrama.length === 0, JSON.stringify(info.sinDiagrama));

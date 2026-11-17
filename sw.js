@@ -12,7 +12,7 @@
 //   propia copia de los datos en localStorage.
 //
 // Subir VERSION al cambiar este archivo, para descartar la caché anterior.
-const VERSION = 'v12';
+const VERSION = 'v13';
 const CACHE = 'cancionero-' + VERSION;
 
 // songs.js: la lista de letras a guardar. firebase-config.js: FIREBASE_SDK
@@ -22,13 +22,13 @@ importScripts('songs.js', 'firebase-config.js');
 
 const PROPIOS = [
   './', 'index.html', 'cancion.html', 'avisos.html', 'avisos.js', 'songs.js', 'firebase-config.js',
-  'comun.js', 'acordes.js', 'cancion.js', 'liturgia.js', 'offline.js', 'sesion.js', 'tema.js', 'comun.css',
+  'comun.js', 'acordes.js', 'letra.js', 'cancion.js', 'liturgia.js', 'offline.js', 'sesion.js', 'tema.js', 'comun.css',
   'manifest.webmanifest',
   'assets/logo-medallon.png', 'assets/logo-medallon-color.png', 'assets/iconos.svg',
   'assets/icon-192.png', 'assets/icon-512.png', 'assets/apple-touch-icon.png',
   'assets/pantalla-encendida.mp4', 'assets/pantalla-encendida.webm'
 ];
-const LETRAS = SONGS.map(s => `letras/${s.id}.html`);
+const LETRAS = SONGS.map(s => `letras/${s.id}.txt`);
 const FUENTES_CSS = 'https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap';
 const EXTERNOS = [
   FUENTES_CSS,

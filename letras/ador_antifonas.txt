@@ -1,0 +1,70 @@
+{titulo: A la tarde}
+[DO]A l[LAm]a tard[FA]e t[SOL]e exa[DO]min[MI7]arán [LAm]en el amor
+[DO]Te e[LAm]xami[FA]nar[SOL]án e[DO]n el [MI7]amo[LAm]r
+
+{titulo: Alabe todo el mundo}
+[RE]Ala[SOL]be t[LA7]odo e[SIm]l mu[RE]ndo, a[LA]labe al Señor
+[RE]Ala[SOL]be t[LA7]odo e[SIm]l mu[MIm]ndo, ala[LA]be a nu[RE]estro Dios
+
+{titulo: Donde hay amor}
+[RE]Do[LA7]nde h[SIm]ay am[SOL]or y c[LA]aridad
+[RE]Do[LA7]nde h[SIm]ay am[SOL]or, D[LA]ios ah[RE]í está.
+
+{titulo: Amor}
+[MIm]Amo[RE]r, A[DO]mo[SI7]r, Amor, Amor
+[MIm]Herman[RE]os mí[DO]os, Dios e[SI7]s Amor,
+[MIm]Ama [RE]a to[DO]dos com[SI7]o hermanos,
+[MIm]Dios [RE]es A[DO]mor.[SI7]
+
+{titulo: El Señor es mi fortaleza}
+[RE]El Señor es mi for[SOL]talez[RE]a el Señor, mi [LA]canción.
+[SOL]Él nos d[FA#]a la salva[SIm]ción.
+En él c[RE]onfío y no [LA]temo más
+En él c[SOL]onfío y no te[LA7]mo [RE]más
+
+{titulo: En ti Señor}
+[MIm]En ti [RE]Se[DO]ñor [SI7]reposa todo mi ser
+[MIm]He si[DO]do [RE]ama[SOL]do por Ti,
+[MIm]Si, so[RE]lo e[DO]n ti s[SI7]e alumbra la esperanza
+[MIm]En ti [DO]sólo [SI7]Señ[MIm]or.
+
+{titulo: Espera}
+[DO]Esp[FA]era a[DO]dor[FA]a sil[SOL]encia [DO]tu c[FA]oraz[SOL]ón y [LAm]ama[FA][SOL]
+
+{titulo: La bondad del Señor}
+[DO]La bo[REm]ndad y [SOL]el amor del Señor
+[MI]Dur[LAm]an p[REm]or sie[SOL]mpr[(DO)]e, duran por siempre
+
+{titulo: Las tinieblas}
+[LAm]Las t[SOL]inieb[DO]las, [SI7]no son tinieblas ante Ti,
+[REm]La n[LAm]oche e[MI7]s luminosa como el día.
+
+{titulo: No pongáis los ojos}
+[DO]No pongáis los ojos en [FA]nadie [SOL]más que en [DO]Él,
+no pongáis los ojos en [FA]nadie más que e[SOL]n Él.
+No pon[DO]gáis los ojos en n[FA]adie más,
+no pong[DO]áis los ojos en n[FA]adie más.
+[DO]No pongáis los ojos en [FA]nadie [SOL]más que en [DO]Él.
+
+{nota: (Porque sólo Él te puede salvar…)}
+{nota: (Porque sólo Él te puede liberar…)}
+
+{titulo: Orar}
+[DO]Ora[MI7]r es [LAm]trata[FA]r, m[SOL]uch[DO]as v[DO7]eces con él,
+[FA]Tra[SOL]tar c[DO]om[MI7]o am[LAm]igos, [FA]m[SOL]ucha[DO]s ve[DO7]ces con él.
+[FA]Am[SOL]igo[DO]s y a [MI7]sola[LAm]s, mu[FA]ch[SOL]as ve[DO]ces con él
+[FA]A s[SOL]olas [DO]esta[MI7]r mu[LAm]chas [FA]vec[SOL]es c[DO]on él
+
+{titulo: Dios está aquí}
+[DO]Dios e[SOL]stá aq[LAm]uí,
+tan ci[FA]erto co[SOL]mo el aire q[DO]ue resp[DO7]iro,
+tan ci[FA]erto co[SOL]mo la mañ[DO]ana se l[MIm]eva - a[LAm]n -ta;
+tan ci[FA]erto co[SOL]mo yo te h[DO]ablo y pue[SOL]des oír.
+
+{titulo: Enciende una luz}
+[DO]Enciende una luz, déjala brill[FA]ar,
+la luz de Jes[REm]ús que brille en todo [SOL7]lugar.
+No la [DO]puedes esconder,
+no te [DO7]puedes call[FA]ar ante tal necesida[REm]d,
+enciende una [SOL]luz en l[SOL7]a oscurida[DO]d.
+(final) [SOL7]oscurid[FA]ad.[FAm][DO]

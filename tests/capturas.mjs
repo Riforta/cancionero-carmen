@@ -69,7 +69,7 @@ for (const tema of ['claro', 'oscuro']) {
     await wait(800); // animaciones de entrada (fadeUp)
     let r;
     if (pant.popover) {
-      await p.ev(`document.querySelector('pre c').click()`);
+      await p.ev(`document.querySelector('#letra-box c').click()`);
       await wait(200);
       r = await p.s('Page.captureScreenshot', { format: 'png' });
     } else {

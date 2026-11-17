@@ -15,6 +15,7 @@ await import('./corderos.mjs');
 await import('./liturgia.mjs');
 await import('./publicada.mjs');
 await import('./letra.mjs');
+await import('./dibujo-letra.mjs');
 await import('./avisos.mjs');
 await import('./borrador.mjs');
 await import('./medios-admin.mjs');

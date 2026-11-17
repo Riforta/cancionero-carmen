@@ -57,14 +57,14 @@ for (const tema of ['dark', 'light']) {
   }
   if (tema === 'dark') await viewport(p, 'f6-index-oscuro');
   await p.go('/cancion.html?id=com_pescador-de-hombres&cat=misa&admin=true');
-  for (const [nombre, sel] of [['letra', 'pre'], ['acorde', 'pre c'], ['estribillo', 'pre b'], ['título', 'h1'], ['botón ½ tono', '.btn-toggle:not(.active)'], ['botón activo', '.btn-toggle.active'], ['selector de capo', '.capo-select'], ['tono del coro', '.tono-texto'], ['nota', '.nota-texto'], ['anterior/siguiente', '.mn-title']]) {
+  for (const [nombre, sel] of [['letra', '#letra-box'], ['acorde', '#letra-box c'], ['estribillo', '#letra-box .estribillo'], ['título', 'h1'], ['botón ½ tono', '.btn-toggle:not(.active)'], ['botón activo', '.btn-toggle.active'], ['selector de capo', '.capo-select'], ['tono del coro', '.tono-texto'], ['nota', '.nota-texto'], ['anterior/siguiente', '.mn-title']]) {
     const v = await contraste(p, sel);
     check(`[${tema}] canción: ${nombre} ≥ ${minimo}`, v >= minimo, String(v));
   }
   if (tema === 'dark') {
     await viewport(p, 'f6-cancion-oscuro');
     // Popover del diagrama de acordes
-    await p.ev(`document.querySelector('pre c').click()`); await wait(200);
+    await p.ev(`document.querySelector('#letra-box c').click()`); await wait(200);
     check('[dark] diagrama: cejuela clara', (await p.ev(`getComputedStyle(document.querySelector('#popover-svg .cd-cejuela')).stroke`)) === 'rgb(242, 228, 207)');
     await p.ev(`(() => { const r = document.getElementById('chord-popover').getBoundingClientRect(); window.scrollBy(0, 0); })()`);
     await viewport(p, 'f6-popover-oscuro');
@@ -80,7 +80,7 @@ for (const tema of ['dark', 'light']) {
   await p.go('/cancion.html?id=com_pescador-de-hombres&modo=banco', 2500);
   check('banco: botón de tema visible', await p.ev(`getComputedStyle(themeToggle).display !== 'none'`));
   check('banco: sin botón de admin', await p.ev(`modeToggle.hidden`));
-  check('[dark] banco: letra ≥ 4.5', (await contraste(p, 'pre')) >= 4.5);
+  check('[dark] banco: letra ≥ 4.5', (await contraste(p, '#letra-box')) >= 4.5);
   await viewport(p, 'f6-banco-oscuro');
   await p.close();
 }

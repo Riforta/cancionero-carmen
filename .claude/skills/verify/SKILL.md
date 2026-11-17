@@ -11,7 +11,7 @@ completa, y `tests/run.ps1 capturas.mjs [--referencia]` hace la comparación
 visual. Lo de abajo explica cómo está hecho, para escribir pruebas nuevas.
 
 Sitio estático sin build. Para ver un cambio funcionando hay que servirlo por HTTP
-(los `fetch()` a `letras/*.html` fallan con `file://`).
+(los `fetch()` a `letras/*.txt` fallan con `file://`).
 
 ## Receta que funciona
 
@@ -29,13 +29,13 @@ Sitio estático sin build. Para ver un cambio funcionando hay que servirlo por H
 
 ## Flujos que vale la pena manejar
 
-- `cancion.html?id=<id>` — esperar a que existan `pre c[data-original]`
+- `cancion.html?id=<id>` — esperar a que existan `#letra-box c[data-original]`
   (la letra se carga por fetch). Probar transposición (±½ tono), selector de
   capo (`#capoSelect`, evento `change`), toggle de acordes, popover de
   diagramas (click en un `<c>`).
-- `?modo=banco` — toolbar/acordes/indicador y el botón de lectura en voz alta
-  deben quedar ocultos; las líneas de acordes (incluido `Intro:`) no dejan
-  renglones en blanco.
+- `?modo=banco` — toolbar, acordes e indicador deben quedar ocultos; los
+  renglones de solo acordes (incluido `Intro:`) no dejan renglones en blanco y
+  la letra queda de corrido.
 - Nota para músicos (`#nota`, Firebase `notas/<id>`) — **no escribir en la base
   real** para probar: interceptar `*gstatic.com/firebasejs/*` con
   `Fetch.enable` + `Fetch.fulfillRequest` y servir un `window.firebase` falso

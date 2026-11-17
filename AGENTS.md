@@ -39,13 +39,14 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   `CATS`, que define las categorías y su orden. La cargan las dos páginas.
 - `index.html`: índice con búsqueda y categorías (CSS y script propios).
 - `cancion.html`: muestra una letra (`?id=<id>`): el HTML y su CSS. El
-  comportamiento está en `cancion.js`, que hace `fetch` de `letras/<id>.html` y
-  la renderiza dentro de un `<pre>`.
+  comportamiento está en `cancion.js`, que hace `fetch` de `letras/<id>.txt` y
+  la dibuja con `letra.js` (D22).
 - `acordes.js`: escala, transposición, diccionario de diagramas de guitarra y
   su dibujo en SVG. Funciones puras, probadas en Node (D18).
+- `letra.js`: el formato de las letras (acordes anclados a su sílaba): lo lee,
+  lo escribe y arma su HTML. Funciones puras, probadas en Node (D22).
 - `comun.js` y `comun.css`: lo compartido por las dos páginas (D18).
-- `letras/*.html`: un archivo por canción. Contiene solo un fragmento HTML (sin
-  `<html>` ni `<head>`).
+- `letras/*.txt`: un archivo de texto por canción, en el formato de §3.
 - `assets/`: logos, imágenes e íconos de la app (`icon-192.png`, `icon-512.png`,
   `apple-touch-icon.png`, generados desde `virgen-icono-color.jpg`), y los
   íconos de la interfaz (`iconos.svg`, D21).
@@ -91,9 +92,10 @@ publica tal cual en GitHub Pages. No agregar frameworks, bundlers, `npm` ni
 pasos de compilación. Las librerías externas solo vienen por CDN: hoy Firebase,
 Google Fonts y `qrious` (cdnjs, solo en `qr.html`).
 
-**D2. Letras como fragmentos HTML cargados por `fetch`.** Así agregar una
-canción es solo crear un archivo. Consecuencia: el sitio no funciona abriéndolo
-con `file://`; para probarlo hay que servirlo por HTTP (ver §5).
+**D2. Letras como archivos de texto cargados por `fetch`** (`letras/<id>.txt`
+desde 2026-11-17; antes eran fragmentos HTML). Así agregar una canción es solo
+crear un archivo. Consecuencia: el sitio no funciona abriéndolo con `file://`;
+para probarlo hay que servirlo por HTTP (ver §5).
 
 **D3. `SONGS` en `songs.js` es la fuente de verdad del índice** (archivo propio
 desde 2026-10-01). Lo cargan `index.html`, `cancion.html` y el service worker
@@ -114,16 +116,18 @@ reglas de la base (`database.rules.json`, D16).
 con el botón del encabezado. La seguridad la dan el login con Google y las
 reglas de la base (D16).
 
-**D7. Acordes en `<c>`, alineados con espacios dentro de un `<pre>`.** La fuente
-es proporcional (EB Garamond), así que la alineación es aproximada. Al cargar
-letras se conserva el espaciado del original, que suele venir de un documento
-con fuente proporcional y cae razonablemente bien.
+**D7. Cada acorde anclado a su sílaba** (2026-11-17, reemplaza a la
+alineación con espacios). Hasta esa fecha los acordes iban en una línea propia,
+alineados con espacios dentro de un `<pre>`: con la fuente proporcional (EB
+Garamond) la alineación era aproximada, y no se podían mover desde la web.
+Ahora cada acorde va escrito justo antes de la letra sobre la que cae
+(`re[MIm]cibe`) y la página lo dibuja exacto encima. Formato en §3; dibujo y
+conversión en D22.
 
-**D8. Las líneas que solo tienen acordes se envuelven en `.chord-line`.** Lo
-hace `wrapChordLines` en `cancion.html`. Así se ocultan enteras al esconder los
-acordes y en modo banco, sin dejar renglones en blanco. Cuenta como línea de
-acordes la que, además de los `<c>`, solo tiene espacios, guiones, barras,
-puntos, paréntesis o un prefijo `Intro:`.
+**D8. Renglones de solo acordes** (`.solo-acordes`): el renglón que, además de
+los acordes, solo tiene espacios, guiones, barras, puntos, paréntesis o un
+`Intro:` al principio. Se oculta entero al esconder los acordes y en modo
+banco, sin dejar un renglón en blanco. Conserva sus espacios.
 
 **D9. Transposición y capotraste.** Acorde mostrado = original + transposición −
 traste del capo. Con capo, los acordes se muestran en la posición en que se
@@ -142,8 +146,9 @@ mayor que lee desde el celular (§4c).
   en voz alta) se sacó porque nadie lo usaba. Para leer la letra en voz alta
   queda el lector de pantalla del celular (D11).
 
-**D11. Accesibilidad.** Los `<c>` y las `.chord-line` llevan `aria-hidden` para
-que los lectores de pantalla lean solo la letra.
+**D11. Accesibilidad.** Los `<c>` y los renglones `.solo-acordes` llevan
+`aria-hidden` para que los lectores de pantalla lean solo la letra. Al copiar
+la letra no se copian los acordes (`user-select: none`).
 
 **D12. Audios por canción: solo links** (2026-10-01). Se cargan de dos maneras
 y el reproductor lo arma `cancion.html`:
@@ -274,8 +279,7 @@ sola vez:
   - `MODO` (banco, admin, cat, leídos de la URL).
   - `linkCon(página, extra)`: links que conservan modo, admin y categoría (D4).
   - `botonModo()`: el botón "Modo admin".
-  - `normalize`, `escaparHtml` y `lineasDeLetra` (la usa la búsqueda por
-    letra).
+  - `normalize` y `escaparHtml`.
   - `ico(nombre)` y `ponerConIcono(el, nombre, texto)`: íconos (D21).
   - `leerCopia` / `guardarCopia`.
   - Misa de Hoy: `insertarEnMisa` (orden por momento) y el borrador
@@ -292,6 +296,9 @@ sola vez:
   - **Todo dato nuevo de Firebase tiene que usar estas funciones.**
 - **`acordes.js`:** funciones puras de acordes. Si se agrega un acorde a una
   letra, `tests/acordes.node.mjs` avisa si le falta diagrama.
+- **`letra.js`** (D22): `parsearLetra`, `escribirLetra`, `htmlDeLetra`,
+  `lineasDeTexto` (la usa la búsqueda por letra), `acordesDeLetra`,
+  `colapsarEspacios` y `armarRenglon`.
 - **`comun.css`:** paleta, base, encabezado, `[hidden]` global, la base de los
   botones píldora, la barra de sesión y el aviso sin conexión.
   - Las páginas no inyectan estilos desde JS.
@@ -385,20 +392,66 @@ dibujados para el sitio, en `assets/iconos.svg`.
 - **`offline.js` no depende de `comun.js`:** el aviso de versión nueva tiene
   que funcionar aunque la página guardada sea de otra versión. Si falta
   `ponerConIcono`, muestra solo el texto.
+
+**D22. Formato y dibujo de las letras** (2026-11-17, etapa 1 del plan de
+canciones editables, §6). Base para mover acordes y cargar canciones desde la
+web.
+- **Formato** (`letras/<id>.txt`, detalle en §3): texto plano con cada acorde
+  anclado a su sílaba (`[SOL]Toma, Señor, y re[MIm]cibe`). Lo leen y escriben
+  `parsearLetra` / `escribirLetra` de `letra.js`. Leer y volver a escribir da el
+  mismo texto: lo prueba `tests/letra.node.mjs` con todas las letras.
+- **Dibujo** (`htmlDeLetra` + CSS de `cancion.html`):
+  - Cada palabra con acordes va en un `.palabra` (no se corta), y cada acorde
+    con su sílaba en un `.tramo`: el `<c>` arriba, la `.sil` abajo.
+  - El acorde no ocupa lugar en la letra (`position: absolute`), así la letra
+    se lee de corrido. Un puntal invisible (`.tramo::before`) hace más alto
+    solo el renglón de pantalla que tiene acordes.
+  - Un renglón largo sigue abajo, con sangría, en vez de desplazarse de
+    costado: cada acorde viaja con su sílaba. En un celular no hay que
+    desplazarse de costado en ninguna letra.
+  - Todo el texto va escapado: las letras van a poder venir de la web.
+- **Espacio solo donde hace falta** (`acomodarAcordes()` en `cancion.js`):
+  - Un acorde sin sílaba (después de una palabra o al final del renglón) ocupa
+    su ancho: es el hueco de la palabra que se sostiene (`mí,[DO7] tan`).
+  - Dos acordes del mismo renglón que quedarían encimados: se corre el
+    segundo. Entre palabras se agranda el espacio; dentro de una palabra va un
+    guion (`"a- mor"`, clase `.estirado`).
+  - Un acorde que se saldría por la derecha: su palabra pasa al renglón de
+    abajo (`<br class="salto">`).
+  - Depende de los anchos: se repite al transponer, al mostrar los acordes, al
+    cambiar el tamaño de letra o el ancho de la pantalla, y al cargar las
+    fuentes. Con los acordes ocultos y en banco no hace nada: texto corrido.
+- **Conversión de las 108 letras** (2026-11-17): se midió en pantalla, con el
+  dibujo viejo, dónde se veía cada acorde, y se lo ancló a la letra más
+  cercana. Así quedó cada acorde donde lo veían los músicos, aunque en el
+  original estuviera corrido: eso se corrige con el editor (etapa 2).
+  - No se ancla en espacios ni en signos de cierre (`,` `.`); sí en los guiones
+    de una sílaba sostenida (`pa---az`).
+  - Un acorde en un hueco largo entre palabras (más de 0,5 em de toda letra)
+    quedó después de la palabra anterior.
+  - Los espacios de más dentro de la letra (estaban para hacer lugar a los
+    acordes) quedaron en uno. Los huecos dobles alrededor del estribillo (las
+    marcas `<b>` se veían como renglones vacíos) quedaron en uno.
+  - Verificado: los 5651 acordes en el mismo orden, el mismo texto y cada
+    acorde a 0,1 em de su letra (mediana).
+  - Arreglado a mano: `com_alma-misionera`, que tenía un renglón de letra y uno
+    de acordes pegados.
 ---
 
 ## 3. Reglas de negocio: canciones
 
 ### Archivo y entrada en el índice
 
-1. Crear `letras/<prefijo>_<slug>.html`. El slug va en minúsculas, sin tildes ni
-   ñ, con palabras separadas por guiones (`senor`, `oracion-del-alma-enamorada`).
+1. Crear `letras/<prefijo>_<slug>.txt` (UTF-8, fin de línea LF; `.gitattributes`
+   lo asegura aunque Git convierta a CRLF en Windows). El slug va en
+   minúsculas, sin tildes ni ñ, con palabras separadas por guiones (`senor`,
+   `oracion-del-alma-enamorada`).
 2. Agregar la entrada en `SONGS` (`songs.js`), dentro del bloque comentado de
    su prefijo:
    ```js
    { "id": "com_mi-cancion", "num": 0, "title": "Mi canción", "category": "comunion" },
    ```
-   - `id`: igual al nombre del archivo, sin `.html`.
+   - `id`: igual al nombre del archivo, sin `.txt`.
    - `num`: número de la canción en el cancionero impreso del coro. Usar `0` si
      no tiene.
    - `title`: con tildes y mayúsculas normales.
@@ -453,35 +506,48 @@ dibujados para el sitio, en `assets/iconos.svg`.
 - No incluir las marcas de tono del cancionero impreso (`T1`, `T2/3`, `T3/4`).
   "La fonte T5" es una excepción histórica.
 
-### Formato de la letra
+### Formato de la letra (2026-11-17, D7 y D22)
 
-- Acordes en notación latina y mayúsculas, dentro de `<c>`, en una línea propia
-  encima del verso:
+- Cada acorde va entre corchetes, **justo antes de la letra sobre la que cae**,
+  dentro del verso:
   ```
-  <c>SOL</c>             <c>MIm</c>  <c>DO</c>
-  Toma Señor y recibe toda mi libertad,
+  [SOL]Toma, Señor, y re[MIm]cibe toda mi [DO]libertad,
   ```
+  La página lo dibuja exactamente encima de esa letra. No hay que alinear nada
+  con espacios: un solo espacio entre palabras.
+- **Acorde después de una palabra** (se toca mientras se sostiene, o al final
+  del verso): pegado al final de la palabra, antes del espacio o al final del
+  renglón: `tan cerca de mí,[DO7] tan cerca de mí,[SOL]`.
 - Así se escriben los acordes:
   - Menores: `m` después del sostenido (`FA#m`, no `FAm#`).
   - Séptimas y otros: `RE7`, `FA#m7`, `SOLmaj7`, `REsus4`, `DOadd9`.
   - Bemoles: se aceptan (`SIb`).
   - Con bajo: `RE/FA#`.
-  - Optativos: entre paréntesis por fuera de la etiqueta (`(<c>MI</c>)`).
+  - Optativos: paréntesis adentro de los corchetes (`[(MI)]`).
 - Las fuentes llegan con otras notaciones. Se convierten siempre:
   - Americana: `Am` → `LAm`, `G/F#` → `SOL/FA#`.
   - Latina en minúscula: `Rem` → `REm`.
   - Menor con guion: `La-` → `LAm`.
-- **Estribillo** entre `<b>` y `</b>`, cada etiqueta en su propia línea. Si el
-  estribillo se repite sin escribirlo entero: `<b>(Estribillo) Primeras palabras…</b>`.
+- **Fuente con los acordes en una línea encima del verso** (lo habitual en
+  internet y WhatsApp): cada acorde va a la letra que tiene debajo de su
+  primera letra, contando columnas como en una fuente de ancho fijo, y después
+  se revisa. Hasta que exista "Pegar con acordes arriba" (etapa 3 del plan,
+  §6) esto se hace a mano, al cargar por el chat.
+- **Estribillo:** `{estribillo}` y `{/estribillo}`, cada marca en su propio
+  renglón. Si el estribillo se repite sin escribirlo entero, va solo su
+  comienzo entre las marcas: `(Estribillo) Primeras palabras…`.
 - **Repeticiones:** `(bis)` al final del verso, o `/…/ (bis)` para marcar el
   tramo.
-- **Intro:** una línea `Intro: <c>DO</c> <c>FA</c> …` al principio, seguida de
-  una línea en blanco. También vale una progresión entre paréntesis.
+- **Intro:** un renglón `Intro: [DO] [FA] …` al principio, seguido de un
+  renglón vacío. También vale una progresión entre paréntesis. Un renglón de
+  solo acordes conserva sus espacios (D8).
 - **Subtítulos** dentro de una letra (varias canciones en un archivo, como
-  Antífonas): `<h3>`. **Aclaraciones:** `<i>`.
-- Estrofas separadas por una línea en blanco. Sin espacios al final de línea.
-- **Letra pendiente:** si la canción está en el índice pero falta la letra, usar
-  el bloque `<div class="letra-pendiente">` (ver `com_eucaristia.html`).
+  Antífonas): `{titulo: A la tarde}`. **Aclaraciones** (en cursiva):
+  `{nota: (Porque sólo Él te puede salvar…)}`.
+- Estrofas separadas por un renglón vacío. Sin espacios al final de línea.
+- **Letra pendiente:** si la canción está en el índice pero falta la letra, el
+  archivo tiene solo `{pendiente}` (ver `com_eucaristia.txt`).
+- No usar `[`, `]`, `{` ni `}` en la letra: son marcas del formato.
 
 ### Correcciones al cargar
 
@@ -490,8 +556,8 @@ dibujados para el sitio, en `assets/iconos.svg`.
   cambios**.
 - No reescribir versos ni "corregir" contra el poema original si el coro canta
   otra versión (ej.: "pastorcito" en vez de "pastorcico").
-- Marcar un estribillo con `<b>` es una interpretación: avisar al usuario cuando
-  no está indicado en la fuente.
+- Marcar un estribillo con `{estribillo}` es una interpretación: avisar al
+  usuario cuando no está indicado en la fuente.
 - Si la fuente trae los acordes amontonados o sin alinear, no inventar en qué
   sílaba cae cada uno: dejarlos como vienen y avisar.
 
@@ -572,8 +638,9 @@ Ninguna aparece en modo banco.
 
 - **Tamaño de letra** (2026-10-02, también en banco, excepción a D10):
   - Botones A− / A+ arriba de la letra, con 6 tamaños (de 0,85 a 1,6 veces).
-  - Escala el `<pre>` con la variable CSS `--escala-letra`. Los acordes son
-    `em`, así que crecen con la letra y la alineación se mantiene.
+  - Escala la letra con la variable CSS `--escala-letra`. Los acordes son
+    `em`, así que crecen con la letra y siguen sobre su sílaba. Con la letra
+    grande, los versos largos siguen en el renglón de abajo (D22).
   - Se recuerda en el celular (`localStorage.tam_letra`).
 - **Pantalla encendida**, con dos mecanismos:
   - **Wake Lock API:** se pide al abrir la canción y se renueva al volver a la
@@ -744,7 +811,7 @@ Hecha en 7 commits, cada uno verificado con `tests/`:
 
 Sin cambios visuales: las capturas son idénticas al píxel.
 
-### Plan: canciones editables desde la web (propuesto 2026-11-17, falta aprobar)
+### Plan: canciones editables desde la web (aprobado 2026-11-17; etapa 1 hecha)
 
 **Objetivo:** que un admin pueda, desde el celular, corregir una canción (mover
 un acorde a la sílaba justa, cambiarlo, agregarlo o borrarlo, corregir el
@@ -758,81 +825,27 @@ texto) y cargar canciones nuevas, sin pasar por el repo ni por un chat.
 - Edita solo quien tiene sesión de admin (D16).
 - No hay modo proyector.
 
-#### Formato nuevo: el acorde anclado a su sílaba
+**Formato:** cada acorde anclado a su sílaba (§3, D7 y D22). El mismo texto
+sirve para el repo (`letras/<id>.txt`) y para Firebase
+(`canciones/<id>/letra`). Lo interpretan y escriben las funciones de
+`letra.js` (`parsearLetra`, `escribirLetra`, `armarRenglon`…), que van a usar
+también el editor y la carga de canciones nuevas.
 
-Hoy la posición de un acorde depende de los espacios, y con la fuente
-proporcional nunca cae exacta (D7). Medido el 2026-11-17: en 1347 de las 1807
-líneas de acordes, los acordes pasan del final del verso si se cuentan letras.
-Por eso los espacios no sirven para editar.
+#### Etapa 1 — Nuevo dibujo y conversión de todas las letras: HECHA (2026-11-17)
 
-Formato nuevo (un ChordPro reducido), texto plano:
-```
-{titulo: Antífona 1}
-Intro: [DO] [FA] [SOL]
-
-[SOL]Toma, Señor, y re[MIm]cibe toda mi [DO]libertad,
-{estribillo}
-[RE]Señor, me has mi[LA]rado a los ojos,
-{/estribillo}
-[(MI)]  [LA] [RE]
-{nota: Se repite dos veces}
-```
-- `[ACORDE]` va justo antes de la letra sobre la que cae. Los opcionales van
-  entre paréntesis adentro: `[(MI)]`.
-- **Renglón de solo acordes** (intro, interludio, final): un renglón que no
-  tiene más que acordes.
-- `{estribillo}` … `{/estribillo}` reemplaza `<b>`; `{titulo: …}` reemplaza
-  `<h3>`; `{nota: …}` reemplaza `<i>`.
-- `(bis)`, `/…/` y la letra pendiente se escriben igual que hoy.
-- Las reglas de nombres de acordes de §3 no cambian (latina, `FA#m`, `RE/FA#`).
-
-**Dónde vive:** el mismo texto sirve para el repo y para Firebase.
-- **Repo:** `letras/<id>.txt` reemplaza a `letras/<id>.html`.
-- **Firebase:** `canciones/<id>/letra`.
-
-Una sola función pura lo interpreta: `letra.js`, probada en Node como
-`acordes.js`. La usan la página de la canción, la búsqueda, el editor y el
-service worker.
-
-**Cómo se dibuja:** cada tramo de letra con su acorde arriba
-(`<span class="tramo"><c data-original="SOL">SOL</c>Toma, Señor, y re</span>`).
-- El acorde cae exacto sobre su sílaba, con cualquier fuente y tamaño (A− / A+).
-- Si el acorde es más ancho que su tramo, el tramo se estira y, si es en medio
-  de una palabra, se marca con un guion.
-- Sin acordes (botón o modo banco), los tramos vuelven a ser texto corrido.
-- Las líneas largas pueden pasar al renglón siguiente en vez de desplazarse de
-  costado, porque los acordes viajan con su tramo.
-- Siguen igual: transponer, capo, diagramas (`<c data-original>`), tono del
-  coro, A− / A+, desplazamiento automático y `aria-hidden` en los acordes (D11).
-
-#### Etapa 1 — Nuevo dibujo y conversión de todas las letras (la base)
-
-1. `letra.js`: interpreta el formato y devuelve renglones con sus tramos, más
-   las líneas de texto para la búsqueda (reemplaza a `lineasDeLetra`). Lleva
-   pruebas en Node: casos de §3, acordes al final, renglones de solo acordes,
-   opcionales, estribillo y títulos.
-2. Nuevo dibujo en `cancion.js`, con `wrapChordLines` (D8) quitado.
-3. **Conversión midiendo la pantalla**, con un script en `tests/` (Chrome
-   headless). Para cada letra actual:
-   - la dibuja como hoy;
-   - mide la posición de cada `<c>` y busca qué letra del verso de abajo queda
-     debajo (`caretPositionFromPoint` o un `Range`);
-   - escribe el `.txt`.
-   Un acorde que cae más allá del final del verso se ancla al final. Así cada
-   canción queda como la ven hoy los músicos.
-4. **Verificación de las 106 canciones:**
-   - Automática: mismos acordes en el mismo orden por renglón, mismo texto y
-     ningún acorde perdido.
-   - Capturas de antes y después lado a lado, para revisar a ojo.
-   - Ya detectado: `com_alma-misionera.html`, renglones 48 y 49, tiene acordes
-     mezclados con letra y se arregla a mano.
-5. Actualizar:
-   - `sw.js`: `LETRAS` pasa a `.txt` y se sube `VERSION`.
-   - La búsqueda.
-   - Las pruebas que miran `pre c`.
-   - AGENTS.md (D2, D7, D8 y §3) y CLAUDE.md (formato de letras).
-
-Se puede publicar sola: mejora la alineación de todas las canciones.
+- `letra.js` con sus pruebas en Node (`tests/letra.node.mjs`), el dibujo nuevo
+  en `cancion.js` / `cancion.html` y la búsqueda con `lineasDeTexto`.
+- Las 108 letras pasaron de `letras/<id>.html` a `letras/<id>.txt`, midiendo
+  en pantalla dónde se veía cada acorde (detalle y reglas en D22). Verificado:
+  mismos acordes y mismo texto, y antes / después lado a lado de cada canción.
+- Cambios respecto de lo planeado:
+  - El acorde no ocupa lugar en la letra: se lee de corrido, como antes, y solo
+    se abre espacio donde dos acordes chocarían (`acomodarAcordes()`).
+  - Se agregó el "acorde después de una palabra" (`mí,[DO7] tan`), para los
+    huecos que marcaban una palabra sostenida.
+- Pruebas nuevas: `tests/dibujo-letra.mjs` (dibujo en el navegador) y
+  `tests/letra.node.mjs`. Se actualizaron las que miraban `pre c`.
+- `sw.js`: `LETRAS` a `.txt`, `letra.js` en `PROPIOS`, `VERSION` v13.
 
 #### Etapa 2 — Editor de acordes (admin)
 
@@ -922,8 +935,8 @@ Se puede publicar sola: mejora la alineación de todas las canciones.
 - Cargar las letras de `com_eucaristia` y `var_glorioso-rey-en-la-cruz` (hoy
   tienen el aviso de "letra pendiente").
 - `ador_noche-oscura-jesed`: los acordes vinieron amontonados al principio de
-  cada verso. Reacomodarlos cuando alguien del coro confirme en qué sílaba cae
-  cada cambio.
+  cada verso. Reacomodarlos (con el editor de la etapa 2) cuando alguien del
+  coro confirme en qué sílaba cae cada cambio.
 - Definir los prefijos para San José, Adviento, Navidad, Cuaresma y Pascua.
 
 ---

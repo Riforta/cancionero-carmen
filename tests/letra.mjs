@@ -1,13 +1,15 @@
 // Tamaño de letra A− / A+ en cancion.html (todos los modos)
 import { connect, check, done, wait, FAKE_FIREBASE } from './cdp.mjs';
 const c = await connect();
+// desfase: lo más lejos que quedó un acorde del comienzo de su sílaba (px)
 const estado = `(() => {
-  const pre = document.getElementById('letra-box');
-  const cs = getComputedStyle(pre);
-  const fs = parseFloat(cs.fontSize);
-  const ch = pre.querySelectorAll('c')[3].getBoundingClientRect();
-  const base = pre.getBoundingClientRect().left + parseFloat(cs.paddingLeft) - pre.scrollLeft;
-  return { escala: pre.style.getPropertyValue('--escala-letra'), fs, posAcorde: (ch.left - base) / fs,
+  const box = document.getElementById('letra-box');
+  const fs = parseFloat(getComputedStyle(box).fontSize);
+  let desfase = 0;
+  for (const t of box.querySelectorAll('.tramo')) {
+    desfase = Math.max(desfase, Math.abs(t.firstElementChild.getBoundingClientRect().left - t.lastElementChild.getBoundingClientRect().left));
+  }
+  return { escala: box.style.getPropertyValue('--escala-letra'), fs, desfase, desborde: box.scrollWidth - box.clientWidth,
            menos: letraMenos.disabled, mas: letraMas.disabled, visible: getComputedStyle(document.querySelector('.tam-letra')).display !== 'none' };
 })()`;
 const p = await c.newPage({ fake: FAKE_FIREBASE({}), width: 390, height: 800 });
@@ -16,11 +18,12 @@ await p.ev(`localStorage.removeItem('tam_letra')`);
 await p.go('/cancion.html?id=com_pescador-de-hombres');
 const a = await p.ev(estado);
 check('tamaño normal al empezar', a.escala === '1' && !a.menos && !a.mas, JSON.stringify(a));
+check('cada acorde sobre su sílaba', a.desfase < 0.5, a.desfase + 'px');
 await p.ev('letraMas.click(); letraMas.click(); letraMas.click()');
-await wait(400);   // los acordes tienen transition: all 0.1s
+await wait(200);
 const b = await p.ev(estado);
 check('A+ ×3 → escala 1.45', b.escala === '1.45' && Math.abs(b.fs / a.fs - 1.45) < 0.02, `${a.fs}px → ${b.fs}px`);
-check('los acordes siguen alineados (misma posición relativa)', Math.abs(b.posAcorde - a.posAcorde) < 0.15, `${a.posAcorde.toFixed(2)}em → ${b.posAcorde.toFixed(2)}em`);
+check('con la letra grande, cada acorde sigue sobre su sílaba y nada se sale de costado', b.desfase < 0.5 && b.desborde <= 1, JSON.stringify({ desfase: b.desfase, desborde: b.desborde }));
 await p.ev('letraMas.click(); letraMas.click()');
 check('tope: A+ deshabilitado en el máximo', (await p.ev(estado)).mas === true && (await p.ev(estado)).escala === '1.6');
 await p.go('/cancion.html?id=com_pescador-de-hombres');
