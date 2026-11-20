@@ -74,6 +74,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   - `seguirDato()`, `suscribirMisa()` y `escribirDato()` (D18).
   - Lo de la sesión de admin (D16).
 - `tests/`: pruebas en Chrome headless y en Node (§5, `tests/README.md`).
+- `herramientas/pasar-web-al-repo.mjs`: pasa al repo lo cargado desde la web
+  (D25).
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
@@ -467,8 +469,9 @@ acordes desde el celular, sin pasar por el repo.
   - `anterior`: la corrección que se reemplazó. Si lo reemplazado era el
     archivo, no se guarda (para eso está "Volver a la versión original").
   - **Corregir el `.txt` de una canción corregida desde la web no alcanza:**
-    se sigue viendo la de Firebase. Hasta la etapa 4 (§6), pasar el cambio a
-    mano o usar "Volver a la versión original".
+    se sigue viendo la de Firebase. Primero pasarla al repo
+    (`herramientas/pasar-web-al-repo.mjs`, D25) o usar "Volver a la versión
+    original".
 - **Quién y cuándo:** "Corregida por Mateo · 17/11", debajo de la letra
   (después de anterior / siguiente, D20). Lo ven músicos y admin, no banco.
   El admin con sesión ve además, con confirmación:
@@ -591,6 +594,42 @@ de canciones editables, §6).
   en la consola las dos entradas (`canciones_indice/<id>` y
   `canciones/<id>`).
 - **Pruebas:** `tests/canciones-web.mjs`, más casos en `letra.node.mjs`.
+
+**D25. Respaldo en el repo de lo cargado desde la web** (2026-11-20, etapa 4
+del plan de canciones editables, §6). El plan gratuito de Firebase no hace
+copias de seguridad: lo cargado desde la web se pasa al repo cada tanto,
+cuando el usuario lo pide ("pasá las canciones de la web al repo").
+- **El script:** `node herramientas/pasar-web-al-repo.mjs` (Node 22, sin
+  dependencias; `--probar` muestra qué haría sin escribir). Lee por REST, sin
+  sesión, `canciones` y `canciones_indice`, y:
+  - escribe `letras/<id>.txt` de cada letra corregida o cargada desde la web,
+    en el formato del repo (`escribirLetra(parsearLetra())`: LF, sin
+    espacios al final);
+  - agrega a `SONGS` cada canción nueva, después de la última de su momento;
+    si el momento no tiene ninguna, en un bloque nuevo al final con su
+    comentario (`// --- NAVIDAD (nav_) ---`);
+  - una canción nueva sin letra queda `{pendiente}`;
+  - no toca lo que ya es igual al repo y avisa lo que no puede pasar (letra
+    sin entrada en el índice, entrada inválida). `anterior` no se pasa.
+  - Si `canciones_indice` no se puede leer (reglas sin pegar), avisa y pasa
+    igual las correcciones.
+- **Después:** correr las pruebas (`letra.node.mjs` revisa que cada canción
+  tenga su archivo y que todas las letras se lean y escriban iguales; 
+  `acordes.node.mjs`, los diagramas), commit y push.
+- **Borrar de Firebase lo ya pasado:** el script no puede (escribir necesita
+  sesión de admin). Lo hace el índice: con la sesión de un admin confirmada
+  por Google (no basta la recordada), una vez por carga
+  (`limpiarLoPasadoAlRepo`), en una sola operación (`escribirVarios`):
+  - `canciones/<id>` de una canción del repo cuya letra es igual al archivo;
+  - `canciones_indice/<id>` de una canción que ya está en `songs.js`.
+  - Como es igual a lo publicado, no cambia nada en pantalla. Un admin que
+    tiene en el celular el archivo de antes no limpia: lo hace en otra visita,
+    cuando el service worker ya trajo el nuevo. Aviso: "✓ Se sacó de la web
+    lo que ya está en el repo (N)".
+  - Una corrección distinta del archivo (alguien la cambió después del paso)
+    se queda: sigue pisando al archivo.
+- **Pruebas:** `tests/pasar-al-repo.node.mjs` (el script, con datos
+  inventados) y la limpieza en `tests/canciones-web.mjs`.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -977,7 +1016,7 @@ Hecha en 7 commits, cada uno verificado con `tests/`:
 
 Sin cambios visuales: las capturas son idénticas al píxel.
 
-### Plan: canciones editables desde la web (aprobado 2026-11-17; etapas 1 a 3 hechas)
+### Plan: canciones editables desde la web (aprobado 2026-11-17; terminado 2026-11-20)
 
 **Objetivo:** que un admin pueda, desde el celular, corregir una canción (mover
 un acorde a la sílaba justa, cambiarlo, agregarlo o borrarlo, corregir el
@@ -1092,8 +1131,13 @@ Lo planeado:
   abrirlas. Con conexión, el índice las baja todas en segundo plano (son
   pocas).
 
-#### Etapa 4 — Respaldo en el repo
+#### Etapa 4 — Respaldo en el repo: HECHA (2026-11-20)
 
+Cómo quedó: D25. Cambio respecto de lo planeado: el script no borra de
+Firebase (no tiene sesión de admin); lo que quedó igual al repo lo saca el
+índice abierto por un admin con sesión.
+
+Lo planeado:
 - **Por qué:** el plan gratuito de Firebase no hace copias de seguridad.
 - **Cómo:** un script (Node, leyendo por REST) baja `canciones/` y
   `canciones_indice/` y escribe `letras/<id>.txt` y las entradas de `SONGS`.
@@ -1126,7 +1170,8 @@ Lo planeado:
 ### Otros pendientes
 
 - **Editar y cargar canciones desde la web:** ver "Plan: canciones editables
-  desde la web", arriba. Falta la etapa 4 (respaldo en el repo).
+  desde la web", arriba. Terminado (2026-11-20); para pasar lo de la web al
+  repo, D25.
 - Botón para borrar una canción cargada desde la web (hoy, en la consola;
   D24).
 

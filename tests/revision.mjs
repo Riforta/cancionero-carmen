@@ -5,11 +5,15 @@ const c = await connect();
 const ADMIN = { email: 'test@gmail.com' };
 const DB = extra => ({ 'admins/test@gmail,com': true, ...extra });
 const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto'); };
+// Espera a que el índice tenga la conexión con la base (falsa) y la misa:
+// con la máquina cargada, 2 s fijos a veces no alcanzan
+const lista = async p => { for (let t = 0; t < 60 && !(await p.ev('Array.isArray(window.__writes) && misaRef !== null')); t++) await wait(100); await wait(200); };
 
 // A2: ids publicados que ya no existen en SONGS
 {
   const p = await c.newPage({ fake: FAKE_FIREBASE(DB({ misa_actual: ['ent_bendecire', 'zzz_borrada', 'com_alma-misionera'] }), ADMIN) });
   await p.go('/index.html?admin=true');
+  await lista(p);
   check('A2: el chip cuenta solo canciones existentes', (await p.ev(`document.querySelector('.cat-chip .chip-count').textContent`)) === '2');
   check('A2: la lista coincide con el chip', (await p.ev(`document.querySelectorAll('.song-row').length`)) === 2);
   await guardia(p);
@@ -21,6 +25,7 @@ const guardia = async p => { if (!(await p.ev('Array.isArray(window.__writes)'))
 {
   const p = await c.newPage({ fake: FAKE_FIREBASE(DB({ misa_actual: ['ent_bendecire'] }), ADMIN), dialogAccept: true });
   await p.go('/index.html?admin=true');
+  await lista(p);
   await p.ev(`addToMisa('com_alma-misionera')`);
   await p.ev(`__db.misa_actual = ['mar_magnificat']; __emit('misa_actual')`); await wait(200);
   check('A3: no pisa los cambios locales', (await p.ev('JSON.stringify(misaIds)')) === '["ent_bendecire","com_alma-misionera"]');

@@ -14,6 +14,7 @@ Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENT
 - `comun.js` / `comun.css` — código y estilos compartidos por las dos páginas (ver D18 en AGENTS.md).
 - `avisos.html` + `avisos.js` — avisos del coro (ensayos, celebraciones), solo para músicos y admin.
 - `liturgia.js` — calendario litúrgico (tiempo, color, fiestas) calculado sin internet; ver D19.
+- `herramientas/pasar-web-al-repo.mjs` — cuando el usuario pide "pasá las canciones de la web al repo": `node herramientas/pasar-web-al-repo.mjs` (con `--probar`, sin escribir). Escribe `letras/` y `songs.js`; lo de Firebase lo limpia después el índice abierto por un admin (D25).
 - `tests/` — pruebas: `powershell -File tests/run.ps1` (regresión completa), `node tests/acordes.node.mjs` y `node tests/letra.node.mjs`. Ver `tests/README.md`.
 - `letras/*.txt` — un archivo de texto por canción, con la letra y los acordes (formato abajo).
 - `assets/` — logos, imágenes e íconos de la interfaz (`iconos.svg`, ver D21).

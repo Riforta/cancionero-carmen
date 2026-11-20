@@ -14,6 +14,7 @@ powershell -File tests/run.ps1 capturas.mjs    # comparar contra la referencia
 node tests/acordes.node.mjs                    # acordes.js en Node, sin navegador (Node 22+)
 node tests/letra.node.mjs                      # formato de las letras (letra.js) en Node
 node tests/liturgia.node.mjs                   # calendario litúrgico en Node
+node tests/pasar-al-repo.node.mjs              # el script que pasa lo de la web al repo
 ```
 
 `run.ps1` levanta `python -m http.server 8642` en la raíz, abre Chrome
@@ -69,7 +70,8 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
 | `borrador.mjs` | Borrador de la misa guardado en el celular, botón "Agregar a la Misa de Hoy" de la canción, `+` / `✓` del índice y aviso flotante |
 | `medios-admin.mjs` | Audios cargados desde la app: alta, baja, mezcla con `songs.js`, permisos, banco y reglas |
-| `canciones-web.mjs` | Canciones cargadas desde la web (D24): "Nueva canción" (repetidas, lo que escribe), el editor que abre en "Texto", "Pegar con acordes arriba", texto a mano, corrección de texto de una del repo, lista, misa, búsqueda, título escapado, sin conexión, banco y reglas |
+| `canciones-web.mjs` | Canciones cargadas desde la web (D24): "Nueva canción" (repetidas, lo que escribe), el editor que abre en "Texto", "Pegar con acordes arriba", texto a mano, corrección de texto de una del repo, lista, misa, búsqueda, título escapado, sin conexión, banco, la limpieza de lo ya pasado al repo (D25) y reglas |
+| `pasar-al-repo.node.mjs` | `herramientas/pasar-web-al-repo.mjs` en Node, con datos inventados: qué pasa, formato de las letras, `songs.js` (bloque nuevo, comas, título escapado) |
 | `editor.mjs` | Editor de acordes (D23): elegir, ◀ ▶, llevar a otra letra (toques de verdad), cambiar, borrar, agregar, guardar, deshacer, volver al original, descartar, cambios sin guardar, sin conexión, otro admin guardó; músicos, copia local, banco por REST y reglas |
 | `saltos.mjs` | La página no se corre cuando aparecen la barra de sesión, los botones de admin o el de la misa (sesión recordada) |
 | `buscador.mjs` | El buscador del índice se esconde al bajar y vuelve al subir o al tocarlo |

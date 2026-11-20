@@ -887,7 +887,7 @@ function cargarMisaPublicada() {
   recibirMisa(misaPublicadaPendiente);
 }
 
-suscribirMisa(recibirMisa).then(ref => { misaRef = ref; });
+suscribirMisa(recibirMisa).then(ref => { misaRef = ref; limpiarLoPasadoAlRepo(); });
 
 // Quién publicó la misa y cuándo (músicos y admin; en banco no se lee)
 let misaMeta = null;
@@ -1392,6 +1392,43 @@ if (MODO.admin) {
       .catch(() => {});
   });
 }
+
+// ── Lo de la web que ya pasó al repo (D25) ──
+// Después de herramientas/pasar-web-al-repo.mjs y del push, lo que quedó en
+// Firebase igual al repo sobra. Un admin con sesión confirmada lo saca, una
+// vez por carga y en una sola operación:
+// - canciones/<id> de una canción del repo cuya letra es igual al archivo;
+// - canciones_indice/<id> de una canción que ya está en songs.js.
+// Igual al repo = no cambia nada en pantalla. Si el archivo guardado en el
+// celular es de antes, no son iguales y se limpia en otra visita
+let limpiezaHecha = false;
+function limpiarLoPasadoAlRepo() {
+  if (limpiezaHecha || !MODO.admin || !esAdminOk || !misaRef || !navigator.onLine) return;
+  limpiezaHecha = true;
+  const deRepo = id => SONGS.some(s => s.id === id && !s.web);
+  const canonica = t => escribirLetra(parsearLetra(t));
+  // Solo con la sesión de Google ya confirmada (la recordada puede no estarlo)
+  cargarAuth()
+    .then(auth => new Promise(ok => { const fin = auth.onAuthStateChanged(u => { if (typeof fin === 'function') fin(); ok(u); }); }))
+    .then(usuario => usuario && esAdminOk ? Promise.all([leerFirebase('canciones'), leerFirebase('canciones_indice')]) : null)
+    .then(async datos => {
+      if (!datos) return;
+      const [canciones, indice] = datos;
+      const cambios = {};
+      Object.keys(indice || {}).filter(deRepo).forEach(id => { cambios['canciones_indice/' + id] = null; });
+      for (const [id, c] of Object.entries(canciones || {})) {
+        if (!deRepo(id) || !c || typeof c.letra !== 'string') continue;
+        const archivo = await fetch(`letras/${id}.txt`).then(r => r.ok ? r.text() : null).catch(() => null);
+        if (archivo !== null && canonica(archivo) === canonica(c.letra)) cambios['canciones/' + id] = null;
+      }
+      const n = Object.keys(cambios).length;
+      if (!n) return;
+      return escribirVarios(misaRef, cambios, null, 'sacar de la web lo que ya está en el repo')
+        .then(() => avisar(`✓ Se sacó de la web lo que ya está en el repo (${n})`));
+    })
+    .catch(() => {});
+}
+document.addEventListener('sesion-admin', limpiarLoPasadoAlRepo);
 
 render();
 restaurarVuelta();

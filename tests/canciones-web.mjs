@@ -50,7 +50,8 @@ const DB_WEB = { 'admins/test@gmail,com': true, [`canciones_indice/${ID}`]: ENTR
   [`canciones/${ID}`]: { letra: '{pendiente}\n', por: 'Admin Prueba', cuando: Date.now() } };
 {
   const p = await c.newPage({ fake: FAKE_FIREBASE(DB_WEB, ADMIN), dialogAccept: true, width: 390, height: 800 });
-  await p.go('/index.html?admin=true', 2000);   // como al venir del índice: la lista queda en el celular
+  await p.go('/index.html?admin=true', 500);   // como al venir del índice: la lista queda en el celular
+  for (let t = 0; t < 60 && !(await p.ev(`(localStorage.getItem('canciones_indice') || '').includes('${ID}')`)); t++) await wait(100);
   await p.go(`/cancion.html?id=${ID}&admin=true&cat=navidad&editar=texto`, 2500);
   if (!(await es(p, 'Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto');
   check('título de la canción de la web', (await p.ev(`document.getElementById('song-title').textContent`)) === 'Noche de paz');
@@ -140,7 +141,32 @@ const DB_WEB = { 'admins/test@gmail,com': true, [`canciones_indice/${ID}`]: ENTR
   await p.close();
 }
 
-// ── 5. Reglas de la base ──
+// ── 5. Lo que ya pasó al repo se saca de la web (D25) ──
+{
+  const TOMA = fs.readFileSync(new URL('../letras/ofert_toma.txt', import.meta.url), 'utf8');
+  const rest = {
+    canciones: { ofert_toma: { letra: TOMA.replace(/\n/g, '\r\n') + '\n', por: 'Mateo', cuando: 1 }, 'com_alma-misionera': { letra: 'Otra letra\n' }, [ID]: { letra: LETRA } },
+    canciones_indice: { ofert_toma: { titulo: 'Toma', categoria: 'ofertorio' }, [ID]: ENTRADA }
+  };
+  const p = await c.newPage({ fake: FAKE_FIREBASE({ 'admins/test@gmail,com': true, misa_actual: [] }, ADMIN), rest, width: 390, height: 800 });
+  await p.go('/index.html?admin=true', 3000);
+  if (!(await es(p, 'Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto');
+  const w = JSON.parse(await p.ev('JSON.stringify(__writes)'));
+  check('admin: saca de la web lo que quedó igual al repo, en una operación', JSON.stringify(w.map(x => [x[0], x[1], x[2]]).sort()) ===
+    JSON.stringify([['update', 'canciones/ofert_toma', null], ['update', 'canciones_indice/ofert_toma', null]]), JSON.stringify(w));
+  check('deja la corrección distinta y la canción que sigue siendo de la web', !w.some(x => x[1].includes('alma-misionera') || x[1].includes(ID)));
+  check('sin errores', p.errors.length === 0, p.errors.join(' | '));
+  await limpiar(p);
+  await p.close();
+  const m = await c.newPage({ fake: FAKE_FIREBASE({ misa_actual: [] }), rest, width: 390, height: 800 });
+  await m.go('/index.html', 3000);
+  check('músicos: no limpia nada', (await m.ev('__writes.length')) === 0);
+  await limpiar(m);
+  await m.ev(`localStorage.removeItem('cancion_${ID}')`);
+  await m.close();
+}
+
+// ── 6. Reglas de la base ──
 {
   const r = JSON.parse(fs.readFileSync(new URL('../database.rules.json', import.meta.url), 'utf8')).rules.canciones_indice;
   check('reglas: índice de la web con lectura pública y escritura de admins', r['.read'] === true && r.$id['.write'].includes("root.child('admins')"));
