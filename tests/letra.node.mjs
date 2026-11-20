@@ -101,6 +101,54 @@ check('armarRenglon: acordes en orden y en la misma posición', L.armarRenglon('
   check('todas las letras: texto + acordes y vuelta, y normalizar, no cambian nada', !distintas.length, distintas.join(', '));
 }
 
+// ── Texto escrito o pegado (pestaña "Texto") ──
+{
+  const { normalizarAcorde, chordLookup } = require(path.join(raiz, 'acordes.js'));
+  check('normalizarNombres: a notación latina, sin tocar lo que no es acorde',
+    L.normalizarNombres('[Am]Hola [(e)]ma[re7]no [xyz]x\nIntro: [G]  [D/F#]', normalizarAcorde) === '[LAm]Hola [(MI)]ma[RE7]no [xyz]x\nIntro: [SOL]  [RE/FA#]\n');
+  const dudas = L.revisarLetra('[Am]Hola [xyz]x\n[SOL13]a [DO\n{coro}\n{estribillo}\nb', normalizarAcorde, chordLookup);
+  const motivos = dudas.map(d => d.renglon + ' ' + d.motivo).join(' | ');
+  check('revisarLetra: americana, desconocido, sin diagrama, corchete, llave, estribillo abierto',
+    motivos.includes('1 «Am» queda LAm') && motivos.includes('1 «xyz» no es un acorde') && motivos.includes('2 SOL13 no tiene diagrama') &&
+    motivos.includes('2 Corchete sin cerrar') && motivos.includes('3 Llave') && motivos.includes('0 Falta cerrar el estribillo'), motivos);
+  check('revisarLetra: una letra del repo no tiene nada que revisar', !L.revisarLetra(fs.readFileSync(path.join(raiz, 'letras', 'ofert_toma.txt'), 'utf8'), normalizarAcorde, chordLookup).length);
+
+  const fuente = [
+    'Intro: G  D  Em  C',
+    '',
+    'G            D',
+    'Toma, Señor, y recibe',
+    '   Em        C       D7',
+    'toda mi libertad,',
+    '',
+    'Estribillo:',
+    'C         G',
+    'Tan cerca de mí',
+    '',
+    'la la la',
+    '\tAm',
+    '\tPaz'
+  ].join('\n');
+  const r = L.desdeAcordesArriba(fuente, normalizarAcorde);
+  check('acordes arriba: intro, cada acorde a su letra, después de la palabra y estribillo', r.texto === [
+    'Intro: [SOL]  [RE]  [MIm]  [DO]',
+    '',
+    '[SOL]Toma, Señor, [RE]y recibe',
+    'tod[MIm]a mi liber[DO]tad,[RE7]',
+    '',
+    '{estribillo}',
+    '[DO]Tan cerca [SOL]de mí',
+    '{/estribillo}',
+    '',
+    'la la la',
+    '[LAm]Paz'
+  ].join('\n') + '\n', JSON.stringify(r.texto));
+  check('acordes arriba: duda en "la la la"', r.dudas.some(d => d.renglon === 10 && d.motivo.includes('¿acordes o letra?')), JSON.stringify(r.dudas));
+  const entre = L.desdeAcordesArriba('  D\nya y se fue', normalizarAcorde);
+  check('acordes arriba: entre dos palabras pegadas, a la segunda con duda', entre.texto === 'ya [RE]y se fue\n' && entre.dudas.length === 1, JSON.stringify(entre));
+  check('acordes arriba: (opcional) y notación latina', L.desdeAcordesArriba('Re  (Mi)\nAmén amén', normalizarAcorde).texto === '[RE]Amén [(MI)]amén\n');
+}
+
 // ── HTML ──
 {
   const h = L.htmlDeLetra(L.parsearLetra('[SOL]Toma, Señor, y re[MIm]cibe'));

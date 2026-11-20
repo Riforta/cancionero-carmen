@@ -25,7 +25,9 @@ if ('serviceWorker' in navigator) {
       const urls = (await (await caches.open(clave)).keys()).map(r => r.url);
       guardadas = Math.max(guardadas, urls.filter(u => u.includes('/letras/')).length);
     }
-    if (guardadas >= SONGS.length) {
+    // Las canciones cargadas desde la web no tienen archivo (sus copias van
+    // en localStorage)
+    if (guardadas >= SONGS.filter(s => !s.web).length) {
       textoConIcono(estado, 'descarga', 'Listo para usar sin internet');
       estado.hidden = false;
     }

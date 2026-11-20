@@ -8,6 +8,8 @@ const texto = `(() => { const m = document.getElementById('misa-meta'); return m
 { // Publicar guarda misa y quién/cuándo en una sola operación
   const p = await c.newPage({ fake: FAKE_FIREBASE({ misa_actual: ['ent_bendecire'], 'admins/test@gmail,com': true }, ADMIN) });
   await p.go('/index.html?admin=true');
+  // En la primera carga del perfil a veces tarda más: se espera hasta 5 s
+  for (let t = 0; t < 30 && !(await p.ev('Array.isArray(window.__writes)')); t++) await wait(100);
   if (!(await p.ev('Array.isArray(window.__writes)'))) throw new Error('Firebase falso no cargado: aborto');
   const antes = Date.now();
   await p.ev(`addToMisa('com_alma-misionera'); publicarMisa()`); await wait(400);

@@ -84,6 +84,25 @@
         }
       }
     },
+    "canciones_indice": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+        ".validate": "$id.matches(/^[a-z]+_[a-z0-9-]+$/) && newData.hasChildren(['titulo', 'categoria'])",
+        "titulo": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+        },
+        "categoria": {
+          ".validate": "newData.isString() && newData.val().matches(/^(entrada|gloria|aleluya|ofertorio|santo|comunion|adoracion|carmelitanos|marianos|sanjose|adviento|navidad|cuaresma|pascua|varias)$/)"
+        },
+        "num": {
+          ".validate": "newData.isNumber() && newData.val() % 1 == 0 && newData.val() >= 0 && newData.val() <= 999"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
     "avisos": {
       ".read": true,
       "$id": {

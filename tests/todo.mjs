@@ -20,6 +20,7 @@ await import('./avisos.mjs');
 await import('./borrador.mjs');
 await import('./medios-admin.mjs');
 await import('./editor.mjs');
+await import('./canciones-web.mjs');
 await import('./volver.mjs');
 await import('./saltos.mjs');
 await import('./buscador.mjs');

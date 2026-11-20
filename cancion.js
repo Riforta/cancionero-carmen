@@ -29,10 +29,27 @@ if (!idCancion) {
 
 // Título: de SONGS (songs.js); si la canción no está, el de ?t= o uno armado
 // desde el id
-const cancionActual = SONGS.find(s => s.id === idCancion) || null;
-const tituloCancion = (cancionActual && cancionActual.title) || urlParams.get('t') ||
+// Las canciones cargadas desde la web (D24) están en SONGS con `web: true`
+// (comun.js, con la última lista guardada en el celular)
+let cancionActual = SONGS.find(s => s.id === idCancion) || null;
+const tituloDeRespaldo = urlParams.get('t') ||
   (idCancion || '').replace(/^[a-z]+_/, '').split('-')
     .map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+let tituloCancion = (cancionActual && cancionActual.title) || tituloDeRespaldo;
+const esCancionWeb = () => !!(cancionActual && cancionActual.web);
+
+// Si la lista de canciones de la web cambia (o llega por primera vez), el título
+if (!MODO.banco) {
+  seguirCancionesWeb();
+  document.addEventListener('canciones-web', () => {
+    cancionActual = SONGS.find(s => s.id === idCancion) || cancionActual;
+    tituloCancion = (cancionActual && cancionActual.title) || tituloDeRespaldo;
+    if (textoDibujado !== null) {
+      document.getElementById('song-title').textContent = tituloCancion;
+      document.title = `${tituloCancion} — Coro Virgen del Carmen`;
+    }
+  });
+}
 
 // Solo ids con forma de nombre de archivo (prefijo_slug): nada de rutas ni HTML
 const idValido = /^[a-z]+_[a-z0-9-]+$/.test(idCancion || '');
@@ -100,9 +117,13 @@ function mostrarErrorLetra() {
   // El id viene de la URL: va con textContent, nunca como HTML (evita XSS)
   const msg = document.createElement('div');
   msg.className = 'error-msg';
-  const archivo = document.createElement('b');
-  archivo.textContent = `letras/${idCancion}.txt`;
-  msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Verificá el archivo: ', archivo);
+  if (esCancionWeb()) {
+    msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Hace falta conexión la primera vez que se abre.');
+  } else {
+    const archivo = document.createElement('b');
+    archivo.textContent = `letras/${idCancion}.txt`;
+    msg.append('No se pudo cargar la letra.', document.createElement('br'), 'Verificá el archivo: ', archivo);
+  }
   document.getElementById('letra-box').replaceChildren(msg);
   document.getElementById('song-title').textContent = tituloCancion || "Error";
 }
@@ -114,7 +135,8 @@ function pintarCorreccion() {
   const box = document.getElementById('correccion');
   box.hidden = !correccion;
   if (!correccion) return;
-  let texto = 'Corregida';
+  // Una canción cargada desde la web no tiene versión original (archivo)
+  let texto = esCancionWeb() ? 'Cargada' : 'Corregida';
   if (correccion.por) texto += ' por ' + correccion.por;
   if (correccion.cuando) {
     const d = new Date(correccion.cuando);
@@ -124,21 +146,31 @@ function pintarCorreccion() {
   const admin = isAdmin && !esBanco && esAdminOk && !editandoLetra;
   document.getElementById('correccionAcciones').hidden = !admin;
   document.getElementById('correccionDeshacer').hidden = !correccion.anterior;
+  document.getElementById('correccionOriginal').hidden = esCancionWeb();
+  document.getElementById('correccionAcciones').hidden = !admin || (!correccion.anterior && esCancionWeb());
 }
 
 if (idValido) {
-  fetch(`letras/${idCancion}.txt`)
-    .then(response => {
-      if (!response.ok) throw new Error();
-      return response.text();
-    })
-    .then(texto => { textoRepo = texto; actualizarLetra(); })
-    .catch(() => { faltaRepo = true; actualizarLetra(); });
+  // Una canción cargada desde la web no tiene archivo: su letra es la de canciones/<id>
+  if (!esCancionWeb()) {
+    fetch(`letras/${idCancion}.txt`)
+      .then(response => {
+        if (!response.ok) throw new Error();
+        return response.text();
+      })
+      .then(texto => { textoRepo = texto; actualizarLetra(); })
+      .catch(() => { faltaRepo = true; actualizarLetra(); });
+  }
   seguirDato(esBanco ? `canciones/${idCancion}/letra` : `canciones/${idCancion}`, 'cancion_' + idCancion, val => {
     correccion = validarCorreccion(val);
+    if (esCancionWeb() && !correccion) faltaRepo = true;   // la base no la tiene
     actualizarLetra();
     document.dispatchEvent(new Event('correccion-cambio'));
-  }).then(ref => { cancionRef = ref; });
+  }).then(ref => {
+    cancionRef = ref;
+    // Sin conexión y sin copia: no hay de dónde sacar la letra
+    if (!ref && !esBanco && esCancionWeb() && !correccion) { faltaRepo = true; actualizarLetra(); }
+  });
 } else {
   faltaRepo = true;
   mostrarErrorLetra();

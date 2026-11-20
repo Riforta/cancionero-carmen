@@ -13,6 +13,9 @@
 //   (normalizarAcorde, acordes.js); avisa si no tiene diagrama de guitarra.
 // - Se ve igual a como va a quedar: la letra se dibuja con el mismo código.
 //   Nada cambia hasta "Guardar"; "Descartar" deja todo como estaba.
+// - Pestaña "Texto" (D24): la letra entera en el formato de corchetes, con la
+//   vista previa abajo, y "Pegar con acordes arriba" (desdeAcordesArriba,
+//   letra.js). Una canción nueva abre directo acá (?editar=texto).
 //
 // Al guardar se escribe canciones/<id> = { letra, por, cuando, anterior }:
 // pisa a letras/<id>.txt (cancion.js, LÓGICA 0). `anterior` es la versión
@@ -43,17 +46,23 @@ if (isAdmin && !esBanco && idValido) {
   let marca = null;      // letra elegida para agregar un acorde: { r, pos }
   let campo = null;      // 'agregar' | 'cambiar' mientras se escribe un nombre
   let saliendo = false;  // ya se confirmó salir con cambios sin guardar
+  let modo = 'acordes';  // 'acordes' (tocar) | 'texto' (escribir)
+  let dudasPegado = [];  // lo dudoso del último "Pegar con acordes arriba"
+  const panelTexto = $('editorTexto');
+  const area = $('etArea');
 
-  const hayCambios = () => editandoLetra && texto !== inicial;
+  // El texto como se guardaría: nombres en notación latina, sin espacios al
+  // final ni renglones vacíos en las puntas
+  const textoFinal = () => escribirLetra(parsearLetra(normalizarNombres(texto, normalizarAcorde)));
+  const hayCambios = () => editandoLetra && (modo === 'texto' ? textoFinal() : texto) !== inicial;
+  const tieneAcordesOLetra = t => parsearLetra(t).some(r => r.tipo === 'letra' || r.tipo === 'acordes');
   const renglones = () => parsearLetra(texto);
   // Un elemento por renglón de parsearLetra, en el mismo orden (htmlDeLetra)
   const elementos = () => [...letraBox.querySelectorAll('.renglon, .subtitulo, .letra-pendiente')];
   const nombreDe = a => a.opcional ? `(${a.nombre})` : a.nombre;
 
-  function puedeEditar() {
-    const t = textoVigente();
-    return esAdminOk && t !== null && parsearLetra(t).some(r => r.tipo === 'letra' || r.tipo === 'acordes');
-  }
+  // También una letra pendiente: se carga en la pestaña "Texto"
+  const puedeEditar = () => esAdminOk && textoVigente() !== null;
   function pintarBoton() {
     btnEditar.hidden = !editandoLetra && !puedeEditar();
   }
@@ -67,7 +76,7 @@ if (isAdmin && !esBanco && idValido) {
   }
 
   // ── Abrir y cerrar ──
-  function empezar() {
+  function empezar(modoInicial) {
     if (editandoLetra || !puedeEditar()) return;
     if (letraBox.classList.contains('no-chords')) $('toggleChords').click();
     $('chord-popover').style.display = 'none';
@@ -76,7 +85,9 @@ if (isAdmin && !esBanco && idValido) {
     texto = inicial = escribirLetra(parsearLetra(base).map(normalizarRenglon));
     sel = marca = campo = null;
     saliendo = false;
+    dudasPegado = [];
     editandoLetra = true;
+    ponerModo(modoInicial === 'texto' || !tieneAcordesOLetra(base) ? 'texto' : 'acordes');
     document.body.classList.add('editando-acordes');
     letraBox.classList.add('editando');
     btnEditar.classList.add('active');
@@ -98,6 +109,9 @@ if (isAdmin && !esBanco && idValido) {
     QUIETOS.forEach(el => { if (el) el.inert = false; });
     barra.hidden = true;
     inputNombre.blur();
+    panelTexto.hidden = true;
+    letraBox.classList.remove('solo-vista');
+    modo = 'acordes';
     actualizarLetra(true);   // la versión vigente, en el tono que se estaba viendo
     pintarBoton();
   }
@@ -182,10 +196,15 @@ if (isAdmin && !esBanco && idValido) {
     if ((campo === 'cambiar' && !sel) || (campo === 'agregar' && !marca)) campo = null;
     const estado = campo ? 'campo' : sel ? 'acorde' : marca ? 'silaba' : 'nada';
     Object.entries(filas).forEach(([k, el]) => { el.hidden = k !== estado; });
+    $('ebEstado').hidden = estado !== 'nada';
     aviso.hidden = estado !== 'campo' || !aviso.textContent;
     info.replaceChildren();
     if (estado === 'nada') {
-      info.append('Tocá un acorde para moverlo o cambiarlo, o una letra para agregar uno. Se edita en el tono original.');
+      info.append(modo === 'texto'
+        ? 'Escribí o pegá la letra arriba; abajo se ve cómo queda. Tono original.'
+        : 'Tocá un acorde para moverlo o cambiarlo, o una letra para agregar uno. Se edita en el tono original.');
+      $('ebModo').textContent = modo === 'texto' ? 'Acordes' : 'Texto';
+      $('ebModo').setAttribute('aria-label', modo === 'texto' ? 'Mover acordes tocando' : 'Escribir la letra como texto');
       const otra = textoVigente() !== base;
       $('ebEstado').textContent = otra ? 'Se guardó otra versión mientras editabas'
         : hayCambios() ? 'Hay cambios sin guardar' : 'Sin cambios';
@@ -391,7 +410,7 @@ if (isAdmin && !esBanco && idValido) {
   }
 
   letraBox.addEventListener('click', e => {
-    if (!editandoLetra) return;
+    if (!editandoLetra || modo === 'texto') return;   // en "Texto", la letra es solo la vista previa
     if (campo) cerrarCampo();
     const c = e.target.closest('c');
     if (c) {
@@ -412,8 +431,78 @@ if (isAdmin && !esBanco && idValido) {
     pintarBarra();
   });
 
+  // ── Pestaña "Texto" ──
+  // Pasar de una a otra conserva lo hecho: las dos editan el mismo texto
+  function ponerModo(nuevo) {
+    if (nuevo === 'acordes' && modo === 'texto') {
+      // Lo escrito, con los nombres en notación latina y un espacio entre palabras
+      texto = escribirLetra(parsearLetra(normalizarNombres(texto, normalizarAcorde)).map(normalizarRenglon));
+    }
+    modo = nuevo;
+    sel = marca = campo = null;
+    panelTexto.hidden = modo !== 'texto';
+    letraBox.classList.toggle('solo-vista', modo === 'texto');
+    if (modo === 'texto') {
+      area.value = texto;
+      $('etPegado').hidden = true;
+      pintarDudas();
+    }
+  }
+
+  function pintarDudas() {
+    const lista = $('etDudas');
+    const dudas = [...dudasPegado.map(d => ({ ...d, pegado: true })), ...revisarLetra(texto, normalizarAcorde, chordLookup)];
+    lista.replaceChildren(...dudas.map(d => {
+      const li = document.createElement('li');
+      if (d.renglon) {
+        const b = document.createElement('b');
+        b.textContent = `Renglón ${d.renglon}: `;
+        li.append(b);
+      }
+      li.append(d.motivo);
+      return li;
+    }));
+    lista.hidden = !dudas.length;
+  }
+
+  // Mientras se escribe, la vista previa se redibuja con una pausa corta
+  let relojVista = null;
+  area.addEventListener('input', () => {
+    texto = area.value;
+    dudasPegado = [];
+    clearTimeout(relojVista);
+    relojVista = setTimeout(() => { if (editandoLetra && modo === 'texto') { dibujar(); pintarDudas(); pintarBarra(); } }, 250);
+  });
+
+  $('ebModo').addEventListener('click', () => {
+    ponerModo(modo === 'texto' ? 'acordes' : 'texto');
+    dibujar();
+    pintarBarra();
+  });
+
+  $('etPegar').addEventListener('click', () => {
+    $('etPegado').hidden = false;
+    $('etFuente').value = '';
+    $('etFuente').focus();
+  });
+  $('etPegadoCancelar').addEventListener('click', () => { $('etPegado').hidden = true; });
+  $('etConvertir').addEventListener('click', () => {
+    const fuente = $('etFuente').value;
+    if (!fuente.trim()) return;
+    // Lo pegado reemplaza la letra (una letra pendiente, sin preguntar)
+    if (tieneAcordesOLetra(texto) && !confirm('Lo pegado reemplaza la letra que está escrita. ¿Seguir?')) return;
+    const r = desdeAcordesArriba(fuente, normalizarAcorde);
+    texto = area.value = r.texto;
+    dudasPegado = r.dudas;
+    $('etPegado').hidden = true;
+    dibujar();
+    pintarDudas();
+    pintarBarra();
+    avisar(r.dudas.length ? `Convertida: revisá ${r.dudas.length === 1 ? 'lo marcado' : 'las ' + r.dudas.length + ' cosas marcadas'}` : '✓ Convertida');
+  });
+
   // ── Botones ──
-  btnEditar.addEventListener('click', empezar);
+  btnEditar.addEventListener('click', () => empezar());
   $('ebIzq').addEventListener('click', () => moverPaso(-1));
   $('ebDer').addEventListener('click', () => moverPaso(1));
   $('ebCambiar').addEventListener('click', () => abrirCampo('cambiar'));
@@ -441,16 +530,20 @@ if (isAdmin && !esBanco && idValido) {
   function correccionNueva(letra, conAnterior) {
     const por = (usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin';
     const valor = { letra, por: por.slice(0, 80), cuando: horaServidor() };
-    if (conAnterior && correccion) valor.anterior = correccion.letra;
+    // (una letra pendiente no hace falta guardarla para deshacer)
+    if (conAnterior && correccion && tieneAcordesOLetra(correccion.letra)) valor.anterior = correccion.letra;
     return valor;
   }
 
   $('ebGuardar').addEventListener('click', () => {
     if (!hayCambios()) return;
     // Dos admins a la vez: gana el último que guarda, pero se le avisa
+    const final = textoFinal();
+    if (!final.trim()) { alert('❌ La letra no puede quedar vacía.'); return; }
+    if (final.length > 20000) { alert('❌ La letra es demasiado larga (más de 20 000 letras).'); return; }
     if (textoVigente() !== base && !confirm('Mientras editabas se guardó otra versión de esta canción. Si guardás, la tuya la reemplaza (se puede deshacer). ¿Guardar igual?')) return;
-    escribirDato(cancionRef, cancionRef ? correccionNueva(texto, true) : null, $('ebGuardar'), 'guardar los acordes')
-      .then(() => { terminar(); avisar('✓ Acordes guardados'); })
+    escribirDato(cancionRef, cancionRef ? correccionNueva(final, true) : null, $('ebGuardar'), 'guardar la letra')
+      .then(() => { terminar(); avisar('✓ Letra guardada'); })
       .catch(() => {});
   });
 
@@ -513,4 +606,21 @@ if (isAdmin && !esBanco && idValido) {
   document.addEventListener('letra-cargada', pintarBoton);
   document.addEventListener('correccion-cambio', () => { pintarBoton(); if (editandoLetra) pintarBarra(); });
   pintarBoton();
+
+  // Canción recién creada en el índice (?editar=texto): el editor se abre
+  // solo en la pestaña "Texto", una vez, cuando hay sesión y letra
+  if (urlParams.get('editar') === 'texto') {
+    const abrir = () => {
+      if (editandoLetra || !puedeEditar()) return;
+      const url = new URL(window.location);
+      url.searchParams.delete('editar');
+      history.replaceState(null, '', url);
+      document.removeEventListener('letra-cargada', abrir);
+      document.removeEventListener('sesion-admin', abrir);
+      empezar('texto');
+      area.focus();
+    };
+    document.addEventListener('letra-cargada', abrir);
+    document.addEventListener('sesion-admin', abrir);
+  }
 }

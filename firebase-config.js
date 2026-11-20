@@ -131,9 +131,13 @@ function normalizarMisa(val) {
   return ids.filter(id => SONGS.some(s => s.id === id));
 }
 
-// Misa de Hoy (misa_actual), ya normalizada. La usan las dos páginas
+// Misa de Hoy (misa_actual), ya normalizada. La usan las dos páginas. Si
+// después llega la lista de canciones de la web (comun.js), se vuelve a
+// entregar: una canción nueva de la misa puede no estar todavía en SONGS
 function suscribirMisa(cb) {
-  return seguirDato('misa_actual', 'misa_cache', val => cb(normalizarMisa(val)));
+  let ultima, recibida = false;
+  document.addEventListener('canciones-web', () => { if (recibida) cb(normalizarMisa(ultima)); });
+  return seguirDato('misa_actual', 'misa_cache', val => { ultima = val; recibida = true; cb(normalizarMisa(val)); });
 }
 
 // Escribe un dato desde la web (null o '' lo borra): sin conexión no lo

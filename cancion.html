@@ -615,7 +615,8 @@ html:has(> body.editando-acordes) { scroll-padding: 5.5rem 0 12rem; }
 .eb-info b { font-family: system-ui, -apple-system, sans-serif; font-size: 0.92em; color: var(--gold-bright); }
 .eb-info u { color: #fff; font-weight: 500; text-decoration-color: var(--gold-light); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .eb-fila { display: flex; align-items: center; gap: 0.4rem; }
-.eb-estado { flex: 1; min-width: 0; font-size: 0.95rem; font-style: italic; color: rgba(255,255,255,0.7); }
+.eb-estado { margin: -0.2rem 0 0.4rem; font-size: 0.95rem; font-style: italic; color: var(--gold-bright); }
+.eb-hueco { flex: 1; }
 .eb-btn {
   min-height: 44px;
   padding: 0 0.9rem;
@@ -648,6 +649,40 @@ html:has(> body.editando-acordes) { scroll-padding: 5.5rem 0 12rem; }
   font-weight: 700;
 }
 .eb-aviso { margin-top: 0.4rem; font-size: 0.95rem; line-height: 1.3; color: var(--gold-bright); }
+/* Pestaña "Texto": el texto arriba, la vista previa (la letra) abajo */
+.editor-texto {
+  margin-bottom: 0.7rem;
+  padding: 0.75rem 0.85rem 0.85rem;
+  background: var(--bg);
+  border: 1.5px dashed var(--gold);
+  border-radius: var(--radio);
+}
+.et-ayuda { font-size: 0.95rem; line-height: 1.35; color: var(--ink-soft); margin-bottom: 0.45rem; }
+.et-ayuda code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85em; color: var(--text-strong); }
+.et-area {
+  display: block;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1.5px solid var(--border-mid);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 16px;   /* el iPhone no agranda la página al escribir */
+  line-height: 1.45;
+  resize: vertical;
+  white-space: pre;
+  overflow-x: auto;
+}
+.et-pegar { display: inline-flex; align-items: center; margin-top: 0.55rem; }
+.et-pegado { margin-top: 0.6rem; }
+.et-dudas { margin: 0.6rem 0 0; padding-left: 1.1rem; font-size: 0.95rem; line-height: 1.35; color: var(--text-strong); }
+.et-dudas li + li { margin-top: 0.2rem; }
+.et-dudas b { color: var(--brown-mid); }
+/* En la pestaña "Texto" la letra es solo la vista previa: no se toca */
+.letra.editando.solo-vista { cursor: default; }
+.letra.editando.solo-vista c { background-color: transparent; }
+
 @media (max-width: 360px) {
   .eb-btn { font-size: 0.95rem; }
   .eb-flecha { width: 46px; }
@@ -757,6 +792,23 @@ html:has(> body.editando-acordes) { scroll-padding: 5.5rem 0 12rem; }
     </div>
   </div>
 
+  <!-- Editor, pestaña "Texto" (editor.js, D24): la letra en el formato de
+       corchetes; abajo, en la letra, la vista previa -->
+  <section id="editorTexto" class="editor-texto" hidden aria-label="Letra en texto">
+    <div class="et-ayuda">Cada acorde entre corchetes, justo antes de su letra: <code>[SOL]To[RE]ma</code>. Marcas en su renglón: <code>{estribillo}</code> … <code>{/estribillo}</code>.</div>
+    <textarea id="etArea" class="et-area" rows="12" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Letra con acordes"></textarea>
+    <button id="etPegar" class="nota-edit et-pegar" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#descarga"/></svg>Pegar con acordes arriba</button>
+    <div id="etPegado" class="et-pegado" hidden>
+      <div class="et-ayuda">Pegá la canción como viene de internet o WhatsApp: los acordes en un renglón y la letra debajo.</div>
+      <textarea id="etFuente" class="et-area" rows="10" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" aria-label="Canción con acordes arriba" placeholder="G         D&#10;Toma, Señor, y recibe"></textarea>
+      <div class="nota-actions">
+        <button id="etPegadoCancelar" class="btn-toggle" type="button">Cancelar</button>
+        <button id="etConvertir" class="btn-toggle active" type="button">Convertir</button>
+      </div>
+    </div>
+    <ul id="etDudas" class="et-dudas" hidden aria-live="polite"></ul>
+  </section>
+
   <div id="letra-box" class="letra">Buscando letra y acordes...</div>
 
   <nav id="misa-nav" class="misa-nav" hidden aria-label="Canciones de la Misa de Hoy">
@@ -802,8 +854,10 @@ html:has(> body.editando-acordes) { scroll-padding: 5.5rem 0 12rem; }
      acorde o el nombre de un acorde -->
 <div id="editor-barra" class="editor-barra" hidden role="region" aria-label="Editor de acordes">
   <div id="ebInfo" class="eb-info" aria-live="polite"></div>
+  <div id="ebEstado" class="eb-estado"></div>
   <div id="ebNada" class="eb-fila">
-    <span id="ebEstado" class="eb-estado"></span>
+    <button id="ebModo" class="eb-btn" type="button">Texto</button>
+    <span class="eb-hueco"></span>
     <button id="ebSalir" class="eb-btn" type="button">Salir</button>
     <button id="ebGuardar" class="eb-btn principal" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#check"/></svg>Guardar</button>
   </div>

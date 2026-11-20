@@ -69,6 +69,7 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `liturgia.mjs` | Franja del tiempo litúrgico en el índice (nombre, color, contraste, banco) y orden de categorías |
 | `borrador.mjs` | Borrador de la misa guardado en el celular, botón "Agregar a la Misa de Hoy" de la canción, `+` / `✓` del índice y aviso flotante |
 | `medios-admin.mjs` | Audios cargados desde la app: alta, baja, mezcla con `songs.js`, permisos, banco y reglas |
+| `canciones-web.mjs` | Canciones cargadas desde la web (D24): "Nueva canción" (repetidas, lo que escribe), el editor que abre en "Texto", "Pegar con acordes arriba", texto a mano, corrección de texto de una del repo, lista, misa, búsqueda, título escapado, sin conexión, banco y reglas |
 | `editor.mjs` | Editor de acordes (D23): elegir, ◀ ▶, llevar a otra letra (toques de verdad), cambiar, borrar, agregar, guardar, deshacer, volver al original, descartar, cambios sin guardar, sin conexión, otro admin guardó; músicos, copia local, banco por REST y reglas |
 | `saltos.mjs` | La página no se corre cuando aparecen la barra de sesión, los botones de admin o el de la misa (sesión recordada) |
 | `buscador.mjs` | El buscador del índice se esconde al bajar y vuelve al subir o al tocarlo |
@@ -78,4 +79,4 @@ Las capturas, PDF y diferencias quedan en `tests/salida/`, que no se sube a git.
 | `capturas.mjs` | Comparación visual contra la referencia |
 | `liturgia.node.mjs` | `liturgia.js` en Node: Pascua, tiempos, numeración, colores, fiestas y traslados argentinos |
 | `acordes.node.mjs` | `acordes.js` en Node: transposición, bemoles, diagramas de todos los acordes de `letras/` en los 23 tonos, y lo que se escribe en el editor (`normalizarAcorde`) |
-| `letra.node.mjs` | `letra.js` en Node: lectura y escritura del formato, búsqueda, HTML escapado, funciones del editor (posiciones, `ubicarAcorde`), y que las 108 letras se lean y escriban iguales |
+| `letra.node.mjs` | `letra.js` en Node: lectura y escritura del formato, búsqueda, HTML escapado, funciones del editor (posiciones, `ubicarAcorde`), "Pegar con acordes arriba" y la revisión del texto, y que las 108 letras se lean y escriban iguales |

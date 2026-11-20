@@ -85,7 +85,10 @@ admin" del encabezado pasa de una a otra (2026-10-01):
   - `medios/<id>`: lista de hasta 5 `{ url, etiqueta }`, los audios y links
     cargados desde la app (D12).
   - `canciones/<id>`: `{ letra, por, cuando, anterior }`, la letra corregida
-    desde la web; pisa a `letras/<id>.txt` (D23).
+    desde la web; pisa a `letras/<id>.txt` (D23). También la letra de las
+    canciones cargadas desde la web (D24).
+  - `canciones_indice/<id>`: `{ titulo, categoria, num }`, las canciones
+    cargadas desde la web; se suman a `SONGS` (D24).
   - `admins/<email>`: `true` para cada admin autorizado. El email va en
     minúsculas y con los puntos cambiados por comas (`claveAdmin()`).
 - Hosting: GitHub Pages.
@@ -308,7 +311,10 @@ sola vez:
   `lineasDeTexto` (la usa la búsqueda por letra), `acordesDeLetra`,
   `colapsarEspacios` y `armarRenglon`. Para el editor (D23):
   `acordesDeRenglon`, `renglonDeAcordes`, `normalizarRenglon` y
-  `ubicarAcorde`.
+  `ubicarAcorde`; para la pestaña "Texto" (D24): `normalizarNombres`,
+  `revisarLetra` y `desdeAcordesArriba`.
+- **`comun.js`, canciones de la web** (D24): `PREFIJOS`, `slugDe`,
+  `mezclarCancionesWeb` y `seguirCancionesWeb`.
 - **`comun.css`:** paleta, base, encabezado, `[hidden]` global, la base de los
   botones píldora, la barra de sesión y el aviso sin conexión.
   - Las páginas no inyectan estilos desde JS.
@@ -517,6 +523,74 @@ acordes desde el celular, sin pasar por el repo.
   `letra.node.mjs` y `acordes.node.mjs`.
 - **Renombrar el `id`** de una canción deja huérfana su corrección, igual que
   la nota y el tono (§4b).
+
+**D24. Texto y canciones nuevas desde la web** (2026-11-20, etapa 3 del plan
+de canciones editables, §6).
+- **Pestaña "Texto" del editor** (`editor.js`): el botón "Texto" / "Acordes"
+  de la barra pasa de una a otra, y las dos editan el mismo texto.
+  - Arriba de la letra, un cuadro con la letra en el formato de corchetes; la
+    letra de abajo es la vista previa en vivo (no se toca).
+  - Debajo del cuadro, lo que conviene mirar (`revisarLetra`, letra.js):
+    acordes que no se reconocen, en notación americana ("«Am» queda LAm"),
+    sin diagrama, corchetes sin cerrar, llaves fuera de lugar, estribillo sin
+    cerrar.
+  - Al pasar a "Acordes" y al guardar, los nombres quedan en notación latina
+    (`normalizarNombres`). No se guarda una letra vacía ni de más de 20 000.
+- **"Pegar con acordes arriba"** (`desdeAcordesArriba`, letra.js): convierte
+  lo que viene de internet o WhatsApp y reemplaza la letra (pregunta si había
+  una). Reglas:
+  - Cada acorde va a la letra que tiene debajo de su primera letra (columnas
+    de ancho fijo, tab = 4).
+  - Sobre un espacio: a la palabra siguiente si está pegada; si está pegado a
+    la anterior, después de ella (se sostiene). Entre dos palabras pegadas,
+    a la siguiente, **con duda**.
+  - Un renglón de acordes sin letra debajo queda de solo acordes (`Intro:`
+    incluido). `|`, `-`, `x2` y paréntesis alrededor se ignoran; `(MI)` solo
+    es opcional.
+  - "Estribillo" o "Coro" solos en un renglón, seguidos de letra, marcan el
+    estribillo hasta el próximo renglón vacío; si no les sigue letra, quedan
+    como "(Estribillo)".
+  - Un renglón de "la", "mi", "si"… en minúscula queda como letra, **con
+    duda** ("¿acordes o letra?").
+  - Las dudas se muestran con su número de renglón.
+- **Canciones nuevas:**
+  - **Dónde:** `canciones_indice/<id>` = `{ titulo, categoria, num }` y su
+    letra en `canciones/<id>` (D23). No tienen archivo en `letras/`.
+  - **"Nueva canción"** (índice, admin con sesión, al final de la lista):
+    título, momento y número (opcional). Arranca en la categoría elegida.
+    - Título igual a otra canción (sin mayúsculas ni tildes): no la crea.
+    - Mismo número en el mismo momento: pregunta (los números del cancionero
+      impreso se repiten entre momentos).
+    - `id` = prefijo del momento + slug del título (`slugDe`, `PREFIJOS` en
+      `comun.js`); si ya existe, `-2`, `-3`…
+    - Escribe en una sola operación (`escribirVarios`) la entrada del índice
+      y una letra `{pendiente}`, y abre la canción con `?editar=texto`: el
+      editor arranca solo en "Texto" (y saca el parámetro de la dirección).
+  - **En `SONGS`:** `comun.js` las suma con `web: true` (`mezclarCancionesWeb`)
+    desde la copia `localStorage.canciones_indice`, antes de que la página use
+    `SONGS`, y después con `seguirCancionesWeb()` (en banco, por REST), que
+    dispara `canciones-web`. Así lista, chips, búsqueda, Misa de Hoy,
+    anterior / siguiente y "Compartir" las tratan como a las del repo. Una del
+    repo con el mismo id gana.
+  - `suscribirMisa` vuelve a entregar la misa cuando llega la lista: una
+    canción nueva no se descarta por llegar antes que su entrada.
+  - **Letras sin conexión:** el índice baja por REST, en segundo plano, la
+    letra de cada canción de la web (en banco, solo las de la misa) a
+    `localStorage.cancion_<id>`. La búsqueda usa esa copia (y las
+    correcciones vistas en el celular) antes que el archivo.
+  - **En la canción:** no se pide `letras/<id>.txt`. Abajo dice "Cargada por
+    …", sin "Volver a la versión original" (no hay original).
+  - **"Listo para usar sin internet"** cuenta solo las letras del repo.
+  - **Títulos de la web:** van siempre escapados (`escaparHtml`).
+- **Prefijos nuevos** (2026-11-20, elegidos por el usuario): `sjose_`,
+  `adv_`, `nav_`, `cuar_`, `pasc_` (§3).
+- **Reglas** (§7): `canciones_indice/<id>`: escribe un admin; id con forma de
+  canción; `titulo` de 1 a 120; `categoria` una clave de `CATS` (no `misa`);
+  `num` entero de 0 a 999; nada más. Lectura pública.
+- **Borrar una canción de la web:** todavía no hay botón; se borran a mano
+  en la consola las dos entradas (`canciones_indice/<id>` y
+  `canciones/<id>`).
+- **Pruebas:** `tests/canciones-web.mjs`, más casos en `letra.node.mjs`.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -578,10 +652,16 @@ acordes desde el celular, sin pasar por el repo.
 | `ador_` | `carmelitanos` | Carmelitanos (Santa Teresita, San Juan de la Cruz, Santa Teresa…) |
 | `mar_` | `marianos` | A María |
 | `var_` | `varias` | Varios |
+| `sjose_` | `sanjose` | San José |
+| `adv_` | `adviento` | Adviento |
+| `nav_` | `navidad` | Navidad |
+| `cuar_` | `cuaresma` | Cuaresma |
+| `pasc_` | `pascua` | Pascua |
 
-- Las categorías `sanjose`, `adviento`, `navidad`, `cuaresma` y `pascua` existen
-  en `CATS` pero todavía no tienen canciones. Su botón aparece solo al cargar la
-  primera. **Su prefijo no está definido todavía:** preguntar al usuario.
+- Las categorías `sanjose`, `adviento`, `navidad`, `cuaresma` y `pascua` todavía
+  no tienen canciones en el repo. Su botón aparece solo al cargar la primera.
+  Sus prefijos se definieron el 2026-11-20 (están también en `PREFIJOS`, en
+  `comun.js`: una categoría nueva lleva su prefijo ahí).
 - "Misa de Hoy" (`misa`) no es una categoría de `SONGS`: se arma desde
   Firebase.
 
@@ -617,8 +697,8 @@ acordes desde el celular, sin pasar por el repo.
 - **Fuente con los acordes en una línea encima del verso** (lo habitual en
   internet y WhatsApp): cada acorde va a la letra que tiene debajo de su
   primera letra, contando columnas como en una fuente de ancho fijo, y después
-  se revisa. Hasta que exista "Pegar con acordes arriba" (etapa 3 del plan,
-  §6) esto se hace a mano, al cargar por el chat.
+  se revisa. Desde la web lo hace "Pegar con acordes arriba" (D24); al cargar
+  por el chat se siguen las mismas reglas.
 - **Estribillo:** `{estribillo}` y `{/estribillo}`, cada marca en su propio
   renglón. Si el estribillo se repite sin escribirlo entero, va solo su
   comienzo entre las marcas: `(Estribillo) Primeras palabras…`.
@@ -897,7 +977,7 @@ Hecha en 7 commits, cada uno verificado con `tests/`:
 
 Sin cambios visuales: las capturas son idénticas al píxel.
 
-### Plan: canciones editables desde la web (aprobado 2026-11-17; etapas 1 y 2 hechas)
+### Plan: canciones editables desde la web (aprobado 2026-11-17; etapas 1 a 3 hechas)
 
 **Objetivo:** que un admin pueda, desde el celular, corregir una canción (mover
 un acorde a la sílaba justa, cambiarlo, agregarlo o borrarlo, corregir el
@@ -973,8 +1053,24 @@ Lo planeado:
   - Músicos y admin: `seguirDato('canciones/<id>', …)` (D18), con copia local.
   - Banco: una lectura por REST al abrir la canción (D14).
 
-#### Etapa 3 — Texto y canciones nuevas
+#### Etapa 3 — Texto y canciones nuevas: HECHA (2026-11-20)
 
+Cómo quedó: D24. Pruebas: `tests/canciones-web.mjs` y casos nuevos en
+`letra.node.mjs`. Reglas de `canciones_indice` en `database.rules.json` (hay
+que pegarlas, §7).
+
+Cambios respecto de lo planeado:
+- "Nueva canción" crea la canción con la letra pendiente y abre el editor en
+  "Texto": la letra se carga ahí, con "Pegar con acordes arriba", y no en el
+  formulario del índice.
+- El número repetido en el mismo momento pregunta en vez de impedir (los
+  números del cancionero impreso se repiten entre momentos).
+- Las letras de la web se bajan por REST también para músicos y admin (no
+  ocupan la conexión en vivo); en banco, solo las de la misa.
+- Todavía no hay botón para borrar una canción de la web (se hace en la
+  consola).
+
+Lo planeado:
 - **Pestaña "Texto"** en el editor: la letra en el formato de corchetes, para
   corregir palabras o estrofas, con vista previa en vivo.
 - **"Pegar con acordes arriba":** convierte el formato habitual de internet y
@@ -1011,8 +1107,9 @@ Lo planeado:
   - escribe solo un admin;
   - `letra` es texto de hasta 20 000 caracteres;
   - `por` es texto, y `cuando` es la hora del servidor.
-- `canciones_indice/<id>`: la `categoria` tiene que ser una clave de `CATS` y
-  el `titulo` tiene hasta 120 caracteres.
+- `canciones_indice/<id>` (etapa 3, ya en `database.rules.json`): la
+  `categoria` tiene que ser una clave de `CATS` y el `titulo` tiene hasta 120
+  caracteres.
 - Lectura pública de las dos (la necesita el banco).
 
 #### Riesgos y cómo se cubren
@@ -1029,8 +1126,9 @@ Lo planeado:
 ### Otros pendientes
 
 - **Editar y cargar canciones desde la web:** ver "Plan: canciones editables
-  desde la web", arriba. Faltan las etapas 3 (texto y canciones nuevas) y 4
-  (respaldo en el repo).
+  desde la web", arriba. Falta la etapa 4 (respaldo en el repo).
+- Botón para borrar una canción cargada desde la web (hoy, en la consola;
+  D24).
 
 - Vista de calendario de los avisos (grilla del mes con puntos en los días con
   eventos; al tocar un día, sus avisos). Decidido: después de la lista.
@@ -1043,7 +1141,6 @@ Lo planeado:
 - `ador_noche-oscura-jesed`: los acordes vinieron amontonados al principio de
   cada verso. Reacomodarlos con el editor (D23) cuando alguien del coro
   confirme en qué sílaba cae cada cambio.
-- Definir los prefijos para San José, Adviento, Navidad, Cuaresma y Pascua.
 
 ---
 
@@ -1073,7 +1170,9 @@ validados); sin pegar las reglas nuevas, publicar la misa y guardar avisos da
 "Permission denied". Desde 2026-11-15 se suma `medios` (hasta 5 links `https`
 por canción); sin pegarlas, agregar un audio desde la app da "Permission
 denied". Desde 2026-11-17 se suma `canciones` (letras corregidas desde la web,
-D23); sin pegarlas, guardar los acordes da "Permission denied".
+D23); sin pegarlas, guardar los acordes da "Permission denied". Desde
+2026-11-20 se suma `canciones_indice` (canciones nuevas desde la web, D24); sin
+pegarlas, "Nueva canción" da "Permission denied".
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:

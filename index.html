@@ -607,6 +607,40 @@ body.banco-mode #cat-wrap { display: none; }
   transition: background 0.15s;
 }
 .admin-action-btn:hover { background: var(--brown-light); }
+.admin-action-btn.principal { background: var(--brown-dark); color: #fff; border-color: transparent; }
+[data-theme="dark"] .admin-action-btn.principal { background: linear-gradient(135deg, #B8862E 0%, #DDB45E 100%); color: #2C1A0D; }
+
+/* ─── NUEVA CANCIÓN (admin con sesión, D24): al final de la lista ─── */
+.nueva-cancion { margin-top: 1rem; text-align: center; }
+.nueva-cancion > .admin-action-btn { display: inline-flex; align-items: center; min-height: 44px; }
+.nueva-form {
+  margin-top: 0.6rem;
+  padding: 0.9rem 1rem 1rem;
+  text-align: left;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+.nueva-titulo { font-family: 'Cinzel', serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brown-mid); margin-bottom: 0.5rem; }
+.nueva-form label { display: block; margin-top: 0.55rem; font-size: 0.98rem; color: var(--ink-soft); }
+.nueva-form input, .nueva-form select {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  border: 1.5px solid var(--border-mid);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'EB Garamond', serif;
+  font-size: 1.05rem;
+}
+.nueva-aviso { margin-top: 0.6rem; font-size: 0.98rem; color: #A4452C; }
+[data-theme="dark"] .nueva-aviso { color: #E8987E; }
+.nueva-acciones { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.8rem; }
+.nueva-acciones .admin-action-btn { min-height: 44px; }
 a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: center; }
 .admin-btn {
   background: none;
@@ -744,6 +778,29 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     Aún no se han seleccionado las canciones para la próxima misa
   </div>
 
+  <!-- Admin con sesión: cargar una canción desde la web (D24). Va al final de
+       la lista: aparecer no corre nada -->
+  <section id="nueva" class="nueva-cancion" hidden aria-label="Nueva canción">
+    <button id="nuevaAbrir" class="admin-action-btn" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#mas"/></svg>Nueva canción</button>
+    <form id="nuevaForm" class="nueva-form" hidden>
+      <div class="nueva-titulo">Nueva canción</div>
+      <label>Título
+        <input id="nuevaTitulo" type="text" maxlength="120" autocomplete="off" placeholder="Ej.: Noche de paz">
+      </label>
+      <label>Momento de la misa
+        <select id="nuevaCategoria"></select>
+      </label>
+      <label>N.º en el cancionero impreso (si tiene)
+        <input id="nuevaNum" type="number" inputmode="numeric" min="1" max="999">
+      </label>
+      <div id="nuevaAviso" class="nueva-aviso" role="alert" hidden></div>
+      <div class="nueva-acciones">
+        <button id="nuevaCancelar" class="admin-action-btn" type="button">Cancelar</button>
+        <button id="nuevaCrear" class="admin-action-btn principal" type="submit">Crear y cargar la letra</button>
+      </div>
+    </form>
+  </section>
+
 </main>
 
 <footer>
@@ -815,6 +872,7 @@ function recibirMisa(ids) {
   misaIds = ids;
   misaBase = ids;
   render();
+  bajarLetrasWeb();   // en banco, las canciones de la web de esta misa
 }
 
 function mostrarAvisoMisa(visible) {
@@ -1014,7 +1072,7 @@ function filaHtml(s) {
   const contenido = `
       <span class="song-main">
         <span class="song-tag">${CMAP[s.category] || s.category}</span>
-        <span class="song-name">${s.title}${fragmentoHtml(s)}</span>
+        <span class="song-name">${escaparHtml(s.title)}${fragmentoHtml(s)}</span>
       </span>
       ${botones}
       <span class="song-arrow">›</span>`;
@@ -1081,12 +1139,20 @@ function limpiarMisa() {
 let indiceLetras = null;   // id → [{ texto, normal }] (líneas de letra, sin acordes)
 let cargandoLetras = null;
 
+// La letra que se ve: la corrección o la canción de la web guardada en el
+// celular (D23, D24) o, si no, el archivo. Una de la web sin copia, por REST
+function letraParaBuscar(s) {
+  const copia = leerCopia('cancion_' + s.id);
+  const letra = copia && (typeof copia === 'string' ? copia : copia.letra);
+  if (typeof letra === 'string') return Promise.resolve(letra);
+  if (s.web) return leerFirebase(`canciones/${s.id}/letra`).then(t => typeof t === 'string' ? t : '').catch(() => '');
+  return fetch(`letras/${s.id}.txt`).then(r => r.ok ? r.text() : '').catch(() => '');
+}
+
 function cargarIndiceLetras() {
   if (!cargandoLetras) {
     cargandoLetras = Promise.all(SONGS.map(s =>
-      fetch(`letras/${s.id}.txt`)
-        .then(r => r.ok ? r.text() : '')
-        .catch(() => '')
+      letraParaBuscar(s)
         .then(texto => [s.id, lineasDeTexto(texto)
           .filter(texto => texto.length > 2)
           .map(texto => ({ texto, normal: normalize(texto) }))])
@@ -1246,8 +1312,90 @@ document.getElementById('btnCompartir').addEventListener('click', () => {
   si.addEventListener('focus', () => sw.classList.remove('escondido'));
 })();
 
+// ── Canciones cargadas desde la web (D24) ──
+// La lista (canciones_indice) se suma a SONGS (comun.js); en banco se lee una
+// vez por REST (D14). Sus letras se bajan aparte, en segundo plano y por REST,
+// para que se puedan abrir sin conexión: todas para músicos y admin, solo las
+// de la misa en banco
+const letrasBajadas = new Set();
+function bajarLetrasWeb() {
+  if (!navigator.onLine) return;
+  SONGS.filter(s => s.web && !letrasBajadas.has(s.id) && (!MODO.banco || misaIds.includes(s.id))).forEach(s => {
+    letrasBajadas.add(s.id);
+    leerFirebase(MODO.banco ? `canciones/${s.id}/letra` : `canciones/${s.id}`)
+      .then(val => { if (val) guardarCopia('cancion_' + s.id, val); })
+      .catch(() => letrasBajadas.delete(s.id));
+  });
+}
+seguirCancionesWeb();
+document.addEventListener('canciones-web', () => {
+  indiceLetras = null;     // la búsqueda vuelve a armar su índice con las nuevas
+  cargandoLetras = null;
+  render();
+  bajarLetrasWeb();
+});
+
+// ── Nueva canción (admin con sesión) ──
+// Pide título, momento y número; arma el id con el prefijo y el slug (§3) y
+// revisa que no exista (§3, regla 3). Guarda en una sola operación la entrada
+// del índice y una letra pendiente, y abre la canción en el editor, en la
+// pestaña "Texto"
+if (MODO.admin) {
+  const caja = document.getElementById('nueva');
+  const form = document.getElementById('nuevaForm');
+  const aviso = document.getElementById('nuevaAviso');
+  const titulo = document.getElementById('nuevaTitulo');
+  const categoria = document.getElementById('nuevaCategoria');
+  const numero = document.getElementById('nuevaNum');
+  categoria.innerHTML = CATS.filter(([id]) => id !== 'misa').map(([id, label]) => `<option value="${id}">${label}</option>`).join('');
+  const pintarNueva = () => { caja.hidden = !esAdminOk; };
+  document.addEventListener('sesion-admin', pintarNueva);
+  pintarNueva();
+  const decir = texto => { aviso.textContent = texto; aviso.hidden = !texto; };
+
+  document.getElementById('nuevaAbrir').addEventListener('click', () => {
+    form.hidden = false;
+    document.getElementById('nuevaAbrir').hidden = true;
+    categoria.value = af && af !== 'misa' && PREFIJOS[af] ? af : 'varias';
+    decir('');
+    titulo.focus();
+  });
+  document.getElementById('nuevaCancelar').addEventListener('click', () => {
+    form.hidden = true;
+    document.getElementById('nuevaAbrir').hidden = false;
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const t = titulo.value.replace(/\s+/g, ' ').trim();
+    const cat = categoria.value;
+    const num = numero.value ? Number(numero.value) : 0;
+    if (!t) return decir('Falta el título.');
+    if (!Number.isInteger(num) || num < 0 || num > 999) return decir('El número va de 1 a 999 (o vacío).');
+    const igual = SONGS.find(s => normalize(s.title) === normalize(t));
+    if (igual) return decir(`Ya existe «${igual.title}» (${CMAP[igual.category]}).`);
+    const mismoNum = num && SONGS.find(s => s.num === num && s.category === cat);
+    if (mismoNum && !confirm(`El n.º ${num} de ${CMAP[cat]} ya es «${mismoNum.title}». ¿Crear igual?`)) return;
+    const raiz = `${PREFIJOS[cat]}_${slugDe(t) || 'cancion'}`;
+    let id = raiz;
+    for (let k = 2; SONGS.some(s => s.id === id); k++) id = `${raiz}-${k}`;
+    const entrada = { titulo: t, categoria: cat, num };
+    const por = (usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin';
+    escribirVarios(misaRef, misaRef ? {
+      ['canciones_indice/' + id]: entrada,
+      ['canciones/' + id]: { letra: '{pendiente}\n', por: por.slice(0, 80), cuando: horaServidor() }
+    } : null, document.getElementById('nuevaCrear'), 'crear la canción')
+      .then(() => {
+        // La lista guardada en el celular ya la tiene: la canción abre sin esperar a la base
+        guardarCopia('canciones_indice', { ...(leerCopia('canciones_indice') || {}), [id]: entrada });
+        window.location.href = linkCon('cancion.html', { id, cat, editar: 'texto' });
+      })
+      .catch(() => {});
+  });
+}
+
 render();
 restaurarVuelta();
+bajarLetrasWeb();
 </script>
 </body>
 </html>

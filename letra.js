@@ -241,6 +241,164 @@ function ubicarAcorde(acordes, k, pos, antes) {
   return { acordes: resto, k: i };
 }
 
+// ── Texto escrito o pegado (editor, pestaña "Texto"; AGENTS.md D24) ──
+// `normalizar` es normalizarAcorde (acordes.js): "Am" → { nombre: 'LAm', … }
+// o null si no es un acorde. Se pasa como argumento para probar en Node.
+
+// Los nombres de los acordes, en notación latina. Los que no se reconocen
+// quedan como están (los avisa revisarLetra)
+function normalizarNombres(texto, normalizar) {
+  const arreglar = a => {
+    const n = normalizar(a.nombre);
+    return n ? { nombre: n.nombre, opcional: a.opcional || n.opcional } : a;
+  };
+  const rs = parsearLetra(texto);
+  for (const r of rs) {
+    if (r.tipo === 'letra') r.tramos.forEach(t => { if (t.acorde) t.acorde = arreglar(t.acorde); });
+    else if (r.tipo === 'acordes') r.partes.forEach(p => { if (p.acorde) p.acorde = arreglar(p.acorde); });
+  }
+  return escribirLetra(rs);
+}
+
+// Lo que conviene mirar en un texto escrito a mano: [{ renglon, motivo }]
+// (renglon: número de línea, desde 1). `tieneDiagrama(nombre)` = chordLookup
+function revisarLetra(texto, normalizar, tieneDiagrama) {
+  const dudas = [];
+  let abierto = 0;
+  String(texto || '').replace(/\r\n?/g, '\n').split('\n').forEach((linea, i) => {
+    const renglon = i + 1;
+    const d = linea.trim().match(RE_DIRECTIVA);
+    if (d) {
+      const nombre = d[2].toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      if (nombre === 'estribillo' && d[3] === undefined) { abierto += d[1] ? -1 : 1; return; }
+      if (['titulo', 'nota', 'pendiente'].includes(nombre)) return;
+    }
+    const sinAcordes = linea.replace(RE_ACORDE, '');
+    if (/[\[\]]/.test(sinAcordes)) dudas.push({ renglon, motivo: 'Corchete sin cerrar: los acordes van así, [SOL]' });
+    if (/[{}]/.test(linea)) dudas.push({ renglon, motivo: 'Llave: las marcas van solas en su renglón ({estribillo}, {/estribillo}, {titulo: …})' });
+    for (const m of linea.matchAll(RE_ACORDE)) {
+      const a = leerAcorde(m[1]);
+      if (!a) continue;
+      const n = normalizar(a.nombre);
+      if (!n) dudas.push({ renglon, motivo: `«${a.nombre}» no es un acorde` });
+      else if (n.nombre !== a.nombre) dudas.push({ renglon, motivo: `«${a.nombre}» queda ${n.nombre}` });
+      else if (!tieneDiagrama(n.nombre)) dudas.push({ renglon, motivo: `${n.nombre} no tiene diagrama de guitarra` });
+    }
+  });
+  if (abierto > 0) dudas.push({ renglon: 0, motivo: 'Falta cerrar el estribillo con {/estribillo}' });
+  return dudas;
+}
+
+// "Pegar con acordes arriba": la forma habitual de internet y WhatsApp, con
+// los acordes en un renglón y la letra debajo, al formato de corchetes.
+// Devuelve { texto, dudas: [{ renglon, motivo }] } (renglon: del resultado).
+// - Cada acorde va a la letra que tiene debajo de su primera letra, contando
+//   columnas como en una fuente de ancho fijo (tab = 4).
+// - Sobre un espacio: si la palabra siguiente está pegada, a ella; si está
+//   pegado a la anterior, después de ella (se sostiene). Entre dos palabras
+//   pegadas, a la siguiente, con duda.
+// - Un renglón de acordes sin letra debajo queda como renglón de solo acordes.
+// - "Estribillo" o "Coro" solos en un renglón, seguidos de letra, marcan el
+//   estribillo hasta el próximo renglón vacío.
+// - Un renglón con "la", "mi", "si"… en minúscula se toma como letra, con duda.
+const RE_ETIQUETA = /^\s*[A-Za-zÁÉÍÓÚáéíóúÑñ]+\s*:/;
+const RE_SEPARADOR = /^[|\-–—/.*x\d]+$/i;
+const RE_PALABRA_NOTA = /^(la|mi|si|do|re|sol)$/;
+const RE_CABECERA = /^\s*\(?\s*(estribillo|coro)\s*:?\s*\)?\s*$/i;
+
+function sinTabs(linea) {
+  let s = '';
+  for (const ch of linea) s += ch === '\t' ? ' '.repeat(4 - s.length % 4) : ch;
+  return s;
+}
+
+// Los acordes de un renglón con su columna, o null si no es de acordes
+function renglonDeAcordesArriba(linea, normalizar) {
+  const etiqueta = linea.match(RE_ETIQUETA);
+  const re = /\S+/g;
+  re.lastIndex = etiqueta ? etiqueta[0].length : 0;
+  const acordes = [];
+  for (let m; (m = re.exec(linea));) {
+    const token = m[0];
+    const opcional = /^\(.+\)$/.test(token);
+    const sinInicio = token.replace(/^[(|]+/, '');
+    const escrito = sinInicio.replace(/[)|,]+$/, '');
+    if (!escrito || RE_SEPARADOR.test(escrito)) continue;
+    const n = normalizar(escrito);
+    if (!n) return null;
+    acordes.push({ col: m.index + token.length - sinInicio.length, ini: m.index, fin: m.index + token.length,
+      escrito, nombre: n.nombre, opcional: opcional || n.opcional });
+  }
+  if (!acordes.length) return null;
+  return { acordes, pareceLetra: acordes.every(a => RE_PALABRA_NOTA.test(a.escrito)) };
+}
+
+function desdeAcordesArriba(texto, normalizar) {
+  const entrada = String(texto || '').normalize('NFC').replace(/\r\n?/g, '\n').split('\n').map(l => sinTabs(l).replace(/\s+$/, ''));
+  const salida = [], dudas = [];
+  const dudar = motivo => dudas.push({ renglon: salida.length + 1, motivo });
+  let enEstribillo = false;
+  const cerrar = () => { if (enEstribillo) { salida.push('{/estribillo}'); enEstribillo = false; } };
+  const yaEnFormato = l => /[\[\]{}]/.test(l);
+  const esLetra = l => {
+    if (l === undefined || !l.trim() || RE_CABECERA.test(l) || yaEnFormato(l)) return false;
+    const a = renglonDeAcordesArriba(l, normalizar);
+    return !a || a.pareceLetra;
+  };
+
+  for (let i = 0; i < entrada.length; i++) {
+    const l = entrada[i];
+    if (!l.trim()) {
+      cerrar();
+      if (salida.length && salida[salida.length - 1] !== '') salida.push('');
+      continue;
+    }
+    if (RE_CABECERA.test(l)) {
+      cerrar();
+      if (entrada[i + 1] && entrada[i + 1].trim() && !RE_CABECERA.test(entrada[i + 1])) { salida.push('{estribillo}'); enEstribillo = true; }
+      else salida.push('(Estribillo)');
+      continue;
+    }
+    if (yaEnFormato(l)) { salida.push(l.trim()); continue; }
+    const ac = renglonDeAcordesArriba(l, normalizar);
+    if (!ac || ac.pareceLetra) {
+      if (ac) dudar(`«${l.trim()}»: ¿acordes o letra? Quedó como letra.`);
+      salida.push(colapsarEspacios(l).texto);
+      continue;
+    }
+    if (esLetra(entrada[i + 1])) {
+      // Cada acorde a la letra de abajo
+      const L = entrada[i + 1];
+      const pos = ac.acordes.map(a => {
+        const c = a.col;
+        if (c >= L.length || L[c] !== ' ') return Math.min(c, L.length);
+        let n = c, p = c;
+        while (n < L.length && L[n] === ' ') n++;
+        while (p >= 0 && L[p] === ' ') p--;
+        const aSig = n < L.length ? n - c : Infinity, aAnt = p >= 0 ? c - p : Infinity;
+        if (aSig <= 1 && aAnt <= 1) { dudar(`${a.nombre} cae entre dos palabras: quedó en la segunda`); return n; }
+        if (aSig <= 1) return n;
+        return c;   // pegado a la palabra anterior o en un hueco: después de ella
+      });
+      const c = colapsarEspacios(L, pos);
+      salida.push(armarRenglon(c.texto, ac.acordes.map((a, k) => ({ nombre: a.nombre, opcional: a.opcional, pos: c.posiciones[k] }))));
+      i++;
+      continue;
+    }
+    // Sin letra debajo: renglón de solo acordes, con sus espacios
+    let s = '', desde = 0;
+    for (const a of ac.acordes) {
+      const [ini, fin] = a.opcional ? [a.ini, a.fin] : [a.col, a.col + a.escrito.length];
+      s += l.slice(desde, ini) + escribirAcorde(a);
+      desde = fin;
+    }
+    salida.push((s + l.slice(desde)).replace(/^\s+/, ''));
+  }
+  cerrar();
+  while (salida.length && salida[salida.length - 1] === '') salida.pop();
+  return { texto: salida.join('\n') + '\n', dudas };
+}
+
 // ── HTML ──
 // Cada palabra con acordes va en un .palabra (no se corta), y cada acorde
 // con su sílaba en un .tramo: el acorde arriba (<c>) y la sílaba abajo
@@ -334,5 +492,6 @@ function htmlDeLetra(renglones) {
 // Para Node (tests/letra.node.mjs y la conversión); en el navegador no hace nada
 if (typeof module !== 'undefined') {
   module.exports = { parsearLetra, escribirLetra, acordesDeLetra, lineasDeTexto, colapsarEspacios, armarRenglon,
-    acordesDeRenglon, renglonDeAcordes, normalizarRenglon, ubicarAcorde, htmlDeLetra, escaparLetra };
+    acordesDeRenglon, renglonDeAcordes, normalizarRenglon, ubicarAcorde,
+    normalizarNombres, revisarLetra, desdeAcordesArriba, htmlDeLetra, escaparLetra };
 }

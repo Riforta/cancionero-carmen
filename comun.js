@@ -86,6 +86,55 @@ function guardarCopia(clave, valor) {
   } catch (e) {}
 }
 
+// ── Canciones cargadas desde la web (AGENTS.md D24) ──
+// canciones_indice/<id> = { titulo, categoria, num } en Firebase; la letra va
+// en canciones/<id> (D23). Se suman a SONGS con `web: true`, así la lista, la
+// búsqueda, la misa y anterior / siguiente las tratan como a las del repo.
+// La última lista conocida queda en localStorage.canciones_indice y se suma
+// al cargar este archivo, antes de que la página use SONGS.
+
+// Prefijo del id según la categoría (§3)
+const PREFIJOS = {
+  entrada: 'ent', gloria: 'glo', aleluya: 'ale', ofertorio: 'ofert', santo: 'snt',
+  comunion: 'com', adoracion: 'ador', carmelitanos: 'ador', marianos: 'mar', varias: 'var',
+  sanjose: 'sjose', adviento: 'adv', navidad: 'nav', cuaresma: 'cuar', pascua: 'pasc'
+};
+
+// "Oración del alma enamorada" → "oracion-del-alma-enamorada"
+function slugDe(titulo) {
+  return String(titulo || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60).replace(/-+$/, '');
+}
+
+const RE_ID = /^[a-z]+_[a-z0-9-]+$/;
+
+// Lo que llega de Firebase → canciones válidas (las del repo ganan si el id se repite)
+function cancionesWebDe(val) {
+  if (!val || typeof val !== 'object') return [];
+  return Object.entries(val)
+    .filter(([id, c]) => RE_ID.test(id) && c && typeof c.titulo === 'string' && c.titulo.trim() &&
+      PREFIJOS[c.categoria] && !SONGS.some(s => s.id === id && !s.web))
+    .map(([id, c]) => ({ id, num: Number.isInteger(c.num) ? c.num : 0, title: c.titulo.trim(), category: c.categoria, web: true }));
+}
+
+// Reemplaza las canciones de la web de SONGS. Devuelve true si cambió algo
+function mezclarCancionesWeb(val) {
+  const nuevas = cancionesWebDe(val);
+  const antes = JSON.stringify(SONGS.filter(s => s.web));
+  for (let i = SONGS.length - 1; i >= 0; i--) if (SONGS[i].web) SONGS.splice(i, 1);
+  SONGS.push(...nuevas);
+  return JSON.stringify(nuevas) !== antes;
+}
+if (typeof SONGS !== 'undefined') mezclarCancionesWeb(leerCopia('canciones_indice'));
+
+// Sigue la lista publicada (en banco, una lectura por REST, D14). Cada vez
+// que cambia dispara 'canciones-web' en document
+function seguirCancionesWeb() {
+  return seguirDato('canciones_indice', 'canciones_indice', val => {
+    if (mezclarCancionesWeb(val)) document.dispatchEvent(new Event('canciones-web'));
+  });
+}
+
 // ── Misa de Hoy: orden y borrador (index.html y cancion.html) ──
 const mismaLista = (a, b) => a.length === b.length && a.every((id, i) => id === b[i]);
 
