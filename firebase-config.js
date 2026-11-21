@@ -140,6 +140,13 @@ function suscribirMisa(cb) {
   return seguirDato('misa_actual', 'misa_cache', val => { ultima = val; recibida = true; cb(normalizarMisa(val)); });
 }
 
+// Misas preparadas (misas/<clave>, comun.js), ya normalizadas, como suscribirMisa
+function suscribirMisas(cb) {
+  let ultima, recibida = false;
+  document.addEventListener('canciones-web', () => { if (recibida) cb(misasDe(ultima)); });
+  return seguirDato('misas', 'misas_cache', val => { ultima = val; recibida = true; cb(misasDe(val)); });
+}
+
 // Escribe un dato desde la web (null o '' lo borra): sin conexión no lo
 // intenta (no quedaría encolado sin que nadie se entere), deshabilita el botón
 // mientras tanto y avisa si falla. La promesa se rechaza si no se escribió.

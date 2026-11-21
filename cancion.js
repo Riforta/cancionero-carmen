@@ -469,7 +469,8 @@ if (!esBanco && idCancion) {
 // ─── LÓGICA 6: ANTERIOR / SIGUIENTE DENTRO DE MISA DE HOY ───
 // Solo si se llegó desde Misa de Hoy (cat=misa). Todos los modos, banco
 // incluido. Muestra primero la copia local y después la lista publicada:
-// músicos y admin en vivo (SDK), banco por REST (AGENTS.md D14)
+// músicos y admin en vivo (SDK), banco por REST (AGENTS.md D14). Con
+// ?misa=<clave>, la de esa misa preparada (D27); si ya no está, la de hoy
 if (MODO.cat === 'misa' && idCancion) {
   const nav = document.getElementById('misa-nav');
 
@@ -490,7 +491,12 @@ if (MODO.cat === 'misa' && idCancion) {
     pintarLink(document.getElementById('misaNext'), lista[i + 1]);
   }
 
-  suscribirMisa(renderMisaNav);   // copia local, después la publicada
+  let deHoy = [], preparada = null;
+  const pintarNav = () => renderMisaNav(preparada ? preparada.canciones : deHoy);
+  suscribirMisa(ids => { deHoy = ids; pintarNav(); });   // copia local, después la publicada
+  if (MODO.misa && !esBanco) {
+    suscribirMisas(lista => { preparada = lista.find(m => m.id === MODO.misa) || null; pintarNav(); });
+  }
 }
 
 // ─── LÓGICA 7: PANTALLA SIEMPRE ENCENDIDA (músicos y admin) ───
@@ -859,28 +865,42 @@ if (!esBanco && cancionActual) {
 
 // ─── LÓGICA 12: AGREGAR A LA MISA DE HOY (admin con sesión) ───
 // Suma o quita la canción del borrador de la misa (comun.js), igual que el +
-// del índice: no publica. Se publica desde Misa de Hoy, en el índice
+// del índice: no publica. Se publica desde Misa de Hoy, en el índice. Con
+// ?misa=<clave> va a esa misa preparada y se guarda al instante (D27)
 if (isAdmin && !esBanco && cancionActual) {
   const caja = document.getElementById('misa-agregar');
   const btn = document.getElementById('misaAgregarBtn');
   const pendiente = document.getElementById('misaPendiente');
   const irAPublicar = linkCon('index.html', { cat: 'misa' });
   let publicada = [];
+  let preparada = null, misasRef = null;
   document.getElementById('misaIrPublicar').href = irAPublicar;
 
   // La lista sobre la que se trabaja: el borrador o, si no hay, la publicada
   const listaDeTrabajo = () => leerBorradorMisa() || { ids: publicada, base: publicada };
 
   function pintarMisaAgregar() {
-    const esta = listaDeTrabajo().ids.includes(idCancion);
-    btn.innerHTML = esta ? ico('check') + 'En la Misa de Hoy · Quitar' : ico('mas') + 'Agregar a la Misa de Hoy';
+    const esta = (preparada ? preparada.canciones : listaDeTrabajo().ids).includes(idCancion);
+    const nombre = preparada ? `«${escaparHtml(preparada.nombre)}»` : 'la Misa de Hoy';
+    btn.innerHTML = esta ? ico('check') + `En ${nombre} · Quitar` : ico('mas') + `Agregar a ${nombre}`;
     btn.classList.toggle('active', esta);
     btn.setAttribute('aria-pressed', String(esta));
-    pendiente.classList.toggle('oculta', !leerBorradorMisa());
+    pendiente.classList.toggle('oculta', preparada ? true : !leerBorradorMisa());
     caja.hidden = !esAdminOk;
   }
 
   btn.addEventListener('click', () => {
+    if (preparada) {
+      const prep = preparada;
+      const esta = prep.canciones.includes(idCancion);
+      const canciones = esta ? prep.canciones.filter(id => id !== idCancion) : insertarEnMisa(prep.canciones, idCancion);
+      const por = ((usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin').slice(0, 80);
+      escribirVarios(misasRef, { ['misas/' + prep.id]: { nombre: prep.nombre, canciones, por, cuando: horaServidor() } }, btn, 'guardar la misa')
+        .then(() => avisar(esta ? `Quitada de «${prep.nombre}» (${canciones.length})` : `✓ Agregada a «${prep.nombre}» (${canciones.length})`))
+        .catch(() => {});
+      if (navigator.vibrate) navigator.vibrate(10);
+      return;
+    }
     const { ids, base } = listaDeTrabajo();
     const esta = ids.includes(idCancion);
     const nueva = esta ? ids.filter(id => id !== idCancion) : insertarEnMisa(ids, idCancion);
@@ -898,6 +918,10 @@ if (isAdmin && !esBanco && cancionActual) {
     if (b && mismaLista(ids, b.ids)) borrarBorradorMisa();
     pintarMisaAgregar();
   });
+  if (MODO.misa) {
+    suscribirMisas(lista => { preparada = lista.find(m => m.id === MODO.misa) || null; pintarMisaAgregar(); })
+      .then(ref => { misasRef = ref; });
+  }
   document.addEventListener('sesion-admin', pintarMisaAgregar);
   pintarMisaAgregar();   // ya, con el borrador y la sesión recordada
   window.addEventListener('storage', e => { if (e.key === 'misa_borrador') pintarMisaAgregar(); });

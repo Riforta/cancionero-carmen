@@ -7,13 +7,15 @@ const urlParams = new URLSearchParams(window.location.search);
 const MODO = {
   banco: urlParams.get('modo') === 'banco',
   admin: urlParams.get('admin') === 'true',
-  cat: urlParams.get('cat')
+  cat: urlParams.get('cat'),
+  misa: urlParams.get('misa')    // misa preparada elegida (sin parámetro: Misa de Hoy)
 };
 
-// Link a otra página que conserva modo, admin y categoría. `extra` agrega
-// parámetros (van primero) o pisa alguno de esos tres (p. ej. cat del índice).
+// Link a otra página que conserva modo, admin, categoría y misa elegida.
+// `extra` agrega parámetros (van primero) o pisa alguno de esos (p. ej. cat
+// del índice; null lo saca).
 function linkCon(pagina, extra = {}) {
-  const CONTEXTO = ['modo', 'admin', 'cat'];
+  const CONTEXTO = ['modo', 'admin', 'cat', 'misa'];
   const q = new URLSearchParams();
   Object.entries(extra).forEach(([k, v]) => {
     if (!CONTEXTO.includes(k) && v !== null && v !== undefined) q.set(k, v);
@@ -194,6 +196,19 @@ function guardarBorradorMisa(ids, base) {
 }
 function borrarBorradorMisa() {
   guardarCopia('misa_borrador', null);
+}
+
+// ── Misas preparadas (AGENTS.md D27) ──
+// misas/<clave> = { nombre, canciones, por, cuando }: misas armadas que los
+// fieles todavía no ven. La que ven es siempre la Misa de Hoy (misa_actual,
+// con su nombre en misa_meta.nombre). Se ordenan por clave (la de push() sigue
+// el orden en que se crearon)
+const RE_CLAVE_MISA = /^-[A-Za-z0-9_-]{2,30}$/;
+function misasDe(val) {
+  if (!val || typeof val !== 'object') return [];
+  return Object.keys(val).sort()
+    .filter(k => RE_CLAVE_MISA.test(k) && val[k] && typeof val[k].nombre === 'string')
+    .map(k => ({ id: k, nombre: val[k].nombre, canciones: normalizarMisa(val[k].canciones), por: val[k].por, cuando: val[k].cuando }));
 }
 
 // ── Aviso flotante: confirma una acción sin frenar (a diferencia de alert) ──

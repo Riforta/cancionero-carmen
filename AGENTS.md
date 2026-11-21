@@ -79,7 +79,10 @@ admin" del encabezado pasa de una a otra (2026-10-01):
 - Firebase Realtime Database: guarda solo datos que se editan desde la web.
   - `misa_actual`: array con los ids de "Misa de Hoy".
   - `notas/<id>`: texto con la nota para músicos de cada canción (ver §4b).
-  - `misa_meta`: `{ por, cuando }`, quién publicó la misa y cuándo (§4).
+  - `misa_meta`: `{ por, cuando, nombre }`, quién publicó la misa, cuándo y
+    su nombre opcional (§4, D27).
+  - `misas/<clave>`: `{ nombre, canciones, por, cuando }`, las misas
+    preparadas que los fieles todavía no ven (D27).
   - `avisos/<id>`: `{ fecha, hora, tipo, titulo, lugar, detalle }`, los avisos
     del coro (§4f).
   - `tonos/<id>`: `{ transponer, capo }`, el tono en que canta el coro cada
@@ -304,7 +307,7 @@ sola vez:
   - `seguirDato(ruta, claveCopia, cb)`: entrega primero la copia local y
     después el dato publicado. En banco lo lee una vez por REST (D14); en el
     resto, en vivo.
-  - `suscribirMisa(cb)`: lo mismo para la misa, ya normalizada.
+  - `suscribirMisa(cb)`: lo mismo para la misa, ya normalizada; `suscribirMisas(cb)`, para las misas preparadas (`misasDe` en `comun.js`, D27).
   - `escribirDato(ref, valor, botón, acción)`: sin conexión no escribe,
     deshabilita el botón y avisa errores.
   - **Todo dato nuevo de Firebase tiene que usar estas funciones.**
@@ -660,6 +663,46 @@ se puede recuperar.
   canción; `titulo` hasta 120; `por` hasta 80; `cuando` la hora del servidor;
   nada más. Lectura pública.
 - **Pruebas:** `tests/eliminar.mjs` y casos en `pasar-al-repo.node.mjs`.
+
+**D27. Varias misas: preparadas y la que ven los fieles** (2026-11-21,
+pedido del 2026-11-20: dos misas el mismo domingo, una de comuniones con
+canciones para chicos y otra a la tarde). El admin elige a mano cuál ven los
+fieles (decidido con el usuario; no cambia sola por horario).
+- **Datos:** la que ven los fieles sigue siendo la Misa de Hoy
+  (`misa_actual`), con su nombre opcional en `misa_meta.nombre`. Las demás son
+  misas preparadas: `misas/<clave de push()>` = `{ nombre, canciones, por,
+  cuando }`. Así el banco, el QR y los celulares con el código viejo no
+  cambian.
+- **Pestañas** (en Misa de Hoy, arriba de la lista): la de los fieles (con la
+  iglesia) y una por preparada, en el orden en que se crearon. Las ven
+  músicos (si hay preparadas, para ensayar) y admin con sesión (siempre, con
+  "Nueva misa"). Banco no lee `misas` (D14) e ignora `?misa=`.
+- **La elegida viaja en la URL** (`?misa=<clave>`, D4; `linkCon` la
+  conserva). Con una preparada elegida:
+  - el `+` del índice, ↑ ↓ / quitar y "Agregar a «…»" de la canción van a
+    esa, y **se guardan al instante** (los fieles no la ven: no hay borrador
+    ni "Publicar");
+  - el chip de Misa de Hoy lleva su nombre y su cantidad;
+  - debajo dice "Preparada por … · Los fieles todavía no la ven";
+  - anterior / siguiente recorre esa misa; "Compartir" manda su link de
+    músicos, sin el de fieles.
+  - Si la elegida ya no existe (borrada o pasada a los fieles), se ve la Misa
+    de Hoy.
+- **Botones del admin:** con una preparada elegida, "Publicar Misa" pasa a
+  "Mostrar a los fieles" y "Limpiar Misa" la vacía. Debajo de las pestañas,
+  "Cambiar nombre" (también de la Misa de Hoy: se conservan quién y cuándo
+  publicó) y "Borrar esta misa" (solo preparadas). Los nombres se piden con
+  `prompt()`, de 1 a 60 caracteres.
+- **"Mostrar a los fieles"** (con confirmación, en una sola operación
+  `escribirVarios`): la preparada pasa a `misa_actual` y `misa_meta` (con su
+  nombre) y se borra de `misas`; la que se veía, si tenía canciones, queda
+  como preparada con su nombre (o "Misa anterior"), incluidos sus cambios sin
+  publicar. Así se puede volver atrás. Las viejas se borran a mano.
+- **Reglas** (§7): `misas/<clave>`: escribe un admin; clave de push();
+  `nombre` de 1 a 60; `canciones` ids de texto; `por` hasta 80; `cuando` la
+  hora del servidor; nada más. `misa_meta` acepta `nombre` (1 a 60). Lectura
+  pública.
+- **Pruebas:** `tests/misas.mjs`.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -850,6 +893,8 @@ se puede recuperar.
 - Al entrar sin `?cat=`, el índice arranca en "Misa de Hoy". Si no hay
   canciones, muestra "Aún no se han seleccionado las canciones…".
 - **Renombrar un `id`** saca esa canción de la misa publicada que la contenga.
+- **Varias misas** (2026-11-21): se pueden tener misas preparadas además de la
+  de hoy, y el admin elige cuál ven los fieles (D27).
 
 ## 4b. Reglas de negocio: notas de las canciones
 
@@ -1202,10 +1247,10 @@ Lo planeado:
 - **Editar y cargar canciones desde la web:** ver "Plan: canciones editables
   desde la web", arriba. Terminado (2026-11-20); para pasar lo de la web al
   repo, D25.
-- **Más de una misa a la vez** (pedido 2026-11-20): preparar las canciones de
-  varias misas (por ejemplo, sábado y domingo, o la de la semana que viene
-  mientras sigue publicada la de hoy). Falta decidir con el usuario cómo
-  (opciones planteadas en el chat del 2026-11-20).
+- **Más de una misa a la vez** (pedido 2026-11-20): hecho el 2026-11-21
+  (D27), con la elección manual de cuál ven los fieles. Quedan para más
+  adelante, si hacen falta: cambio automático por horario, día y hora de cada
+  misa, y borrar solas las viejas.
 
 - Vista de calendario de los avisos (grilla del mes con puntos en los días con
   eventos; al tocar un día, sus avisos). Decidido: después de la lista.
@@ -1251,7 +1296,9 @@ D23); sin pegarlas, guardar los acordes da "Permission denied". Desde
 2026-11-20 se suma `canciones_indice` (canciones nuevas desde la web, D24); sin
 pegarlas, "Nueva canción" da "Permission denied". Desde la misma fecha se
 suma `eliminadas` (D26); sin pegarlas, eliminar una canción da "Permission
-denied".
+denied". Desde 2026-11-21 se suma `misas` (varias misas, D27) y `nombre` en
+`misa_meta`; sin pegarlas, crear una misa, mostrarla a los fieles o cambiarle
+el nombre da "Permission denied".
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:

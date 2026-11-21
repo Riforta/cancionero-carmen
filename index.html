@@ -488,6 +488,44 @@ main {
   font-style: italic;
   color: var(--ink-soft);
 }
+/* Misas preparadas (D27): una pestaña por misa. La de los fieles lleva la
+   iglesia; la elegida, el borde marcado */
+.misa-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+.misa-tab {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 40px;
+  padding: 0.25rem 0.9rem;
+  border-radius: 50px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  color: var(--text-accent);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.misa-tab > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.misa-tab .ico { color: var(--brown-mid); flex-shrink: 0; }
+.misa-tab.active {
+  border-color: var(--brown-mid);
+  background: var(--brown-light);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.misa-tab.nueva { border-style: dashed; color: var(--ink-soft); }
+.misa-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: -0.3rem 0 0.8rem;
+}
+.misa-acciones .admin-action-btn { min-height: 40px; padding: 0.3rem 0.9rem; }
 .misa-share { margin-left: auto; flex-shrink: 0; }
 .misa-share .admin-action-btn { padding: 0.4rem 0.9rem; white-space: nowrap; }
 
@@ -774,6 +812,12 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
     <div class="sec-label-rule"></div>
     <span class="sec-label-count" id="cnt"></span>
   </div>
+  <!-- Misas preparadas (D27): pestañas y, para un admin, sus botones -->
+  <div class="misa-tabs" id="misa-tabs" role="group" aria-label="Misas" hidden></div>
+  <div class="misa-acciones" id="misa-acciones" hidden>
+    <button class="admin-action-btn" type="button" data-misa-accion="renombrar"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#lapiz"/></svg>Cambiar nombre</button>
+    <button class="admin-action-btn" type="button" data-misa-accion="borrar"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#papelera"/></svg>Borrar esta misa</button>
+  </div>
   <div class="aviso-misa" id="misa-pendiente" role="status" hidden>● Hay cambios en la Misa de Hoy sin publicar</div>
   <div class="misa-barra">
     <div class="misa-meta" id="misa-meta" hidden></div>
@@ -913,11 +957,127 @@ if (!MODO.banco) {
   seguirDato('misa_meta', 'misa_meta_cache', val => { misaMeta = val; render(); });
 }
 
-function textoPublicada(meta) {
+function textoPublicada(meta, verbo = 'Publicada') {
   if (!meta || typeof meta.por !== 'string' || typeof meta.cuando !== 'number') return '';
   const d = new Date(meta.cuando);
   const hora = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  return `Publicada por ${meta.por} · ${DIAS_CORTOS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}, ${hora}`;
+  return `${verbo} por ${meta.por} · ${DIAS_CORTOS[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}, ${hora}`;
+}
+
+// ── Misas preparadas (misas/<clave>, AGENTS.md D27) ──
+// Misas armadas que los fieles todavía no ven (la que ven es la Misa de Hoy).
+// La elegida viaja en la URL (?misa=<clave>, D4): el + del índice y el de la
+// canción agregan a esa. Sus cambios se guardan al instante (los fieles no
+// la ven, no hace falta borrador). Músicos y admin; banco no las lee (D14)
+let misasPrep = [];
+let misasRef = null;
+let misaSel = MODO.misa && !MODO.banco ? MODO.misa : null;   // null = Misa de Hoy
+
+if (!MODO.banco) {
+  suscribirMisas(lista => {
+    misasPrep = lista;
+    // Si la elegida no está (la borraron, pasó a los fieles o la copia local
+    // es vieja), se ve la Misa de Hoy, sin olvidarla por si llega después
+    render();
+  }).then(ref => { misasRef = ref; });
+}
+
+function prepElegida() {
+  return misaSel ? misasPrep.find(m => m.id === misaSel) || null : null;
+}
+// Canciones de la misa elegida (la preparada o la Misa de Hoy)
+function idsElegida() {
+  const prep = prepElegida();
+  return prep ? prep.canciones : misaIds;
+}
+function nombreMisaDeHoy() {
+  return (misaMeta && typeof misaMeta.nombre === 'string' && misaMeta.nombre) || 'Misa de Hoy';
+}
+// "la Misa de Hoy" o "«Tarde 19 h»", para los avisos
+function nombreElegida() {
+  const prep = prepElegida();
+  return prep ? `«${prep.nombre}»` : 'la Misa de Hoy';
+}
+function porAdmin() {
+  return ((usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin').slice(0, 80);
+}
+
+// Guarda una preparada entera (una sola escritura). Se ve al instante; si
+// no se pudo escribir, vuelve a lo último publicado
+function guardarPrep(prep, cambios, accion = 'guardar la misa') {
+  const nueva = { ...prep, ...cambios };
+  misasPrep = misasPrep.map(m => m.id === prep.id ? nueva : m);
+  render();
+  return escribirVarios(misasRef, {
+    ['misas/' + prep.id]: { nombre: nueva.nombre, canciones: nueva.canciones, por: porAdmin(), cuando: horaServidor() }
+  }, null, accion).catch(() => { misasPrep = misasPrep.map(m => m.id === prep.id ? prep : m); render(); throw new Error(); });
+}
+
+function pedirNombreMisa(actual) {
+  const t = prompt('Nombre de la misa (por ejemplo: "Domingo 10 h · Comuniones")', actual || '');
+  if (t === null) return null;
+  const nombre = t.trim().slice(0, 60);
+  if (!nombre) { alert('❌ La misa necesita un nombre.'); return null; }
+  return nombre;
+}
+
+function elegirMisa(id) {
+  misaSel = id || null;
+  syncCatParam();
+  render();
+}
+
+function nuevaMisa() {
+  if (!misasRef) { alert('❌ Sin conexión: no se puede crear la misa ahora.'); return; }
+  const nombre = pedirNombreMisa('');
+  if (!nombre) return;
+  const clave = misasRef.push().key;
+  escribirVarios(misasRef, { ['misas/' + clave]: { nombre, canciones: [], por: porAdmin(), cuando: horaServidor() } }, null, 'crear la misa')
+    .then(() => { elegirMisa(clave); avisar(`✓ Misa «${nombre}» creada. Agregá las canciones con el +`); })
+    .catch(() => {});
+}
+
+function renombrarMisa() {
+  const prep = prepElegida();
+  const nombre = pedirNombreMisa(prep ? prep.nombre : (misaMeta && misaMeta.nombre) || '');
+  if (!nombre) return;
+  if (prep) { guardarPrep(prep, { nombre }, 'cambiar el nombre').catch(() => {}); return; }
+  // Misa de Hoy: el nombre va en misa_meta (se conserva quién y cuándo publicó)
+  const meta = misaMeta && typeof misaMeta.por === 'string' && typeof misaMeta.cuando === 'number'
+    ? { por: misaMeta.por, cuando: misaMeta.cuando } : { por: porAdmin(), cuando: horaServidor() };
+  escribirVarios(misaRef, { misa_meta: { ...meta, nombre } }, null, 'cambiar el nombre').catch(() => {});
+}
+
+function borrarMisa() {
+  const prep = prepElegida();
+  if (!prep || !confirm(`¿Borrar la misa «${prep.nombre}»? Se borra para todos.`)) return;
+  escribirVarios(misasRef, { ['misas/' + prep.id]: null }, null, 'borrar la misa')
+    .then(() => { elegirMisa(null); avisar(`Misa «${prep.nombre}» borrada`); })
+    .catch(() => {});
+}
+
+// La preparada pasa a ser la Misa de Hoy (la que ven los fieles), y la que
+// estaba a la vista queda como preparada (con sus cambios sin publicar, si
+// había), así se puede volver atrás. Todo en una sola operación
+function mostrarALosFieles(prep) {
+  if (!misasRef || !navigator.onLine) { alert('❌ Sin conexión: no se puede mostrar la misa a los fieles ahora.'); return; }
+  const actual = nombreMisaDeHoy();
+  if (!confirm(`Los fieles van a ver «${prep.nombre}» en lugar de «${actual}». ¿Seguir?`)) return;
+  const por = porAdmin();
+  const cambios = {
+    misa_actual: prep.canciones,
+    misa_meta: { por, cuando: horaServidor(), nombre: prep.nombre },
+    ['misas/' + prep.id]: null
+  };
+  if (misaIds.length) {
+    const nombre = misaMeta && misaMeta.nombre ? misaMeta.nombre : 'Misa anterior';
+    cambios['misas/' + misasRef.push().key] = { nombre, canciones: misaIds, por, cuando: horaServidor() };
+  }
+  const habiaCambios = misaSinPublicar;
+  misaSinPublicar = false;   // como al publicar: el eco no es "otra versión"
+  escribirVarios(misasRef, cambios, null, 'mostrar la misa a los fieles')
+    .then(() => { borrarBorradorMisa(); elegirMisa(null); avisar(`✓ Los fieles ven «${prep.nombre}»`); })
+    .catch(() => { misaSinPublicar = habiaCambios; render(); });
 }
 
 // ── Tiempo litúrgico de hoy (liturgia.js), en todos los modos ──
@@ -1002,8 +1162,21 @@ if (MODO.admin) {
 // Botón "Modo admin" (comun.js): pide confirmación si hay cambios sin publicar
 botonModo(() => misaSinPublicar ? 'Hay cambios en la Misa sin publicar. ¿Salir igual?' : null);
 
+// Pestañas de las misas (la de los fieles y las preparadas) y sus botones
+document.getElementById('misa-tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.misa-tab');
+  if (!tab) return;
+  if (tab.dataset.misaAccion === 'nueva') nuevaMisa();
+  else elegirMisa(tab.dataset.misa);
+});
+document.getElementById('misa-acciones').addEventListener('click', e => {
+  const accion = e.target.closest('[data-misa-accion]')?.dataset.misaAccion;
+  if (accion === 'renombrar') renombrarMisa();
+  else if (accion === 'borrar') borrarMisa();
+});
+
 function getMisaSongs() {
-  return misaIds.map(id => SONGS.find(s => s.id === id)).filter(Boolean);
+  return idsElegida().map(id => SONGS.find(s => s.id === id)).filter(Boolean);
 }
 
 // Lo que muestra la lista: el resultado de la búsqueda o la categoría activa
@@ -1018,10 +1191,41 @@ function cancionesVisibles() {
 function render() {
   renderCats();
   renderList(cancionesVisibles());
+  renderMisas();
   document.getElementById('misa-pendiente').hidden = !(MODO.admin && misaSinPublicar);
+  const prep = prepElegida();
   const meta = document.getElementById('misa-meta');
-  meta.textContent = textoPublicada(misaMeta);
+  meta.textContent = prep
+    ? [textoPublicada(prep, 'Preparada'), 'Los fieles todavía no la ven'].filter(Boolean).join(' · ')
+    : textoPublicada(misaMeta);
   meta.hidden = !(af === 'misa' && meta.textContent && !document.getElementById('si').value.trim());
+}
+
+// Pestañas de las misas: se ven en Misa de Hoy si hay preparadas, o siempre
+// para un admin con sesión (para crear la primera). El botón principal de la
+// barra de admin publica la Misa de Hoy o muestra la preparada a los fieles
+function renderMisas() {
+  const editable = MODO.admin && esAdminOk;
+  const prep = prepElegida();
+  const enMisa = af === 'misa' && !document.getElementById('si').value.trim();
+  const tabs = document.getElementById('misa-tabs');
+  tabs.hidden = !(enMisa && !MODO.banco && (misasPrep.length || editable));
+  if (!tabs.hidden) {
+    const elegida = misaSel && prep ? misaSel : '';
+    const tab = (id, nombre, extra = '') =>
+      `<button class="misa-tab${elegida === id ? ' active' : ''}" type="button" data-misa="${id}" aria-pressed="${elegida === id}">${extra}<span>${escaparHtml(nombre)}</span></button>`;
+    tabs.innerHTML = tab('', nombreMisaDeHoy(), ico('iglesia')) +
+      misasPrep.map(m => tab(m.id, m.nombre)).join('') +
+      (editable ? `<button class="misa-tab nueva" type="button" data-misa-accion="nueva">${ico('mas')}<span>Nueva misa</span></button>` : '');
+    tabs.querySelector('.misa-tab').title = 'La que ven los fieles';
+  }
+  const acciones = document.getElementById('misa-acciones');
+  acciones.hidden = tabs.hidden || !editable;
+  acciones.querySelector('[data-misa-accion="borrar"]').hidden = !prep;
+  const publicar = document.querySelector('#admin-bar [data-action="publicar"]');
+  if (publicar) {
+    publicar.innerHTML = prep ? ico('iglesia') + 'Mostrar a los fieles' : ico('publicar') + 'Publicar Misa';
+  }
 }
 
 // Refleja la categoría activa en la URL sin recargar, para que al volver
@@ -1029,6 +1233,8 @@ function render() {
 function syncCatParam() {
   const url = new URL(window.location);
   url.searchParams.set('cat', af || 'todas');
+  if (misaSel) url.searchParams.set('misa', misaSel);
+  else url.searchParams.delete('misa');
   history.replaceState(null, '', url);
 }
 
@@ -1036,7 +1242,9 @@ function renderCats() {
   document.getElementById('cg').innerHTML = catsOrdenadas().map(([id, label, , icono]) => {
     let n;
     if (id === 'misa') {
-      n = misaIds.length;
+      n = idsElegida().length;
+      const prep = prepElegida();
+      if (prep) label = escaparHtml(prep.nombre);   // el + agrega a esta
     } else {
       n = SONGS.filter(s => s.category === id).length;
       if (!n) return '';
@@ -1078,15 +1286,15 @@ function renderList(songs) {
 // clics los atiende el listener de #list); si no, un link común. El link
 // arrastra modo, admin y categoría activa para que el "Volver" restaure esto
 function filaHtml(s) {
-  const href = linkCon('cancion.html', { id: s.id, cat: af || 'todas' });
+  const href = linkCon('cancion.html', { id: s.id, cat: af || 'todas', misa: misaSel });
   const editable = MODO.admin && esAdminOk;
   const botones = !editable ? '' : af === 'misa'
     ? `<button class="admin-btn" data-action="up" data-song-id="${s.id}" aria-label="Subir">${ico('arriba', true)}</button>
        <button class="admin-btn" data-action="down" data-song-id="${s.id}" aria-label="Bajar">${ico('abajo', true)}</button>
        <button class="admin-btn" data-action="remove" data-song-id="${s.id}" aria-label="Quitar">${ico('cerrar', true)}<span class="btn-txt"> Quitar</span></button>`
-    : misaIds.includes(s.id)
-      ? `<button class="admin-btn btn-mas en-misa" data-action="remove" data-song-id="${s.id}" aria-label="En la Misa de Hoy. Tocar para quitar">${ico('check', true)}</button>`
-      : `<button class="admin-btn btn-mas" data-action="add" data-song-id="${s.id}" aria-label="Agregar a la Misa de Hoy">${ico('mas', true)}</button>`;
+    : idsElegida().includes(s.id)
+      ? `<button class="admin-btn btn-mas en-misa" data-action="remove" data-song-id="${s.id}" aria-label="En ${escaparHtml(nombreElegida())}. Tocar para quitar">${ico('check', true)}</button>`
+      : `<button class="admin-btn btn-mas" data-action="add" data-song-id="${s.id}" aria-label="Agregar a ${escaparHtml(nombreElegida())}">${ico('mas', true)}</button>`;
   const contenido = `
       <span class="song-main">
         <span class="song-tag">${CMAP[s.category] || s.category}</span>
@@ -1110,30 +1318,40 @@ function elegirCategoria(id) {
 
 // Agrega la canción en su momento litúrgico (insertarEnMisa, en comun.js); el
 // orden fino se ajusta con ↑ ↓
-function addToMisa(songId) {
-  if (misaIds.includes(songId)) return;
-  misaIds = insertarEnMisa(misaIds, songId);
+// Con una preparada elegida, el cambio va a esa y se guarda al instante; si
+// no, al borrador de la Misa de Hoy
+function cambiarElegida(nueva) {
+  const prep = prepElegida();
+  if (prep) { guardarPrep(prep, { canciones: nueva }).catch(() => {}); return; }
+  misaIds = nueva;
   cambioEnMisa();
+}
+
+function addToMisa(songId) {
+  const ids = idsElegida();
+  if (ids.includes(songId)) return;
+  cambiarElegida(insertarEnMisa(ids, songId));
 }
 
 function moverEnMisa(songId, delta) {
-  const i = misaIds.indexOf(songId);
+  const ids = idsElegida().slice();   // copia: misaBase puede ser la misma lista
+  const i = ids.indexOf(songId);
   const j = i + delta;
-  if (i < 0 || j < 0 || j >= misaIds.length) return;
-  misaIds = misaIds.slice();   // copia: misaBase puede ser la misma lista
-  [misaIds[i], misaIds[j]] = [misaIds[j], misaIds[i]];
-  cambioEnMisa();
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  cambiarElegida(ids);
 }
 
 function removeFromMisa(songId) {
-  misaIds = misaIds.filter(id => id !== songId);
-  cambioEnMisa();
+  cambiarElegida(idsElegida().filter(id => id !== songId));
 }
 
 // La marca de cambios se baja antes del set(): así el eco de la propia
 // publicación (igual a la lista local) no dispara el aviso de otra versión
 // Se guardan en una sola operación la misa y quién/cuándo la publicó
 function publicarMisa() {
+  const prep = prepElegida();
+  if (prep) { mostrarALosFieles(prep); return; }
   const habiaCambios = misaSinPublicar;
   misaSinPublicar = false;
   const por = (usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin';
@@ -1146,6 +1364,11 @@ function publicarMisa() {
 }
 
 function limpiarMisa() {
+  const prep = prepElegida();
+  if (prep) {
+    if (confirm(`¿Sacar todas las canciones de «${prep.nombre}»?`)) guardarPrep(prep, { canciones: [] }).catch(() => {});
+    return;
+  }
   if (!confirm('¿Limpiar la lista local? (No afecta Firebase hasta que publiques)')) return;
   misaIds = [];
   cambioEnMisa();
@@ -1225,7 +1448,8 @@ document.getElementById('list').addEventListener('click', e => {
     else if (accion === 'remove') removeFromMisa(id);
     // Que se note: aviso, salto del contador de Misa de Hoy y vibración corta
     if (accion === 'add' || (accion === 'remove' && af !== 'misa')) {
-      avisar(accion === 'add' ? `✓ Agregada a la Misa de Hoy (${misaIds.length})` : `Quitada de la Misa de Hoy (${misaIds.length})`);
+      const n = idsElegida().length;
+      avisar(accion === 'add' ? `✓ Agregada a ${nombreElegida()} (${n})` : `Quitada de ${nombreElegida()} (${n})`);
       const contador = document.querySelector('.cat-chip[data-cat="misa"] .chip-count');
       if (contador) contador.classList.add('pulso');
     }
@@ -1291,14 +1515,18 @@ document.getElementById('si').addEventListener('input', function () {
 });
 
 // ── Compartir la misa (WhatsApp o lo que ofrezca el celular) ──
+// Una preparada lleva su link (los fieles todavía no la ven: sin link de banco)
 function textoMisa() {
   const base = new URL('index.html', window.location.href).href;
+  const prep = prepElegida();
   const lineas = getMisaSongs().map(s => {
     const cat = CATS.find(([id]) => id === s.category);
     return `${cat ? cat[2] + ' ' + cat[1] : '🎵'}: ${s.title}`;
   });
-  return `🎶 *Misa de Hoy* — Coro Virgen del Carmen\n\n${lineas.join('\n')}\n\n` +
-    `🎸 Músicos: ${base}?cat=misa\n🙏 Para seguir las letras: ${base}?modo=banco`;
+  const titulo = prep ? prep.nombre : nombreMisaDeHoy();
+  return `🎶 *${titulo}* — Coro Virgen del Carmen\n\n${lineas.join('\n')}\n\n` +
+    (prep ? `🎸 Músicos: ${base}?cat=misa&misa=${prep.id}`
+      : `🎸 Músicos: ${base}?cat=misa\n🙏 Para seguir las letras: ${base}?modo=banco`);
 }
 
 document.getElementById('btnCompartir').addEventListener('click', () => {

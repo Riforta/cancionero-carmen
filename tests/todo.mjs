@@ -18,6 +18,7 @@ await import('./letra.mjs');
 await import('./dibujo-letra.mjs');
 await import('./avisos.mjs');
 await import('./borrador.mjs');
+await import('./misas.mjs');
 await import('./medios-admin.mjs');
 await import('./editor.mjs');
 await import('./canciones-web.mjs');

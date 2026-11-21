@@ -19,7 +19,7 @@ Reglas de negocio, decisiones de arquitectura e implementaciones futuras: @AGENT
 - `letras/*.txt` — un archivo de texto por canción, con la letra y los acordes (formato abajo).
 - `assets/` — logos, imágenes e íconos de la interfaz (`iconos.svg`, ver D21).
 - `sw.js` + `offline.js` — funcionamiento sin internet: muestra la copia guardada al instante y la actualiza en segundo plano (D15). Un cambio de código se ve en la segunda carga o con el aviso "Actualizar".
-- La categoría "Misa de Hoy" se sincroniza vía Firebase Realtime Database (`misa_actual`). Lo armado sin publicar queda como borrador en el celular (§4 de AGENTS.md). `?admin=true` muestra los botones de edición; `?modo=banco` oculta acordes y controles (vista para los fieles).
+- La categoría "Misa de Hoy" se sincroniza vía Firebase Realtime Database (`misa_actual`). Lo armado sin publicar queda como borrador en el celular (§4 de AGENTS.md). Puede haber además misas preparadas (`misas/<clave>`, `?misa=<clave>`), y el admin elige cuál ven los fieles (D27). `?admin=true` muestra los botones de edición; `?modo=banco` oculta acordes y controles (vista para los fieles).
 
 ## Formato de letras
 
