@@ -4,7 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { agregarASongs, leerSongs, planificar, canonica } from '../herramientas/pasar-web-al-repo.mjs';
+import { agregarASongs, quitarDeSongs, leerSongs, planificar, canonica } from '../herramientas/pasar-web-al-repo.mjs';
 
 const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 let fallas = 0;
@@ -52,6 +52,24 @@ check('canonica: LF y sin espacios al final', canonica('a  \r\nb\r\n\r\n') === '
   check('título con comillas, escapado', s.find(x => x.id === 'ent_nueva').title === 'Entrada "nueva"');
   check('la última de la lista sin coma, las demás con', /"category": "navidad" \}\n\];/.test(t) && /"title": "Noche de paz", "category": "navidad" \},\n/.test(t));
   check('el resto del archivo no cambia', t.replace(/\n.*"(ent_nueva|nav_noche-de-paz|nav_otra)".*/g, '').replace(/\n\n  \/\/ --- NAVIDAD \(nav_\) ---/, '').replace(/("category": "varias" \}),\n\];/, '$1\n];') === textoSongs);
+}
+
+// ── Eliminadas desde la web (D26) ──
+{
+  const p = planificar({ SONGS, archivo,
+    eliminadas: { ofert_toma: { titulo: 'Toma' }, 'nav_x': { titulo: 'X' } },
+    indice: { 'nav_x': { titulo: 'X', categoria: 'navidad' } },
+    canciones: { ofert_toma: { letra: '[RE]otra\n' }, 'nav_x': { letra: 'x\n' } } });
+  check('eliminada del repo: se borra; eliminada de la web: no se pasa', p.borrar.join() === 'ofert_toma' && !p.entradas.length && !p.letras.length, JSON.stringify(p));
+  const ultima = SONGS[SONGS.length - 1].id;
+  let t = quitarDeSongs(textoSongs, 'ofert_toma');
+  t = quitarDeSongs(t, ultima);
+  const s = leerSongs(t).SONGS;
+  check('quitarDeSongs: songs.js válido, sin las dos', s.length === SONGS.length - 2 && !s.some(x => x.id === 'ofert_toma' || x.id === ultima));
+  check('quitarDeSongs: la nueva última queda sin coma', /"category": "varias" \}\n\];/.test(t));
+  let b = agregarASongs(textoSongs, { id: 'nav_a', num: 0, title: 'A', category: 'navidad' }, CATS);
+  b = quitarDeSongs(b, 'nav_a');
+  check('quitarDeSongs: un bloque que queda vacío se va con su comentario', b === textoSongs, JSON.stringify(b.slice(-200)));
 }
 
 console.log(fallas ? `\n${fallas} FALLA(S)` : '\nTODO OK');

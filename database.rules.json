@@ -103,6 +103,25 @@
         }
       }
     },
+    "eliminadas": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email_verified == true && root.child('admins').child(auth.token.email.toLowerCase().replace('.', ',')).val() == true",
+        ".validate": "$id.matches(/^[a-z]+_[a-z0-9-]+$/) && newData.hasChildren(['titulo', 'por', 'cuando'])",
+        "titulo": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
+        },
+        "por": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+        },
+        "cuando": {
+          ".validate": "newData.isNumber() && newData.val() == now"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
+    },
     "avisos": {
       ".read": true,
       "$id": {

@@ -13,7 +13,7 @@ await p.go('/index.html', 4000);
 await p.ev(`navigator.serviceWorker.ready.then(() => true)`);
 await wait(4000); // precache de letras
 const cache = await p.ev(`caches.keys().then(async ks => { const c = await caches.open(ks.find(k => k.startsWith('cancionero-'))); const keys = (await c.keys()).map(r => r.url); return { claves: ks, total: keys.length, letras: keys.filter(u => u.includes('/letras/')).length, gstatic: keys.filter(u => u.includes('gstatic.com/firebasejs')).length, fuentes: keys.filter(u => u.includes('fonts.googleapis')).length, woff: keys.filter(u => u.includes('fonts.gstatic.com')).length }; })`);
-const totalSongs = await p.ev('SONGS.length');
+const totalSongs = await p.ev('SONGS_REPO.length');   // las de songs.js (las de la web no tienen archivo)
 check('service worker activo', (await p.ev('navigator.serviceWorker.ready.then(r => !!r.active)')) === true);
 check('todas las letras guardadas', cache.letras === totalSongs, `${cache.letras}/${totalSongs}`);
 check('SDK de Firebase guardado', cache.gstatic >= 2, String(cache.gstatic));
@@ -70,7 +70,7 @@ await c.swOffline(false, 4000);
 await p.go('/cancion.html?id=ofert_toma', 1500);
 check('red lenta: la canción carga al instante desde la copia', (await p.ev(`document.getElementById('song-title').textContent`)) === 'Toma' && (await p.ev(`document.querySelectorAll('#letra-box c[data-original]').length`)) > 5);
 await p.go('/index.html?cat=todas', 1500);
-check('red lenta: el índice carga al instante desde la copia', (await p.ev(`document.querySelectorAll('.song-row').length`)) === totalSongs);
+check('red lenta: el índice carga al instante desde la copia', (await p.ev(`document.querySelectorAll('.song-row').length`)) === (await p.ev('SONGS.length')), String(await p.ev(`document.querySelectorAll('.song-row').length + ' filas, SONGS ' + SONGS.length`)));   // con las de la web
 await c.swOffline(false, 0);
 await wait(5000);   // terminan las actualizaciones lentas en segundo plano
 

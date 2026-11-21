@@ -108,31 +108,51 @@ function slugDe(titulo) {
 
 const RE_ID = /^[a-z]+_[a-z0-9-]+$/;
 
+// Las canciones de songs.js tal como vienen (antes de sumar o sacar nada)
+const SONGS_REPO = typeof SONGS !== 'undefined' ? SONGS.slice() : [];
+
 // Lo que llega de Firebase → canciones válidas (las del repo ganan si el id se repite)
 function cancionesWebDe(val) {
   if (!val || typeof val !== 'object') return [];
   return Object.entries(val)
     .filter(([id, c]) => RE_ID.test(id) && c && typeof c.titulo === 'string' && c.titulo.trim() &&
-      PREFIJOS[c.categoria] && !SONGS.some(s => s.id === id && !s.web))
+      PREFIJOS[c.categoria] && !SONGS_REPO.some(s => s.id === id))
     .map(([id, c]) => ({ id, num: Number.isInteger(c.num) ? c.num : 0, title: c.titulo.trim(), category: c.categoria, web: true }));
 }
 
-// Reemplaza las canciones de la web de SONGS. Devuelve true si cambió algo
-function mezclarCancionesWeb(val) {
-  const nuevas = cancionesWebDe(val);
-  const antes = JSON.stringify(SONGS.filter(s => s.web));
-  for (let i = SONGS.length - 1; i >= 0; i--) if (SONGS[i].web) SONGS.splice(i, 1);
-  SONGS.push(...nuevas);
-  return JSON.stringify(nuevas) !== antes;
+// Canciones eliminadas desde la web (D26): eliminadas/<id> = { titulo, por,
+// cuando }. No se ven en ningún lado hasta que se recuperan
+let cancionesEliminadas = {};
+function eliminadasDe(val) {
+  if (!val || typeof val !== 'object') return {};
+  return Object.fromEntries(Object.entries(val).filter(([id, e]) => RE_ID.test(id) && e && typeof e === 'object'));
 }
-if (typeof SONGS !== 'undefined') mezclarCancionesWeb(leerCopia('canciones_indice'));
 
-// Sigue la lista publicada (en banco, una lectura por REST, D14). Cada vez
-// que cambia dispara 'canciones-web' en document
+// SONGS = las del repo + las de la web, sin las eliminadas. Se toca solo si
+// cambió el resultado. Devuelve true si cambió
+let indiceWeb = null, firmaCanciones = null;
+function armarCanciones() {
+  const lista = [...SONGS_REPO, ...cancionesWebDe(indiceWeb)].filter(s => !cancionesEliminadas[s.id]);
+  const firma = JSON.stringify(lista.map(s => [s.id, s.title, s.category, s.num]));
+  if (firma === firmaCanciones) return false;
+  firmaCanciones = firma;
+  SONGS.splice(0, SONGS.length, ...lista);
+  return true;
+}
+function mezclarCancionesWeb(val) { indiceWeb = val; return armarCanciones(); }
+function mezclarEliminadas(val) { cancionesEliminadas = eliminadasDe(val); return armarCanciones(); }
+if (typeof SONGS !== 'undefined') {
+  indiceWeb = leerCopia('canciones_indice');
+  cancionesEliminadas = eliminadasDe(leerCopia('eliminadas'));
+  armarCanciones();
+}
+
+// Sigue la lista de la web y las eliminadas (en banco, una lectura por REST
+// de cada una, D14). Cada vez que cambia SONGS dispara 'canciones-web'
 function seguirCancionesWeb() {
-  return seguirDato('canciones_indice', 'canciones_indice', val => {
-    if (mezclarCancionesWeb(val)) document.dispatchEvent(new Event('canciones-web'));
-  });
+  const avisar = cambio => { if (cambio) document.dispatchEvent(new Event('canciones-web')); };
+  seguirDato('eliminadas', 'eliminadas', val => avisar(mezclarEliminadas(val)));
+  return seguirDato('canciones_indice', 'canciones_indice', val => avisar(mezclarCancionesWeb(val)));
 }
 
 // ── Misa de Hoy: orden y borrador (index.html y cancion.html) ──

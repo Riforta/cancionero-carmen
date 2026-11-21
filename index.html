@@ -641,6 +641,19 @@ body.banco-mode #cat-wrap { display: none; }
 [data-theme="dark"] .nueva-aviso { color: #E8987E; }
 .nueva-acciones { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.8rem; }
 .nueva-acciones .admin-action-btn { min-height: 44px; }
+.eliminadas {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem 0.9rem;
+  text-align: left;
+  background: var(--bg);
+  border: 1.5px dashed var(--border-mid);
+  border-radius: var(--radio);
+}
+.eliminadas-lista { list-style: none; }
+.eliminadas-lista li { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.35rem 0; }
+.eliminadas-lista li + li { border-top: 1px solid var(--border); }
+.eliminadas-lista .el-titulo { font-size: 1.02rem; color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--border-mid); }
+.eliminadas-lista .admin-action-btn { min-height: 40px; padding: 0.3rem 0.9rem; white-space: nowrap; }
 a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: center; }
 .admin-btn {
   background: none;
@@ -799,6 +812,11 @@ a.admin-action-btn { text-decoration: none; display: inline-flex; align-items: c
         <button id="nuevaCrear" class="admin-action-btn principal" type="submit">Crear y cargar la letra</button>
       </div>
     </form>
+    <!-- Canciones eliminadas (D26): se pueden recuperar -->
+    <div id="eliminadasCaja" class="eliminadas" hidden>
+      <div class="nueva-titulo">Eliminadas</div>
+      <ul id="eliminadasLista" class="eliminadas-lista"></ul>
+    </div>
   </section>
 
 </main>
@@ -1348,8 +1366,25 @@ if (MODO.admin) {
   const categoria = document.getElementById('nuevaCategoria');
   const numero = document.getElementById('nuevaNum');
   categoria.innerHTML = CATS.filter(([id]) => id !== 'misa').map(([id, label]) => `<option value="${id}">${label}</option>`).join('');
-  const pintarNueva = () => { caja.hidden = !esAdminOk; };
+  // Las eliminadas (D26), con "Recuperar"
+  const listaEliminadas = document.getElementById('eliminadasLista');
+  const pintarNueva = () => {
+    caja.hidden = !esAdminOk;
+    const ids = Object.keys(cancionesEliminadas);
+    document.getElementById('eliminadasCaja').hidden = !ids.length;
+    listaEliminadas.innerHTML = ids.map(id => `<li><span class="el-titulo">${escaparHtml(String(cancionesEliminadas[id].titulo || id))}</span>` +
+      `<button class="admin-action-btn" type="button" data-recuperar="${id}">${ico('actualizar')}Recuperar</button></li>`).join('');
+  };
+  listaEliminadas.addEventListener('click', e => {
+    const btn = e.target.closest('[data-recuperar]');
+    if (!btn) return;
+    const id = btn.dataset.recuperar;
+    escribirVarios(misaRef, misaRef ? { ['eliminadas/' + id]: null } : null, btn, 'recuperar la canción')
+      .then(() => avisar(`✓ Recuperada: ${cancionesEliminadas[id] ? cancionesEliminadas[id].titulo : id}`))
+      .catch(() => {});
+  });
   document.addEventListener('sesion-admin', pintarNueva);
+  document.addEventListener('canciones-web', pintarNueva);
   pintarNueva();
   const decir = texto => { aviso.textContent = texto; aviso.hidden = !texto; };
 
@@ -1377,7 +1412,8 @@ if (MODO.admin) {
     if (mismoNum && !confirm(`El n.º ${num} de ${CMAP[cat]} ya es «${mismoNum.title}». ¿Crear igual?`)) return;
     const raiz = `${PREFIJOS[cat]}_${slugDe(t) || 'cancion'}`;
     let id = raiz;
-    for (let k = 2; SONGS.some(s => s.id === id); k++) id = `${raiz}-${k}`;
+    const usado = x => SONGS.some(s => s.id === x) || SONGS_REPO.some(s => s.id === x) || !!cancionesEliminadas[x];
+    for (let k = 2; usado(id); k++) id = `${raiz}-${k}`;
     const entrada = { titulo: t, categoria: cat, num };
     const por = (usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin';
     escribirVarios(misaRef, misaRef ? {
@@ -1405,19 +1441,27 @@ let limpiezaHecha = false;
 function limpiarLoPasadoAlRepo() {
   if (limpiezaHecha || !MODO.admin || !esAdminOk || !misaRef || !navigator.onLine) return;
   limpiezaHecha = true;
-  const deRepo = id => SONGS.some(s => s.id === id && !s.web);
+  const deRepo = id => SONGS_REPO.some(s => s.id === id);
   const canonica = t => escribirLetra(parsearLetra(t));
+  const TREINTA_DIAS = 30 * 24 * 3600 * 1000;
   // Solo con la sesión de Google ya confirmada (la recordada puede no estarlo)
   cargarAuth()
     .then(auth => new Promise(ok => { const fin = auth.onAuthStateChanged(u => { if (typeof fin === 'function') fin(); ok(u); }); }))
-    .then(usuario => usuario && esAdminOk ? Promise.all([leerFirebase('canciones'), leerFirebase('canciones_indice')]) : null)
+    .then(usuario => usuario && esAdminOk ? Promise.all([leerFirebase('canciones'), leerFirebase('canciones_indice'), leerFirebase('eliminadas')]) : null)
     .then(async datos => {
       if (!datos) return;
-      const [canciones, indice] = datos;
+      const [canciones, indice, eliminadas] = datos;
       const cambios = {};
+      // Eliminadas que ya no están en el repo (las sacó el script) o de la
+      // web con más de 30 días: se borra todo lo suyo (D26)
+      for (const [id, e] of Object.entries(eliminadas || {})) {
+        const deLaWeb = !!(indice && indice[id]);
+        if (deRepo(id) || (deLaWeb && !(e && typeof e.cuando === 'number' && Date.now() - e.cuando > TREINTA_DIAS))) continue;
+        ['eliminadas', 'canciones_indice', 'canciones', 'notas', 'tonos', 'medios'].forEach(r => { cambios[`${r}/${id}`] = null; });
+      }
       Object.keys(indice || {}).filter(deRepo).forEach(id => { cambios['canciones_indice/' + id] = null; });
       for (const [id, c] of Object.entries(canciones || {})) {
-        if (!deRepo(id) || !c || typeof c.letra !== 'string') continue;
+        if (!deRepo(id) || cambios['canciones/' + id] === null || !c || typeof c.letra !== 'string') continue;
         const archivo = await fetch(`letras/${id}.txt`).then(r => r.ok ? r.text() : null).catch(() => null);
         if (archivo !== null && canonica(archivo) === canonica(c.letra)) cambios['canciones/' + id] = null;
       }

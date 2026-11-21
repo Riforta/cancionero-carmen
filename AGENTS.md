@@ -91,6 +91,8 @@ admin" del encabezado pasa de una a otra (2026-10-01):
     canciones cargadas desde la web (D24).
   - `canciones_indice/<id>`: `{ titulo, categoria, num }`, las canciones
     cargadas desde la web; se suman a `SONGS` (D24).
+  - `eliminadas/<id>`: `{ titulo, por, cuando }`, las canciones eliminadas
+    desde la web; no se ven en ningún lado hasta que se recuperan (D26).
   - `admins/<email>`: `true` para cada admin autorizado. El email va en
     minúsculas y con los puntos cambiados por comas (`claveAdmin()`).
 - Hosting: GitHub Pages.
@@ -315,8 +317,9 @@ sola vez:
   `acordesDeRenglon`, `renglonDeAcordes`, `normalizarRenglon` y
   `ubicarAcorde`; para la pestaña "Texto" (D24): `normalizarNombres`,
   `revisarLetra` y `desdeAcordesArriba`.
-- **`comun.js`, canciones de la web** (D24): `PREFIJOS`, `slugDe`,
-  `mezclarCancionesWeb` y `seguirCancionesWeb`.
+- **`comun.js`, canciones de la web y eliminadas** (D24, D26): `PREFIJOS`,
+  `slugDe`, `SONGS_REPO`, `cancionesEliminadas`, `armarCanciones`,
+  `mezclarCancionesWeb`, `mezclarEliminadas` y `seguirCancionesWeb`.
 - **`comun.css`:** paleta, base, encabezado, `[hidden]` global, la base de los
   botones píldora, la barra de sesión y el aviso sin conexión.
   - Las páginas no inyectan estilos desde JS.
@@ -590,9 +593,7 @@ de canciones editables, §6).
 - **Reglas** (§7): `canciones_indice/<id>`: escribe un admin; id con forma de
   canción; `titulo` de 1 a 120; `categoria` una clave de `CATS` (no `misa`);
   `num` entero de 0 a 999; nada más. Lectura pública.
-- **Borrar una canción de la web:** todavía no hay botón; se borran a mano
-  en la consola las dos entradas (`canciones_indice/<id>` y
-  `canciones/<id>`).
+- **Borrar una canción:** "Eliminar esta canción" (D26).
 - **Pruebas:** `tests/canciones-web.mjs`, más casos en `letra.node.mjs`.
 
 **D25. Respaldo en el repo de lo cargado desde la web** (2026-11-20, etapa 4
@@ -630,6 +631,35 @@ cuando el usuario lo pide ("pasá las canciones de la web al repo").
     se queda: sigue pisando al archivo.
 - **Pruebas:** `tests/pasar-al-repo.node.mjs` (el script, con datos
   inventados) y la limpieza en `tests/canciones-web.mjs`.
+
+**D26. Eliminar canciones** (2026-11-20). Un admin con sesión saca una
+canción del cancionero desde la web, sea del repo o cargada desde la web, y
+se puede recuperar.
+- **Cómo:** "Eliminar esta canción", al final de la página de la canción
+  (admin con sesión), con confirmación. Marca `eliminadas/<id>` =
+  `{ titulo, por, cuando }` y vuelve al índice. No borra nada todavía.
+- **Qué pasa:** `comun.js` arma `SONGS` = las de `songs.js` (`SONGS_REPO`) +
+  las de la web, **sin las eliminadas** (`armarCanciones`). Con eso deja de
+  verse en la lista, las categorías, la búsqueda, la Misa de Hoy (también en
+  banco: se lee `eliminadas` por REST) y anterior / siguiente. La lista se
+  sigue con `seguirCancionesWeb()` y tiene copia en
+  `localStorage.eliminadas`.
+- **Recuperar:** al final del índice (admin con sesión), la lista
+  "Eliminadas", cada una con "Recuperar". También desde el link de la canción
+  eliminada ("Recuperar esta canción"). Borra la marca.
+- **Borrado del todo:**
+  - Del repo: `herramientas/pasar-web-al-repo.mjs` saca su entrada de
+    `songs.js` (`quitarDeSongs`; si el bloque queda vacío, también su
+    comentario) y borra `letras/<id>.txt`. Una eliminada de la web no se pasa.
+  - De Firebase: la limpieza del índice (D25) borra `eliminadas`,
+    `canciones_indice`, `canciones`, `notas`, `tonos` y `medios` de una
+    eliminada que ya no está en `songs.js` (la sacó el script), o de una de la
+    web eliminada hace más de 30 días. Hasta entonces se puede recuperar.
+- **Nueva canción** no reusa el id de una eliminada.
+- **Reglas** (§7): `eliminadas/<id>`: escribe un admin; id con forma de
+  canción; `titulo` hasta 120; `por` hasta 80; `cuando` la hora del servidor;
+  nada más. Lectura pública.
+- **Pruebas:** `tests/eliminar.mjs` y casos en `pasar-al-repo.node.mjs`.
 ---
 
 ## 3. Reglas de negocio: canciones
@@ -1172,8 +1202,10 @@ Lo planeado:
 - **Editar y cargar canciones desde la web:** ver "Plan: canciones editables
   desde la web", arriba. Terminado (2026-11-20); para pasar lo de la web al
   repo, D25.
-- Botón para borrar una canción cargada desde la web (hoy, en la consola;
-  D24).
+- **Más de una misa a la vez** (pedido 2026-11-20): preparar las canciones de
+  varias misas (por ejemplo, sábado y domingo, o la de la semana que viene
+  mientras sigue publicada la de hoy). Falta decidir con el usuario cómo
+  (opciones planteadas en el chat del 2026-11-20).
 
 - Vista de calendario de los avisos (grilla del mes con puntos en los días con
   eventos; al tocar un día, sus avisos). Decidido: después de la lista.
@@ -1217,7 +1249,9 @@ por canción); sin pegarlas, agregar un audio desde la app da "Permission
 denied". Desde 2026-11-17 se suma `canciones` (letras corregidas desde la web,
 D23); sin pegarlas, guardar los acordes da "Permission denied". Desde
 2026-11-20 se suma `canciones_indice` (canciones nuevas desde la web, D24); sin
-pegarlas, "Nueva canción" da "Permission denied".
+pegarlas, "Nueva canción" da "Permission denied". Desde la misma fecha se
+suma `eliminadas` (D26); sin pegarlas, eliminar una canción da "Permission
+denied".
 
 **Para comprobar las reglas:** sin sesión, escribir por REST tiene que dar
 `Permission denied`. Por ejemplo:

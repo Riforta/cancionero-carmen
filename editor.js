@@ -607,6 +607,42 @@ if (isAdmin && !esBanco && idValido) {
   document.addEventListener('correccion-cambio', () => { pintarBoton(); if (editandoLetra) pintarBarra(); });
   pintarBoton();
 
+  // ── Eliminar la canción (D26) ──
+  // Marca eliminadas/<id>: deja de verse en todos lados. Se recupera desde el
+  // índice (o acá mismo, si se abre su link). Del todo se borra después: las
+  // del repo con herramientas/pasar-web-al-repo.mjs, las de la web a los 30 días
+  const cajaEliminar = $('eliminar');
+  const btnEliminar = $('eliminarBtn');
+  const estaEliminada = () => !!cancionesEliminadas[idCancion];
+  function pintarEliminar() {
+    cajaEliminar.hidden = !esAdminOk || textoVigente() === null && !estaEliminada();
+    const texto = $('eliminarTexto');
+    texto.hidden = !estaEliminada();
+    texto.textContent = 'Esta canción está eliminada: no se ve en la lista ni en la Misa de Hoy.';
+    btnEliminar.innerHTML = estaEliminada() ? ico('actualizar') + 'Recuperar esta canción' : ico('papelera') + 'Eliminar esta canción';
+  }
+  btnEliminar.addEventListener('click', () => {
+    if (estaEliminada()) {
+      escribirVarios(cancionRef, cancionRef ? { ['eliminadas/' + idCancion]: null } : null, btnEliminar, 'recuperar la canción')
+        .then(() => { mezclarEliminadas({ ...cancionesEliminadas, [idCancion]: undefined }); pintarEliminar(); avisar('✓ Recuperada'); })
+        .catch(() => {});
+      return;
+    }
+    if (!confirm(`¿Eliminar «${tituloCancion}» del cancionero? Deja de verse en la lista, en la búsqueda y en la Misa de Hoy. Se puede recuperar desde el índice.`)) return;
+    const por = (usuarioAdmin && (usuarioAdmin.nombre || usuarioAdmin.email)) || 'admin';
+    escribirVarios(cancionRef, cancionRef ? { ['eliminadas/' + idCancion]: { titulo: tituloCancion.slice(0, 120), por: por.slice(0, 80), cuando: horaServidor() } } : null,
+      btnEliminar, 'eliminar la canción')
+      .then(() => {
+        guardarCopia('eliminadas', { ...cancionesEliminadas, [idCancion]: { titulo: tituloCancion } });
+        window.location.href = linkCon('index.html');
+      })
+      .catch(() => {});
+  });
+  document.addEventListener('sesion-admin', pintarEliminar);
+  document.addEventListener('letra-cargada', pintarEliminar);
+  document.addEventListener('canciones-web', pintarEliminar);
+  pintarEliminar();
+
   // Canción recién creada en el índice (?editar=texto): el editor se abre
   // solo en la pestaña "Texto", una vez, cuando hay sesión y letra
   if (urlParams.get('editar') === 'texto') {

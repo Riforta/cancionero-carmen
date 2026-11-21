@@ -558,6 +558,14 @@ body.banco-mode .no-banco { display: none !important; }
 .correccion-texto .ico { color: var(--brown-mid); }
 .correccion .tono-acciones { justify-content: center; }
 
+/* ─── ELIMINAR LA CANCIÓN (admin con sesión, D26): al final de todo ─── */
+.eliminar { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; margin-top: 1.6rem; text-align: center; }
+.eliminar-texto { font-size: 0.98rem; font-style: italic; color: var(--ink-soft); }
+.eliminar-btn { display: inline-flex; align-items: center; min-height: 40px; color: #A4452C; border-color: #E2B4A4; }
+.eliminar-btn .ico { color: #A4452C; }
+[data-theme="dark"] .eliminar-btn, [data-theme="dark"] .eliminar-btn .ico { color: #E8987E; }
+[data-theme="dark"] .eliminar-btn { border-color: #6A3A2C; }
+
 /* ─── EDITOR DE ACORDES (admin con sesión, editor.js, D23) ─── */
 /* El lápiz, al lado de "Acordes". La palabra "Editar" solo si entra */
 .editar-acordes { display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
@@ -839,6 +847,12 @@ html:has(> body.editando-acordes) { scroll-padding: 5.5rem 0 12rem; }
         <button id="medioSave" class="btn-toggle active" type="button">Guardar</button>
       </div>
     </div>
+  </section>
+
+  <!-- Admin con sesión: eliminar la canción del cancionero (D26), o recuperarla -->
+  <section id="eliminar" class="eliminar no-banco" hidden aria-label="Eliminar la canción">
+    <span id="eliminarTexto" class="eliminar-texto" hidden></span>
+    <button id="eliminarBtn" class="nota-edit eliminar-btn" type="button"><svg class="ico" aria-hidden="true"><use href="assets/iconos.svg#papelera"/></svg>Eliminar esta canción</button>
   </section>
 </main>
 
